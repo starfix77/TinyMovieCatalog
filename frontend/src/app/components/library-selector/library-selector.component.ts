@@ -1,9 +1,9 @@
-import { Component, OnInit, inject, signal, effect } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, inject, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { LibraryService } from '../../services/library.service';
-import { Library } from '../../models/library.model';
+import { Library, ScanCompareMode } from '../../models/library.model';
 
 @Component({
   selector: 'app-library-selector',
@@ -29,7 +29,19 @@ export class LibrarySelectorComponent implements OnInit {
   private scanSockets = new Map<number, WebSocket>();
   pendingDeleteId = signal<number | null>(null);
 
+  // ---------- Boite de dialogue de confirmation de scan ----------
+  scanDialogLibrary = signal<Library | null>(null);
+  scanCompareMode: ScanCompareMode = 'simple';
+  @ViewChild('scanYesBtn') private scanYesBtnRef?: ElementRef<HTMLButtonElement>;
+
   constructor() {
+    effect(() => {
+      // Place le focus par defaut sur le bouton "Oui" a l'ouverture de la boite.
+      if (this.scanDialogLibrary()) {
+        setTimeout(() => this.scanYesBtnRef?.nativeElement.focus());
+      }
+    });
+
     effect(() => {
       const progress = this.scanProgress();
       if (!progress) return;
@@ -110,14 +122,34 @@ export class LibrarySelectorComponent implements OnInit {
     });
   }
 
-  scan(lib: Library, event: Event): void {
+  /** Ouvre la boite de dialogue de confirmation avant de lancer un scan. */
+  askScan(lib: Library, event: Event): void {
     event.stopPropagation();
+    if (this.scanningId() === lib.id) return;
+
+    this.scanCompareMode = 'simple';
+    this.scanDialogLibrary.set(lib);
+  }
+
+  cancelScanDialog(): void {
+    this.scanDialogLibrary.set(null);
+  }
+
+  confirmScanDialog(): void {
+    const lib = this.scanDialogLibrary();
+    if (!lib) return;
+    const compareMode = this.scanCompareMode;
+    this.scanDialogLibrary.set(null);
+    this.scan(lib, compareMode);
+  }
+
+  private scan(lib: Library, compareMode: ScanCompareMode): void {
     if (this.scanningId() === lib.id) return;
 
     this.scanningId.set(lib.id);
     this.scanMessage.set(null);
 
-    this.libraryService.scanLibrary(lib.id).subscribe({
+    this.libraryService.scanLibrary(lib.id, compareMode).subscribe({
       next: () => {
         const socket = this.libraryService.watchScan(lib.id);
         this.scanSockets.get(lib.id)?.close();

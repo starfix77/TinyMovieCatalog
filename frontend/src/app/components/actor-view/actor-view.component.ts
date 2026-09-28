@@ -6,7 +6,7 @@ import { Subject, debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs
 import { LibraryService } from '../../services/library.service';
 import { ActorService } from '../../services/actor.service';
 import { MovieService } from '../../services/movie.service';
-import { ActorFilmography, ActorSearchResult } from '../../models/actor.model';
+import { ActorFilmography, ActorFilmographyEntry, ActorSearchResult } from '../../models/actor.model';
 import { Movie } from '../../models/movie.model';
 import { MovieDetailComponent } from '../movie-detail/movie-detail.component';
 
@@ -49,6 +49,20 @@ export class ActorViewComponent {
   filmographyError = signal<string | null>(null);
 
   selectedMovie = signal<Movie | null>(null);
+
+  // Case a cocher "affiche uniquement les films de la bibliotheque" (cochee
+  // par defaut) : filtre l'affichage de la filmographie cote client, sans
+  // nouvel appel serveur (les donnees completes sont deja recuperees).
+  onlyLibraryMovies = signal(true);
+
+  toggleOnlyLibraryMovies(checked: boolean): void {
+    this.onlyLibraryMovies.set(checked);
+  }
+
+  /** Films a afficher dans la grille, filtres selon la case a cocher. */
+  visibleMovies(filmo: ActorFilmography): ActorFilmographyEntry[] {
+    return this.onlyLibraryMovies() ? filmo.movies.filter((m) => m.in_library) : filmo.movies;
+  }
 
   constructor() {
     this.queryChanged

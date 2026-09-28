@@ -2,7 +2,7 @@
   <div class="brand">
     <!-- <span class="brand-mark">MF</span> -->
     <div>
-      <h1>TinyMovieCatalog v0.4</h1>
+      <h1>TinyMovieCatalog v0.5</h1>
       <p class="tagline">Collection de films locales</p>
     </div>
   </div>
@@ -17,7 +17,7 @@
         <div class="library-item-meta">
           <span class="movie-count">{{ lib.movie_count }} film{{ lib.movie_count > 1 ? 's' : '' }}</span>
           <div class="library-actions">
-            <button class="icon-btn" title="Scanner cette bibliotheque" (click)="scan(lib, $event)" [disabled]="scanningId() === lib.id">
+            <button class="icon-btn" title="Scanner cette bibliotheque" (click)="askScan(lib, $event)" [disabled]="scanningId() === lib.id">
               {{ scanningId() === lib.id ? '…' : '⟳' }}
             </button>
             <button class="icon-btn danger" title="Supprimer cette bibliotheque" (click)="askDelete(lib, $event)">✕</button>
@@ -83,3 +83,35 @@
     </div>
   }
 </aside>
+
+@if (scanDialogLibrary(); as lib) {
+  <div class="scan-dialog-backdrop" (click)="cancelScanDialog()">
+    <div class="scan-dialog" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <p class="scan-dialog-question">
+        Voulez-vous scanner et/ou mettre à jour la bibliothèque "{{ lib.name }}" ?
+      </p>
+
+      <div class="scan-dialog-modes">
+        <label class="scan-mode-option">
+          <input type="radio" name="scan-compare-mode" value="simple" [(ngModel)]="scanCompareMode" />
+          <span>
+            <strong>Comparaison simple</strong>
+            <small>(basée uniquement sur le nom du dossier)</small>
+          </span>
+        </label>
+        <label class="scan-mode-option">
+          <input type="radio" name="scan-compare-mode" value="deep" [(ngModel)]="scanCompareMode" />
+          <span>
+            <strong>Comparaison approfondie</strong>
+            <small>(basée sur le contenu du dossier)</small>
+          </span>
+        </label>
+      </div>
+
+      <div class="scan-dialog-actions">
+        <button type="button" class="btn btn-ghost" (click)="cancelScanDialog()">Annuler</button>
+        <button #scanYesBtn type="button" class="btn btn-primary" (click)="confirmScanDialog()">Oui</button>
+      </div>
+    </div>
+  </div>
+}

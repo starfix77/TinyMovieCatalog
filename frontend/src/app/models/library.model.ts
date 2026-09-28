@@ -47,4 +47,11 @@ export interface ScanProgress {
   error?: string | null;
   started_at?: string | null;
   finished_at?: string | null;
+  compare_mode?: 'simple' | 'deep';
 }
+
+/** Mode de comparaison utilise lors d'un scan de bibliotheque.
+ *  - simple : identification des films par nom de dossier uniquement (mode historique).
+ *  - deep   : compare en plus le nom du fichier video principal avec celui deja
+ *             enregistre en base, et ne relance ffprobe que s'il a change. */
+export type ScanCompareMode = 'simple' | 'deep';

@@ -37,6 +37,14 @@ class LibraryInfoOut(BaseModel):
     fs_available: bool = True
 
 
+class ScanRequest(BaseModel):
+    # "simple" (defaut, mode historique) : identification des films par nom
+    # de dossier uniquement.
+    # "deep" : compare en plus le nom du fichier video principal avec celui
+    # deja enregistre en base ; ne relance ffprobe que si celui-ci differe.
+    compare_mode: str = "simple"
+
+
 class ScanResult(BaseModel):
     library_id: int
     folders_scanned: int

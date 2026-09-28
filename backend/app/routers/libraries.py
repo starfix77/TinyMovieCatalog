@@ -6,7 +6,7 @@ from sqlalchemy import func
 
 from app.database import get_db
 from app.models import Library, Movie
-from app.schemas import LibraryCreate, LibraryInfoOut, LibraryOut, ScanResult
+from app.schemas import LibraryCreate, LibraryInfoOut, LibraryOut, ScanRequest, ScanResult
 from app.fs_utils import refresh_library_fs_stats
 from app.scan_manager import scan_manager
 
@@ -91,11 +91,12 @@ def delete_library(library_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/{library_id}/scan")
-async def trigger_scan(library_id: int, db: Session = Depends(get_db)):
+async def trigger_scan(library_id: int, payload: ScanRequest = ScanRequest(), db: Session = Depends(get_db)):
     library = db.get(Library, library_id)
     if not library:
         raise HTTPException(404, "Bibliotheque introuvable.")
-    state = await scan_manager.start(library_id)
+    compare_mode = payload.compare_mode if payload.compare_mode in ("simple", "deep") else "simple"
+    state = await scan_manager.start(library_id, compare_mode)
     return scan_manager._serialize(state)
 
 

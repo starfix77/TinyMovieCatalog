@@ -40,6 +40,43 @@
   letter-spacing: 0.04em;
 }
 
+.search-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.search-block-header-filter {
+  margin-top: 16px;
+
+}
+
+label.library-only-toggle {
+  text-transform: none !important;
+}
+
+
+.library-only-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.library-only-toggle input[type='checkbox'] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
 .search-input-wrap {
   position: relative;
 }
@@ -75,6 +112,29 @@
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.loading-spinner {
+  display: inline-block;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--accent);
+  animation: spin 0.9s linear infinite;
+}
+
+.no-movies-hint {
+  grid-column: 1 / -1;
+  padding: 30px 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
 }
 
 .suggestions {

@@ -317,3 +317,87 @@
   justify-content: flex-end;
   gap: 6px;
 }
+
+/* ---------- Boite de dialogue de confirmation de scan ---------- */
+
+.scan-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 9, 12, 0.72);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 24px;
+}
+
+.scan-dialog {
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.scan-dialog-question {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.scan-dialog-modes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.scan-mode-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.scan-mode-option:hover {
+  background: var(--surface-raised);
+}
+
+.scan-mode-option input[type='radio'] {
+  margin-top: 2px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.scan-mode-option span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.scan-mode-option strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.scan-mode-option small {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.scan-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

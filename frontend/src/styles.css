@@ -10,16 +10,22 @@
   --surface: #1b1e27;
   --surface-raised: #232733;
   --surface-hover: #2a2f3d;
-  --border: #2e323f;
+  --border: #383d4de0;
   --border-soft: #262a35;
 
   --text: #ece8de;
   --text-muted: #9296a6;
-  --text-faint: #5b606f;
+  --text-faint: #8d94aa;
 
+  --accent: #07cae4;
+  --accent-soft: rgba(105, 21, 77, 0.16);
+  --accent-strong: #05dcf8;
+
+/*    Color Desert
   --accent: #c9a227;
   --accent-soft: rgba(201, 162, 39, 0.16);
-  --accent-strong: #e0b93a;
+  --accent-strong: #e0b93a; 
+*/
 
   --teal: #4c8b9c;
   --teal-soft: rgba(76, 139, 156, 0.16);

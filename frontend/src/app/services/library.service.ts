@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { Library, LibraryCreate, LibraryInfo, ScanResult, ScanProgress } from '../models/library.model';
+import { Library, LibraryCreate, LibraryInfo, ScanResult, ScanProgress, ScanCompareMode } from '../models/library.model';
 
 @Injectable({ providedIn: 'root' })
 export class LibraryService {
@@ -51,8 +51,8 @@ export class LibraryService {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 
-  scanLibrary(id: number): Observable<ScanProgress> {
-    return this.http.post<ScanProgress>(`${this.baseUrl}/${id}/scan`, {});
+  scanLibrary(id: number, compareMode: ScanCompareMode = 'simple'): Observable<ScanProgress> {
+    return this.http.post<ScanProgress>(`${this.baseUrl}/${id}/scan`, { compare_mode: compareMode });
   }
 
   watchScan(id: number): WebSocket {

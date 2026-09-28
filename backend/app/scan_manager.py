@@ -22,6 +22,7 @@ class ScanState:
     error: Optional[str] = None
     started_at: Optional[str] = None
     finished_at: Optional[str] = None
+    compare_mode: str = "simple"
     clients: set = field(default_factory=set)
 
 
@@ -30,12 +31,12 @@ class ScanManager:
         self._states: dict[int, ScanState] = {}
         self._lock = asyncio.Lock()
 
-    async def start(self, library_id: int) -> ScanState:
+    async def start(self, library_id: int, compare_mode: str = "simple") -> ScanState:
         async with self._lock:
             state = self._states.get(library_id)
             if state and state.status in ("queued", "running"):
                 return state
-            state = ScanState(library_id=library_id, status="queued")
+            state = ScanState(library_id=library_id, status="queued", compare_mode=compare_mode)
             self._states[library_id] = state
         asyncio.create_task(self._run(state))
         return state
@@ -79,6 +80,7 @@ class ScanManager:
             "error": state.error,
             "started_at": state.started_at,
             "finished_at": state.finished_at,
+            "compare_mode": state.compare_mode,
         }
 
     async def _run(self, state: ScanState):
@@ -107,7 +109,7 @@ class ScanManager:
                     loop,
                 )
 
-            result = await asyncio.to_thread(scan_library, db, library, progress)
+            result = await asyncio.to_thread(scan_library, db, library, progress, state.compare_mode)
             await self._update(
                 state,
                 status="completed",

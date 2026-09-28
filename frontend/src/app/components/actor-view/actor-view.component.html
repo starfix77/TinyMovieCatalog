@@ -10,7 +10,20 @@
   } @else {
     <!-- ---------- Partie 1 : recherche d'acteur ---------- -->
     <div class="search-block">
-      <label for="actor-search">Rechercher acteur</label>
+      <div class="search-block-header">
+        <label for="actor-search">Rechercher acteur</label>
+      </div>
+      <div class="search-block-header-filter">
+        <label class="library-only-toggle" for="only-library-movies">
+          <input
+            id="only-library-movies"
+            type="checkbox"
+            [checked]="onlyLibraryMovies()"
+            (change)="toggleOnlyLibraryMovies($any($event.target).checked)"
+          />
+          Affiche uniquement les films de la bibliotheque
+        </label>
+      </div>
       <div class="search-input-wrap">
         <input
           id="actor-search"
@@ -67,7 +80,7 @@
           </div>
 
           <div class="grid">
-            @for (entry of filmo.movies; track entry.tmdb_movie_id + '-' + entry.title) {
+            @for (entry of visibleMovies(filmo); track entry.tmdb_movie_id + '-' + entry.title) {
               <button
                 class="movie-card"
                 [class.absent]="!entry.in_library"
@@ -90,10 +103,15 @@
                   <span class="movie-title">{{ entry.title }}{{ entry.year ? ' (' + entry.year + ')' : '' }}</span>
                 </div>
               </button>
+            } @empty {
+              <p class="no-movies-hint">Aucun film de cet acteur dans la bibliotheque.</p>
             }
           </div>
         } @else if (loadingFilmography()) {
-          <div class="empty-state"><p>Chargement de la filmographie…</p></div>
+          <div class="empty-state loading-state">
+            <span class="loading-spinner" aria-hidden="true">⟳</span>
+            <p>Chargement de la filmographie…</p>
+          </div>
         } @else if (filmographyError()) {
           <div class="empty-state"><p>{{ filmographyError() }}</p></div>
         }

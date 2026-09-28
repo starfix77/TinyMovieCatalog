@@ -127,8 +127,25 @@ def _sync_saga_details(db: Session, saga: Saga) -> None:
     db.flush()
 
 
-def _sync_movie_from_disk(db: Session, library: Library, folder: Path, errors: list) -> tuple[Movie, bool]:
-    """Cree ou met a jour un Movie a partir d'un dossier. Retourne (movie, was_created)."""
+def _sync_movie_from_disk(
+    db: Session,
+    library: Library,
+    folder: Path,
+    errors: list,
+    compare_mode: str = "simple",
+) -> tuple[Movie, bool]:
+    """Cree ou met a jour un Movie a partir d'un dossier. Retourne (movie, was_created).
+
+    compare_mode :
+      - "simple" (par defaut, comportement historique) : le film est
+        identifie uniquement par le nom du dossier ; le fichier video
+        principal est systematiquement ré-analyse (ffprobe) a chaque scan.
+      - "deep" : si le dossier existait deja en base, on compare en plus le
+        nom du fichier MKV/MP4 sur le disque avec celui deja enregistre.
+        S'il est identique, rien n'a change : l'analyse ffprobe est sautee.
+        S'il differe (fichier renomme/remplace), la base est mise a jour et
+        le fichier est ré-analyse via ffprobe.
+    """
     title, year = parse_folder_name(folder.name)
 
     movie = (
@@ -151,14 +168,29 @@ def _sync_movie_from_disk(db: Session, library: Library, folder: Path, errors: l
         db.flush()
         return movie, was_created
 
-    # --- Analyse ffprobe du fichier video ---
-    stat = video_path.stat()
-    video_file = (
+    db.flush()  # garantit movie.id (necessaire pour la recherche ci-dessous)
+
+    existing_video_file = (
         db.query(VideoFile)
         .filter(VideoFile.movie_id == movie.id, VideoFile.filename == video_path.name)
         .first()
-        if movie.id else None
     )
+
+    if compare_mode == "deep" and not was_created:
+        if existing_video_file is not None:
+            # Comparaison approfondie : meme nom de fichier video que lors du
+            # dernier scan -> rien n'a change, on ne relance pas ffprobe.
+            return movie, was_created
+        # Le nom du fichier video principal a change depuis le dernier scan
+        # (renommage, remplacement...) : on purge les anciennes entrees
+        # video devenues obsoletes avant de mettre a jour la base.
+        for stale_video_file in list(movie.video_files):
+            db.delete(stale_video_file)
+        db.flush()
+
+    # --- Analyse ffprobe du fichier video ---
+    stat = video_path.stat()
+    video_file = existing_video_file
     if video_file is None:
         video_file = VideoFile(filename=video_path.name)
         movie.video_files.append(video_file)
@@ -238,7 +270,12 @@ def _sync_movie_from_disk(db: Session, library: Library, folder: Path, errors: l
     return movie, was_created
 
 
-def scan_library(db: Session, library: Library, progress_callback=None) -> ScanResult:
+def scan_library(
+    db: Session,
+    library: Library,
+    progress_callback=None,
+    compare_mode: str = "simple",
+) -> ScanResult:
     root = Path(library.root_path)
     errors: list[str] = []
 
@@ -264,7 +301,7 @@ def scan_library(db: Session, library: Library, progress_callback=None) -> ScanR
             .first()
             is not None
         )
-        _sync_movie_from_disk(db, library, folder, errors)
+        _sync_movie_from_disk(db, library, folder, errors, compare_mode)
         if existed:
             updated += 1
         else:

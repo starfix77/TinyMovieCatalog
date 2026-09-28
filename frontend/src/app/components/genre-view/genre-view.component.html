@@ -1,0 +1,66 @@
+<div class="page">
+  <header class="page-header">
+    <h2>Films par genre</h2>
+    <p class="page-subtitle">
+      Explorez tous vos films classés par genre et découvrez facilement ce que vous avez envie de regarder.
+    </p>
+  </header>
+
+  @if (!activeLibraryId()) {
+    <div class="empty-state">
+      <p>Ajoutez une bibliotheque dans le panneau de gauche pour commencer.</p>
+    </div>
+  } @else if (loading() && movies().length === 0) {
+    <div class="empty-state"><p>Chargement…</p></div>
+  } @else if (sections().length === 0) {
+    <div class="empty-state">
+      <p>Aucun genre disponible. Lancez un scan de la bibliotheque depuis le panneau de gauche.</p>
+    </div>
+  } @else {
+    @for (section of sections(); track section.name) {
+      <section class="genre-section">
+        <div class="genre-header">
+          <h3 class="genre-title">
+            {{ section.name }}
+            <span class="genre-count">({{ section.movies.length }})</span>
+          </h3>
+          @if (section.movies.length > 1) {
+            <button
+              type="button"
+              class="see-all"
+              [attr.aria-expanded]="isExpanded(section.name)"
+              (click)="toggleExpand(section.name)"
+            >
+              {{ isExpanded(section.name) ? 'Réduire' : 'Voir tout' }}
+              <span class="chevron" [class.open]="isExpanded(section.name)" aria-hidden="true">›</span>
+            </button>
+          }
+        </div>
+
+        <div class="genre-grid" [class.expanded]="isExpanded(section.name)">
+          @for (movie of visibleMovies(section); track movie.id) {
+            <button type="button" class="movie-card" (click)="openDetail(movie)">
+              <div class="poster">
+                @if (posterUrl(movie)) {
+                  <img [src]="posterUrl(movie)" [alt]="movie.title" loading="lazy" />
+                } @else {
+                  <div class="poster-placeholder"><span>{{ movie.title.charAt(0) }}</span></div>
+                }
+              </div>
+              <div class="movie-label">
+                <span class="movie-title">{{ movie.title }}</span>
+                @if (movie.year) {
+                  <span class="movie-year">{{ movie.year }}</span>
+                }
+              </div>
+            </button>
+          }
+        </div>
+      </section>
+    }
+  }
+</div>
+
+@if (selectedMovie()) {
+  <app-movie-detail [movie]="selectedMovie()!" (close)="closeDetail()" (movieUpdated)="onMovieUpdated($event)"></app-movie-detail>
+}

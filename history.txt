@@ -1,0 +1,9 @@
+v0.8 - Ajout de la vue « Genre » est ajoutée juste après « Films » 
+- En-tête : le titre « Films par genre » et le sous-titre demandés s'affichent en haut de la page, sur le modèle de votre image.
+- Sections : chaque genre présent dans la bibliothèque a sa propre section, avec « Action (48) » aligné à gauche et « Voir tout › » aligné à droite sur la même ligne. Les genres sont triés par nombre de films décroissant, puis par ordre alphabétique.
+- Aperçu : chaque section montre d'abord une seule ligne de vignettes, avec le titre du film et l'année en dessous. Le nombre de vignettes visibles s'adapte à la largeur de l'écran.
+- « Voir tout » : le clic déploie la section sur place, sans rechargement, et le lien devient « Réduire ». Les autres sections ne bougent pas.
+- Fiche film : cliquer sur une vignette ouvre la fiche détaillée existante.
+- Thèmes : les couleurs suivent le thème clair ou sombre de l'application, et pas seulement le sombre de votre image.
+
+

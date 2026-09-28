@@ -127,7 +127,7 @@
                 <tbody>
                   @for (row of res.rows; track $index) {
                     <tr>
-                      <td class="film-cell">
+                      <td class="film-cell" [class.film-cell-details]="detailsActive()">
                         @if (row.left) {
                           {{ row.left }}
                         } @else {
@@ -144,7 +144,7 @@
                         </span>
                       </td>
 
-                      <td class="film-cell">
+                      <td class="film-cell" [class.film-cell-details]="detailsActive()">
                         @if (row.right) {
                           {{ row.right }}
                         } @else {

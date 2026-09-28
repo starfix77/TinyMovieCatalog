@@ -312,6 +312,12 @@ td.film-cell {
   vertical-align: top;
 }
 
+/* Case « Voir les détails des différences uniquement » cochée : titre du film en 24px
+   (le bloc de détail garde ses propres tailles). */
+td.film-cell.film-cell-details {
+  font-size: 24px;
+}
+
 /* ---------- Bloc "Résultats" ---------- */
 
 .results {

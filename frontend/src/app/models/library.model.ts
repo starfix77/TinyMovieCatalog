@@ -62,10 +62,31 @@ export type CompareMode = 'identical' | 'missing_right' | 'missing_left';
 export type CompareDepth = 'simple' | 'deep';
 export type CompareStatus = 'identical' | 'identical_different_file' | 'missing_right' | 'missing_left';
 
+export interface CompareAudioTrack {
+  language: string | null;
+  codec: string | null;
+  bitrate: number | null;
+  title: string | null;
+}
+
+/** Detail du fichier video principal (meme contenu que le bloc "Fichier video" de la fiche film). */
+export interface CompareVideoDetail {
+  filename: string;
+  video_codec: string | null;
+  width: number | null;
+  height: number | null;
+  size_bytes: number;
+  duration_sec: number | null;
+  audio_tracks: CompareAudioTrack[];
+  subtitles: string[];
+}
+
 export interface CompareRow {
   left: string | null;
   right: string | null;
   status: CompareStatus;
+  left_detail?: CompareVideoDetail | null;
+  right_detail?: CompareVideoDetail | null;
 }
 
 export interface CompareResult {

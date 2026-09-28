@@ -3,15 +3,15 @@ from datetime import datetime, timezone
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 
 from app.database import get_db
 from app.models import Library, Movie, VideoFile
-from app.schemas import CompareOut, CompareRow, LibraryCreate, LibraryInfoOut, LibraryOut, ScanRequest, ScanResult
+from app.schemas import CompareAudioTrack, CompareOut, CompareRow, CompareVideoDetail, LibraryCreate, LibraryInfoOut, LibraryOut, ScanRequest, ScanResult
 from app.fs_utils import refresh_library_fs_stats
 from app.scan_manager import scan_manager
-from app.compare import build_library, compare_libraries
+from app.compare import IDENTICAL_DIFFERENT_FILE, build_library, compare_libraries, folder_key
 
 router = APIRouter(prefix="/api/libraries", tags=["libraries"])
 
@@ -67,12 +67,45 @@ def _load_library_index(db: Session, library_id: int):
     return build_library(rows)
 
 
+def _load_video_details(db: Session, library_id: int) -> dict:
+    """{cle de dossier: CompareVideoDetail} du fichier video principal de chaque film."""
+    movies = (
+        db.query(Movie)
+        .options(
+            joinedload(Movie.video_files).joinedload(VideoFile.audio_tracks),
+            joinedload(Movie.subtitles),
+        )
+        .filter(Movie.library_id == library_id)
+        .all()
+    )
+    out = {}
+    for movie in movies:
+        if not movie.video_files:
+            continue
+        video = movie.video_files[0]  # meme choix que la fiche film (mainVideoFile)
+        out[folder_key(movie.folder_name)] = CompareVideoDetail(
+            filename=video.filename,
+            video_codec=video.video_codec,
+            width=video.width,
+            height=video.height,
+            size_bytes=video.size_bytes or 0,
+            duration_sec=video.duration_sec,
+            audio_tracks=[
+                CompareAudioTrack(language=t.language, codec=t.codec, bitrate=t.bitrate, title=t.title)
+                for t in sorted(video.audio_tracks, key=lambda t: t.track_index)
+            ],
+            subtitles=[s.language_guess or s.filename for s in movie.subtitles],
+        )
+    return out
+
+
 @router.get("/compare", response_model=CompareOut)
 def compare(
     left_id: int = Query(..., description="Bibliotheque #1 (gauche)"),
     right_id: int = Query(..., description="Bibliotheque #2 (droite)"),
     mode: Literal["identical", "missing_right", "missing_left"] = "identical",
     depth: Literal["simple", "deep"] = "simple",
+    details: bool = Query(False, description="Mode identique + approfondi : ne garder que les videos differentes, avec leur detail"),
     db: Session = Depends(get_db),
 ):
     """Compare deux bibliotheques a partir de leur contenu enregistre en base
@@ -90,6 +123,14 @@ def compare(
         mode,
         depth,
     )
+    if details and mode == "identical" and depth == "deep":
+        rows = [r for r in rows if r["status"] == IDENTICAL_DIFFERENT_FILE]
+        left_details = _load_video_details(db, left.id)
+        right_details = _load_video_details(db, right.id)
+        for row in rows:
+            row["left_detail"] = left_details.get(folder_key(row["left"]))
+            row["right_detail"] = right_details.get(folder_key(row["right"]))
+
     return CompareOut(
         left_library_id=left.id,
         left_library_name=left.name,

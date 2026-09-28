@@ -37,11 +37,32 @@ class LibraryInfoOut(BaseModel):
     fs_available: bool = True
 
 
+class CompareAudioTrack(BaseModel):
+    language: Optional[str] = None
+    codec: Optional[str] = None
+    bitrate: Optional[int] = None
+    title: Optional[str] = None
+
+
+class CompareVideoDetail(BaseModel):
+    """Detail du fichier video principal d'un film (vue Comparaison, mode details)."""
+    filename: str
+    video_codec: Optional[str] = None
+    width: Optional[int] = None
+    height: Optional[int] = None
+    size_bytes: int = 0
+    duration_sec: Optional[float] = None
+    audio_tracks: List[CompareAudioTrack] = []
+    subtitles: List[str] = []
+
+
 class CompareRow(BaseModel):
     """Une ligne du tableau de comparaison (film a gauche / statut / film a droite)."""
     left: Optional[str] = None    # "Titre (Annee)" dans la bibliotheque #1, None si absent
     right: Optional[str] = None   # "Titre (Annee)" dans la bibliotheque #2, None si absent
     status: str                   # identical | identical_different_file | missing_right | missing_left
+    left_detail: Optional[CompareVideoDetail] = None    # renseigne uniquement en mode "details"
+    right_detail: Optional[CompareVideoDetail] = None
 
 
 class CompareOut(BaseModel):

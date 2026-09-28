@@ -55,3 +55,5 @@ Les noms de dossiers sont rapprochés sans tenir compte de la casse ni des espac
 Changer un paramètre efface le tableau affiché, pour ne pas montrer un résultat qui ne correspond plus aux choix.
 
 
+
+Vue Comparaison : statut « identique, fichier vidéo différent » renommé « vidéo différente ». En mode Identique + Comparaison approfondie, nouvelle case « Voir les détails des différences uniquement » : ne garde que les films « vidéo différente » et affiche le détail du fichier vidéo (fichier, vidéo, taille, durée, pistes audio, sous-titres) dans les colonnes 1 et 3.

@@ -88,6 +88,16 @@
             <small>(basée sur le contenu du dossier)</small>
           </span>
         </label>
+
+        @if (detailsAvailable()) {
+          <label class="depth-option details-option">
+            <input type="checkbox" name="compare-details" [ngModel]="detailsOnly()" (ngModelChange)="setDetailsOnly($event)" />
+            <span>
+              <strong>Voir les détails des différences uniquement</strong>
+              <small>(films au statut « vidéo différente », avec le détail du fichier vidéo)</small>
+            </span>
+          </label>
+        }
       </div>
     </section>
 
@@ -123,6 +133,9 @@
                         } @else {
                           <span class="none">—</span>
                         }
+                        @if (detailsActive()) {
+                          <ng-container *ngTemplateOutlet="techBlock; context: { $implicit: row.left_detail }" />
+                        }
                       </td>
 
                       <td class="status-cell">
@@ -137,6 +150,9 @@
                         } @else {
                           <span class="none">—</span>
                         }
+                        @if (detailsActive()) {
+                          <ng-container *ngTemplateOutlet="techBlock; context: { $implicit: row.right_detail }" />
+                        }
                       </td>
                     </tr>
                   }
@@ -149,3 +165,42 @@
     </section>
   }
 </div>
+
+<ng-template #techBlock let-d>
+  @if (d) {
+    <div class="tech-block">
+      <h3>Fichier video</h3>
+      <div class="tech-grid">
+        <div><span class="tech-label">Fichier</span><span class="tech-value">{{ d.filename }}</span></div>
+        <div><span class="tech-label">Video</span><span class="tech-value">{{ d.video_codec || '—' }} · {{ resolution(d) }}</span></div>
+        <div><span class="tech-label">Taille</span><span class="tech-value">{{ formatSize(d.size_bytes) }}</span></div>
+        <div><span class="tech-label">Duree</span><span class="tech-value">{{ formatDuration(d.duration_sec) }}</span></div>
+      </div>
+
+      @if (d.audio_tracks.length) {
+        <h3>Pistes audio</h3>
+        <ul class="audio-list">
+          @for (track of d.audio_tracks; track $index) {
+            <li>
+              <span class="audio-lang">{{ track.language || '?' }}</span>
+              <span class="audio-codec">{{ track.codec || '?' }}</span>
+              <span class="audio-bitrate">{{ formatBitrate(track.bitrate) }}</span>
+              @if (track.title) { <span class="audio-title">{{ track.title }}</span> }
+            </li>
+          }
+        </ul>
+      }
+
+      @if (d.subtitles.length) {
+        <h3>Sous-titres</h3>
+        <p class="subtitles-line">
+          @for (sub of d.subtitles; track $index) {
+            <span class="subtitle-chip">{{ sub }}</span>
+          }
+        </p>
+      }
+    </div>
+  } @else {
+    <span class="none">Aucun fichier vidéo</span>
+  }
+</ng-template>

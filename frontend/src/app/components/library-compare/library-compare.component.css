@@ -186,7 +186,8 @@ select:focus,
   cursor: pointer;
 }
 
-.depth-option input[type='radio'] {
+.depth-option input[type='radio'],
+.depth-option input[type='checkbox'] {
   margin-top: 3px;
   accent-color: var(--accent);
   cursor: pointer;
@@ -206,6 +207,109 @@ select:focus,
 .depth-option small {
   font-size: 11px;
   color: var(--text-muted);
+}
+
+.details-option {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-soft);
+}
+
+/* ---------- Détail du fichier vidéo (repris de la fiche film) ---------- */
+
+.tech-block {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.tech-block h3 {
+  margin: 10px 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.tech-block h3:first-child {
+  margin-top: 0;
+}
+
+.tech-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 20px;
+}
+
+.tech-label {
+  display: block;
+  font-size: 10.5px;
+  color: var(--text-faint);
+  margin-bottom: 2px;
+}
+
+.tech-value {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text);
+}
+
+.audio-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.audio-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.audio-lang {
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+  width: 32px;
+}
+
+.audio-codec {
+  color: var(--teal);
+  width: 60px;
+}
+
+.audio-bitrate {
+  color: var(--text-muted);
+  width: 70px;
+}
+
+.audio-title {
+  color: var(--text-faint);
+}
+
+.subtitles-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+}
+
+.subtitle-chip {
+  font-size: 11.5px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  padding: 4px 10px;
+  color: var(--text-muted);
+}
+
+td.film-cell {
+  vertical-align: top;
 }
 
 /* ---------- Bloc "Résultats" ---------- */
@@ -314,5 +418,9 @@ td {
 
   thead th.col-status {
     width: 150px;
+  }
+
+  .tech-grid {
+    grid-template-columns: 1fr;
   }
 }

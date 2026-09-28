@@ -46,12 +46,13 @@ export class LibraryService {
     return this.http.get<LibraryInfo>(`${this.baseUrl}/${id}/info`);
   }
 
-  compareLibraries(leftId: number, rightId: number, mode: CompareMode, depth: CompareDepth): Observable<CompareResult> {
+  compareLibraries(leftId: number, rightId: number, mode: CompareMode, depth: CompareDepth, details = false): Observable<CompareResult> {
     const params = new HttpParams()
       .set('left_id', leftId)
       .set('right_id', rightId)
       .set('mode', mode)
-      .set('depth', depth);
+      .set('depth', depth)
+      .set('details', details);
     return this.http.get<CompareResult>(`${this.baseUrl}/compare`, { params });
   }
 

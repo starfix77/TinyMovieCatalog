@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { LibraryService } from '../../services/library.service';
-import { CompareDepth, CompareMode, CompareResult, CompareStatus } from '../../models/library.model';
+import { CompareDepth, CompareMode, CompareResult, CompareStatus, CompareVideoDetail } from '../../models/library.model';
 
 interface ModeOption {
   value: CompareMode;
@@ -35,6 +35,8 @@ export class LibraryCompareComponent {
   readonly mode = signal<CompareMode>('identical');
   readonly depth = signal<CompareDepth>('simple');
   readonly modeOpen = signal(false);
+  /** Case « Voir les détails des différences uniquement » (mode Identique + approfondie). */
+  readonly detailsOnly = signal(false);
 
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
@@ -46,6 +48,10 @@ export class LibraryCompareComponent {
     return mode ?? this.modes[0]!;
   });
 
+  /** La 3e option n'existe que pour « Identique » + « Comparaison approfondie ». */
+  readonly detailsAvailable = computed(() => this.mode() === 'identical' && this.depth() === 'deep');
+  readonly detailsActive = computed(() => this.detailsAvailable() && this.detailsOnly());
+
   /** Exécuter : bibliothèque #1 et #2 choisies, et différentes. */
   readonly canRun = computed(() => {
     const left = this.leftId();
@@ -55,7 +61,7 @@ export class LibraryCompareComponent {
 
   private readonly statusLabels: Record<CompareStatus, string> = {
     identical: 'identique',
-    identical_different_file: 'identique, fichier vidéo différent',
+    identical_different_file: 'vidéo différente',
     missing_right: 'manquant à droite',
     missing_left: 'manquant à gauche',
   };
@@ -68,6 +74,34 @@ export class LibraryCompareComponent {
   setLeft(id: number | null): void { this.leftId.set(id); this.resetResult(); }
   setRight(id: number | null): void { this.rightId.set(id); this.resetResult(); }
   setDepth(depth: CompareDepth): void { this.depth.set(depth); this.resetResult(); }
+
+  setDetailsOnly(checked: boolean): void {
+    this.detailsOnly.set(checked);
+    // Réactualise le tableau déjà affiché avec le nouveau filtre.
+    if (this.result() !== null) this.execute();
+  }
+
+  formatSize(bytes: number): string {
+    if (!bytes) return '—';
+    const gb = bytes / 1024 / 1024 / 1024;
+    return gb >= 1 ? `${gb.toFixed(2)} Go` : `${(bytes / 1024 / 1024).toFixed(0)} Mo`;
+  }
+
+  formatDuration(seconds: number | null): string {
+    if (!seconds) return '—';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.round((seconds % 3600) / 60);
+    return `${h} h ${m.toString().padStart(2, '0')} min`;
+  }
+
+  formatBitrate(bitsPerSec: number | null): string {
+    if (!bitsPerSec) return '—';
+    return `${(bitsPerSec / 1000).toFixed(0)} kb/s`;
+  }
+
+  resolution(detail: CompareVideoDetail): string {
+    return detail.width && detail.height ? `${detail.width}x${detail.height}` : '—';
+  }
 
   chooseMode(option: ModeOption): void {
     this.mode.set(option.value);
@@ -119,7 +153,7 @@ export class LibraryCompareComponent {
     this.error.set(null);
     this.result.set(null);
 
-    this.libraryService.compareLibraries(left, right, this.mode(), this.depth()).subscribe({
+    this.libraryService.compareLibraries(left, right, this.mode(), this.depth(), this.detailsActive()).subscribe({
       next: (result) => {
         this.result.set(result);
         this.loading.set(false);

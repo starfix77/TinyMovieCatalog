@@ -37,6 +37,24 @@ class LibraryInfoOut(BaseModel):
     fs_available: bool = True
 
 
+class CompareRow(BaseModel):
+    """Une ligne du tableau de comparaison (film a gauche / statut / film a droite)."""
+    left: Optional[str] = None    # "Titre (Annee)" dans la bibliotheque #1, None si absent
+    right: Optional[str] = None   # "Titre (Annee)" dans la bibliotheque #2, None si absent
+    status: str                   # identical | identical_different_file | missing_right | missing_left
+
+
+class CompareOut(BaseModel):
+    left_library_id: int
+    left_library_name: str
+    right_library_id: int
+    right_library_name: str
+    mode: str
+    depth: str
+    total: int
+    rows: List[CompareRow]
+
+
 class ScanRequest(BaseModel):
     # "simple" (defaut, mode historique) : identification des films par nom
     # de dossier uniquement.

@@ -1,6 +1,7 @@
 import { Component, ElementRef, OnInit, ViewChild, inject, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import { LibraryService } from '../../services/library.service';
 import { Library, ScanCompareMode } from '../../models/library.model';
@@ -8,7 +9,7 @@ import { Library, ScanCompareMode } from '../../models/library.model';
 @Component({
   selector: 'app-library-selector',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive],
   templateUrl: './library-selector.component.html',
   styleUrl: './library-selector.component.css',
 })

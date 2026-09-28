@@ -1,14 +1,17 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from typing import Literal
+
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from app.database import get_db
-from app.models import Library, Movie
-from app.schemas import LibraryCreate, LibraryInfoOut, LibraryOut, ScanRequest, ScanResult
+from app.models import Library, Movie, VideoFile
+from app.schemas import CompareOut, CompareRow, LibraryCreate, LibraryInfoOut, LibraryOut, ScanRequest, ScanResult
 from app.fs_utils import refresh_library_fs_stats
 from app.scan_manager import scan_manager
+from app.compare import build_library, compare_libraries
 
 router = APIRouter(prefix="/api/libraries", tags=["libraries"])
 
@@ -51,6 +54,52 @@ def _as_utc(value: datetime | None) -> datetime | None:
     if value is None:
         return None
     return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value
+
+
+def _load_library_index(db: Session, library_id: int):
+    """Films d'une bibliotheque (depuis la base) : nom de dossier + fichiers video."""
+    rows = (
+        db.query(Movie.folder_name, VideoFile.filename, VideoFile.size_bytes)
+        .outerjoin(VideoFile, VideoFile.movie_id == Movie.id)
+        .filter(Movie.library_id == library_id)
+        .all()
+    )
+    return build_library(rows)
+
+
+@router.get("/compare", response_model=CompareOut)
+def compare(
+    left_id: int = Query(..., description="Bibliotheque #1 (gauche)"),
+    right_id: int = Query(..., description="Bibliotheque #2 (droite)"),
+    mode: Literal["identical", "missing_right", "missing_left"] = "identical",
+    depth: Literal["simple", "deep"] = "simple",
+    db: Session = Depends(get_db),
+):
+    """Compare deux bibliotheques a partir de leur contenu enregistre en base
+    (dernier scan de chacune)."""
+    if left_id == right_id:
+        raise HTTPException(400, "Choisissez deux bibliotheques differentes.")
+    left = db.get(Library, left_id)
+    right = db.get(Library, right_id)
+    if not left or not right:
+        raise HTTPException(404, "Bibliotheque introuvable.")
+
+    rows = compare_libraries(
+        _load_library_index(db, left.id),
+        _load_library_index(db, right.id),
+        mode,
+        depth,
+    )
+    return CompareOut(
+        left_library_id=left.id,
+        left_library_name=left.name,
+        right_library_id=right.id,
+        right_library_name=right.name,
+        mode=mode,
+        depth=depth,
+        total=len(rows),
+        rows=[CompareRow(**row) for row in rows],
+    )
 
 
 @router.get("/{library_id}/info", response_model=LibraryInfoOut)

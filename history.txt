@@ -36,3 +36,11 @@ si le contenu du tableau est plus large que la largeur de la fenêtre
 - reduit la largeur de la 2eme colonne "Fichier vidéo" largeur mini 200px et si le nom du fichier est trop long pour la largeur de colonne 
 ajoute le principe  l'ellipsis (ou troncature avec points de suspension).
 
+
+**v0.9 - Ajout de la vue « Comparaison » (bouton « Outils » dans le bandeau latéral)
+
+- Comparaison de deux bibliothèques : modes identique / manquant à droite / manquant à gauche.
+- Option simple (nom du dossier) ou approfondie (nom et taille du fichier vidéo).
+- Résultats en tableau 3 colonnes, triés par ordre alphabétique.
+
+**1.0 - Ajout Outils comparaison de bibliothèques

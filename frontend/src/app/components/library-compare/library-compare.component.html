@@ -1,0 +1,151 @@
+<div class="page">
+  <div class="page-header">
+    <h2>Comparaison des bibliothèques</h2>
+  </div>
+
+  @if (libraries().length < 2) {
+    <div class="empty-state">
+      <p>Ajoutez au moins deux bibliothèques dans le panneau de gauche pour pouvoir les comparer.</p>
+    </div>
+  } @else {
+    <section class="card" aria-label="Choix des bibliothèques">
+      <div class="choice-row">
+        <label class="field">
+          <span class="field-label">Bibliothèque #1</span>
+          <select [ngModel]="leftId()" (ngModelChange)="setLeft($event)" name="left-library">
+            <option [ngValue]="null">Choisir…</option>
+            @for (lib of libraries(); track lib.id) {
+              <option [ngValue]="lib.id">{{ lib.name }}</option>
+            }
+          </select>
+        </label>
+
+        <div class="field">
+          <span class="field-label" id="compare-mode-label">Mode de comparaison</span>
+          <div class="mode-select" (keydown)="onModeKeydown($event)">
+            <button
+              type="button"
+              class="mode-trigger"
+              aria-haspopup="listbox"
+              aria-labelledby="compare-mode-label"
+              [attr.aria-expanded]="modeOpen()"
+              (click)="toggleModeList()"
+            >
+              <span class="mode-icon" aria-hidden="true">{{ currentMode().icon }}</span>
+              <span class="mode-text">{{ currentMode().label }}</span>
+              <span class="mode-caret" aria-hidden="true">▾</span>
+            </button>
+            @if (modeOpen()) {
+              <ul class="mode-list" role="listbox" aria-labelledby="compare-mode-label">
+                @for (option of modes; track option.value) {
+                  <li
+                    role="option"
+                    class="mode-option"
+                    [class.selected]="option.value === mode()"
+                    [attr.aria-selected]="option.value === mode()"
+                    (click)="chooseMode(option)"
+                  >
+                    <span class="mode-icon" aria-hidden="true">{{ option.icon }}</span>
+                    <span>{{ option.label }}</span>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        </div>
+
+        <label class="field">
+          <span class="field-label">Bibliothèque #2</span>
+          <select [ngModel]="rightId()" (ngModelChange)="setRight($event)" name="right-library">
+            <option [ngValue]="null">Choisir…</option>
+            @for (lib of libraries(); track lib.id) {
+              <option [ngValue]="lib.id">{{ lib.name }}</option>
+            }
+          </select>
+        </label>
+
+        <button type="button" class="btn-run" [disabled]="!canRun()" (click)="execute()">
+          {{ loading() ? 'Comparaison…' : 'Exécuter' }}
+        </button>
+      </div>
+
+      @if (leftId() !== null && leftId() === rightId()) {
+        <p class="hint-warning">Choisissez deux bibliothèques différentes.</p>
+      }
+
+      <div class="depth-row" role="radiogroup" aria-label="Option de comparaison">
+        <label class="depth-option">
+          <input type="radio" name="compare-depth" value="simple" [ngModel]="depth()" (ngModelChange)="setDepth($event)" />
+          <span>
+            <strong>Comparaison simple</strong>
+            <small>(basée uniquement sur le nom du dossier)</small>
+          </span>
+        </label>
+        <label class="depth-option">
+          <input type="radio" name="compare-depth" value="deep" [ngModel]="depth()" (ngModelChange)="setDepth($event)" />
+          <span>
+            <strong>Comparaison approfondie</strong>
+            <small>(basée sur le contenu du dossier)</small>
+          </span>
+        </label>
+      </div>
+    </section>
+
+    <section class="results" aria-label="Résultats">
+      @if (error()) {
+        <p class="error-msg">{{ error() }}</p>
+      } @else if (loading()) {
+        <div class="empty-state"><p>Comparaison en cours…</p></div>
+      } @else {
+        @if (result(); as res) {
+          <p class="result-count">{{ res.total }} résultat{{ res.total > 1 ? 's' : '' }}</p>
+
+          @if (res.total === 0) {
+            <div class="empty-state">
+              <p>Aucun film ne correspond à cette comparaison.</p>
+            </div>
+          } @else {
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th class="col-film">{{ res.left_library_name }}</th>
+                    <th class="col-status">Statut</th>
+                    <th class="col-film">{{ res.right_library_name }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of res.rows; track $index) {
+                    <tr>
+                      <td class="film-cell">
+                        @if (row.left) {
+                          {{ row.left }}
+                        } @else {
+                          <span class="none">—</span>
+                        }
+                      </td>
+
+                      <td class="status-cell">
+                        <span class="badge" [attr.data-status]="row.status">
+                          {{ statusLabel(row.status) }}
+                        </span>
+                      </td>
+
+                      <td class="film-cell">
+                        @if (row.right) {
+                          {{ row.right }}
+                        } @else {
+                          <span class="none">—</span>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        }
+      }
+    </section>
+  }
+</div>

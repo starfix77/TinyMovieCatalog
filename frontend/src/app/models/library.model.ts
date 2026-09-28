@@ -55,3 +55,26 @@ export interface ScanProgress {
  *  - deep   : compare en plus le nom du fichier video principal avec celui deja
  *             enregistre en base, et ne relance ffprobe que s'il a change. */
 export type ScanCompareMode = 'simple' | 'deep';
+
+/** Mode de comparaison entre deux bibliotheques (vue "Comparaison"). */
+export type CompareMode = 'identical' | 'missing_right' | 'missing_left';
+/** Profondeur : simple = nom du dossier ; deep = + nom et taille du fichier video. */
+export type CompareDepth = 'simple' | 'deep';
+export type CompareStatus = 'identical' | 'identical_different_file' | 'missing_right' | 'missing_left';
+
+export interface CompareRow {
+  left: string | null;
+  right: string | null;
+  status: CompareStatus;
+}
+
+export interface CompareResult {
+  left_library_id: number;
+  left_library_name: string;
+  right_library_id: number;
+  right_library_name: string;
+  mode: CompareMode;
+  depth: CompareDepth;
+  total: number;
+  rows: CompareRow[];
+}

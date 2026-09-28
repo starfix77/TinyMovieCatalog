@@ -117,6 +117,7 @@ L'application est disponible sur `http://localhost:4200`.
    - **Detail technique** : tableau tri­able (nom du film, fichier, encodage,
      resolution, taille, pistes audio) avec recherche.
    - **Info** : page d'information de la bibliothèque (nom, Dossier Racine, Taille disque, Taille disponible gauge d'utilisation)
+   - **Comparaison** (bouton **Outils** du panneau de gauche) : compare deux bibliotheques (identique / manquant a droite / manquant a gauche), en comparaison simple (nom du dossier) ou approfondie (nom et taille du fichier video). La comparaison s'appuie sur le dernier scan de chaque bibliotheque.
      
 
 Relancer un scan met a jour les films existants et retire de la base ceux

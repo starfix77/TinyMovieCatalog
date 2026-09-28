@@ -1,9 +1,12 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { Library, LibraryCreate, LibraryInfo, ScanResult, ScanProgress, ScanCompareMode } from '../models/library.model';
+import {
+  Library, LibraryCreate, LibraryInfo, ScanResult, ScanProgress, ScanCompareMode,
+  CompareDepth, CompareMode, CompareResult,
+} from '../models/library.model';
 
 @Injectable({ providedIn: 'root' })
 export class LibraryService {
@@ -41,6 +44,15 @@ export class LibraryService {
 
   getLibraryInfo(id: number): Observable<LibraryInfo> {
     return this.http.get<LibraryInfo>(`${this.baseUrl}/${id}/info`);
+  }
+
+  compareLibraries(leftId: number, rightId: number, mode: CompareMode, depth: CompareDepth): Observable<CompareResult> {
+    const params = new HttpParams()
+      .set('left_id', leftId)
+      .set('right_id', rightId)
+      .set('mode', mode)
+      .set('depth', depth);
+    return this.http.get<CompareResult>(`${this.baseUrl}/compare`, { params });
   }
 
   createLibrary(payload: LibraryCreate): Observable<Library> {

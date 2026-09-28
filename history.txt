@@ -37,10 +37,21 @@ si le contenu du tableau est plus large que la largeur de la fenêtre
 ajoute le principe  l'ellipsis (ou troncature avec points de suspension).
 
 
-**v0.9 - Ajout de la vue « Comparaison » (bouton « Outils » dans le bandeau latéral)
+**v0.9 - Ajout Outils comparaison de bibliothèques
+1. Bouton « Outils » : dans le bandeau de gauche, sous « TinyMovieCatalog / Collection de films locales », avec une icône de clé. 
+Il ouvre la nouvelle vue comparaison et se met en surbrillance quand la vue est active.
+2. Description de vue « Comparaison » :
+- Le bloc de choix suit votre description : bibliothèque #1, mode de comparaison (avec icônes =, >, <), bibliothèque #2, bouton Exécuter, puis les deux options radio (simple par défaut).
+- Exécuter n'est actif que si les deux bibliothèques sont choisies et différentes.
+- Le tableau de résultats a trois colonnes : film, statut, film. Les en-têtes des colonnes 1 et 3 affichent le nom des bibliothèques.
+- Le tableau est trié par ordre alphabétique, sans tenir compte des accents ni de la casse.
+3. Règles de comparaison :
+Le mode « Identique » affiche « identique » ou, en approfondie, « identique, fichier vidéo différent » quand le nom ou la taille du fichier vidéo diffère.
+Les modes « Manquant à droite » et « Manquant à gauche » listent uniquement les films absents de l'autre côté, avec « — » dans la colonne vide.
+Fichiers touchés : les nouveaux fichiers sont backend/app/compare.py et components/library-compare/. Les autres modifications portent sur schemas.py, routers/libraries.py, le service, le modèle, les routes et le bandeau.
+La comparaison lit la base de données, donc le dernier scan de chaque bibliothèque, pas les disques. Cela marche même si un disque est débranché, 
+mais il faut rescanner une bibliothèque modifiée avant de la comparer.
+Les noms de dossiers sont rapprochés sans tenir compte de la casse ni des espaces en trop, et le tableau affiche le nom réel de chaque côté.
+Changer un paramètre efface le tableau affiché, pour ne pas montrer un résultat qui ne correspond plus aux choix.
 
-- Comparaison de deux bibliothèques : modes identique / manquant à droite / manquant à gauche.
-- Option simple (nom du dossier) ou approfondie (nom et taille du fichier vidéo).
-- Résultats en tableau 3 colonnes, triés par ordre alphabétique.
 
-**1.0 - Ajout Outils comparaison de bibliothèques

@@ -40,18 +40,22 @@
         </div>
         <div class="info-row">
           <dt>Taille totale du filesystem</dt>
-          <dd>{{ lib.fs_total_size ?? '—' }}</dd>
+          <dd>{{ formatSize(lib.fs_total_size) }}</dd>
         </div>
         <div class="info-row">
           <dt>Espace disponible</dt>
-          <dd>{{ lib.fs_free_size ?? '—' }}</dd>
+          <dd>{{ formatSize(lib.fs_free_size) }}</dd>
+        </div>
+        <div class="info-row">
+          <dt>Espace disponible (%)</dt>
+          <dd>{{ freePercent(lib) }}</dd>
         </div>
       </dl>
 
       @if (!lib.fs_available) {
         <p class="fs-warning">
           Le dossier racine est inaccessible (disque deconnecte ou dossier deplace) :
-          {{ lib.fs_total_size ? 'les tailles affichees sont les dernieres valeurs connues.' : 'les tailles du filesystem ne sont pas disponibles.' }}
+          {{ lib.fs_total_size !== null ? 'les tailles affichees sont les dernieres valeurs connues.' : 'les tailles du filesystem ne sont pas disponibles.' }}
         </p>
       }
     }

@@ -33,7 +33,7 @@ def _run_light_migrations():
     mais n'ajoute pas de colonnes sur une table existante. On complete donc
     a la main les quelques colonnes ajoutees apres la premiere version du
     schema, pour ne pas casser une base library.db deja peuplee."""
-    from sqlalchemy import inspect, text
+    from sqlalchemy import Integer, inspect, text
 
     inspector = inspect(engine)
     tables = inspector.get_table_names()
@@ -45,8 +45,15 @@ def _run_light_migrations():
                 conn.execute(text("ALTER TABLE movies ADD COLUMN saga_id INTEGER"))
 
     if "libraries" in tables:
-        existing_columns = {c["name"] for c in inspector.get_columns("libraries")}
+        existing = {c["name"]: c["type"] for c in inspector.get_columns("libraries")}
         for column in ("fs_total_size", "fs_free_size"):
-            if column not in existing_columns:
+            if column in existing and not isinstance(existing[column], Integer):
+                # Version precedente : la colonne stockait un texte formate
+                # ("1.82 TB"). Ces valeurs sont recalculables a tout moment
+                # depuis le disque : on recree donc la colonne en BIGINT.
                 with engine.begin() as conn:
-                    conn.execute(text(f"ALTER TABLE libraries ADD COLUMN {column} VARCHAR"))
+                    conn.execute(text(f"ALTER TABLE libraries DROP COLUMN {column}"))
+                del existing[column]
+            if column not in existing:
+                with engine.begin() as conn:
+                    conn.execute(text(f"ALTER TABLE libraries ADD COLUMN {column} BIGINT"))

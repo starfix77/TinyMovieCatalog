@@ -46,7 +46,7 @@ def create_library(payload: LibraryCreate, db: Session = Depends(get_db)):
 
 def _as_utc(value: datetime | None) -> datetime | None:
     """Les dates sont stockees en UTC naif (datetime.utcnow) : on les marque
-    explicitement UTC pour que le JSON contienne un \"Z\" et que le navigateur
+    explicitement UTC pour que le JSON contienne un "Z" et que le navigateur
     les convertisse correctement en heure locale."""
     if value is None:
         return None

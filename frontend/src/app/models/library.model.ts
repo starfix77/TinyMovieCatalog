@@ -15,9 +15,9 @@ export interface LibraryInfo {
   movie_count: number;
   created_at: string | null;
   last_scanned_at: string | null;
-  /** Taille du filesystem du dossier racine, deja formatee ("1.82 TB", "931.51 GB"). */
-  fs_total_size: string | null;
-  fs_free_size: string | null;
+  /** Taille totale et espace libre du filesystem du dossier racine, en octets. */
+  fs_total_size: number | null;
+  fs_free_size: number | null;
   /** false si le dossier racine est inaccessible (valeurs = derniere lecture connue). */
   fs_available: boolean;
 }

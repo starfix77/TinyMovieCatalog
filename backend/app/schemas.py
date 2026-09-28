@@ -22,16 +22,16 @@ class LibraryOut(BaseModel):
 
 
 class LibraryInfoOut(BaseModel):
-    """Fiche d'information d'une bibliotheque (page \"Info\")."""
+    """Fiche d'information d'une bibliotheque (page Info)."""
     id: int
     name: str
     root_path: str
     movie_count: int
     created_at: Optional[datetime] = None
     last_scanned_at: Optional[datetime] = None
-    # Taille du filesystem du dossier racine, deja formatee (\"1.82 TB\", \"931.51 GB\")
-    fs_total_size: Optional[str] = None
-    fs_free_size: Optional[str] = None
+    # Taille totale et espace libre du filesystem du dossier racine, en octets
+    fs_total_size: Optional[int] = None
+    fs_free_size: Optional[int] = None
     # False si le dossier racine est inaccessible : les valeurs ci-dessus sont
     # alors les dernieres connues (ou None si jamais lues).
     fs_available: bool = True

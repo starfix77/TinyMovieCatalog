@@ -54,6 +54,28 @@ export class LibraryInfoComponent {
     });
   }
 
+  /** Octets -> "512 B", "1.50 KB", "12.30 MB", "931.51 GB", "1.82 TB" (base 1024,
+   *  comme l'explorateur Windows). */
+  formatSize(bytes: number | null): string {
+    if (bytes === null || bytes === undefined) return '—';
+    const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+    let value = bytes;
+    let unit = 0;
+    while (value >= 1024 && unit < units.length - 1) {
+      value /= 1024;
+      unit++;
+    }
+    return unit === 0 ? `${value} B` : `${value.toFixed(2)} ${units[unit]}`;
+  }
+
+  /** Part d'espace libre du filesystem, ex: "3.9 %". */
+  freePercent(lib: LibraryInfo): string {
+    if (lib.fs_total_size === null || lib.fs_free_size === null || lib.fs_total_size <= 0) {
+      return '—';
+    }
+    return `${((lib.fs_free_size / lib.fs_total_size) * 100).toFixed(1)} %`;
+  }
+
   formatDate(value: string | null): string | null {
     if (!value) return null;
     const date = new Date(value);

@@ -32,24 +32,6 @@ function Cleanup {
 # Intercepter CTRL+C
 $null = Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action { Cleanup }
 try {
-    # --------------------------------------
-    # Lancer le frontend
-    # --------------------------------------
-    Write-Host "Demarrage du frontend..."
-
-    $frontendErrLog = Join-Path $ProjectDir "frontend.error.log"
-
-    $FrontendProcess = Start-Process -FilePath "cmd.exe" `
-        -ArgumentList "/c", "npm start" `
-        -RedirectStandardError $frontendErrLog `
-        -PassThru -NoNewWindow -WorkingDirectory (Join-Path $ProjectDir "frontend")
-
-    Write-Host "Frontend demarre (PID: $($FrontendProcess.Id))"
-
-    # --------------------------------------
-    # Attendre quelques secondes
-    # --------------------------------------
-    Start-Sleep -Seconds 2
 
     # --------------------------------------
     # Lancer le backend
@@ -66,6 +48,29 @@ try {
         -WorkingDirectory (Join-Path $ProjectDir "backend")
 
     Write-Host "Backend demarre (PID: $($BackendProcess.Id))"
+
+
+    # --------------------------------------
+    # Attendre quelques secondes
+    # --------------------------------------
+    Start-Sleep -Seconds 2
+
+
+    # --------------------------------------
+    # Lancer le frontend
+    # --------------------------------------
+    Write-Host "Demarrage du frontend..."
+
+    $frontendErrLog = Join-Path $ProjectDir "frontend.error.log"
+
+    $FrontendProcess = Start-Process -FilePath "cmd.exe" `
+        -ArgumentList "/c", "npm start" `
+        -RedirectStandardError $frontendErrLog `
+        -PassThru -NoNewWindow -WorkingDirectory (Join-Path $ProjectDir "frontend")
+
+    Write-Host "Frontend demarre (PID: $($FrontendProcess.Id))"
+
+
 
     Write-Host ""
     Write-Host "======================================"

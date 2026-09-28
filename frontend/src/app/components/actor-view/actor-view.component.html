@@ -1,0 +1,107 @@
+<div class="page">
+  <div class="page-header">
+    <h2>Acteur / Filmographie</h2>
+  </div>
+
+  @if (!activeLibraryId()) {
+    <div class="empty-state">
+      <p>Ajoutez une bibliotheque dans le panneau de gauche pour commencer.</p>
+    </div>
+  } @else {
+    <!-- ---------- Partie 1 : recherche d'acteur ---------- -->
+    <div class="search-block">
+      <label for="actor-search">Rechercher acteur</label>
+      <div class="search-input-wrap">
+        <input
+          id="actor-search"
+          type="text"
+          autocomplete="off"
+          placeholder="Tapez au moins {{ minQueryLength }} caracteres…"
+          [(ngModel)]="query"
+          (input)="onQueryInput()"
+          (focus)="onQueryFocus()"
+        />
+        @if (searchingSuggestions()) {
+          <span class="search-spinner" aria-hidden="true"></span>
+        }
+
+        @if (suggestionsOpen() && suggestions().length > 0) {
+          <ul class="suggestions">
+            @for (actor of suggestions(); track actor.name) {
+              <li>
+                <button type="button" (click)="selectActor(actor)">
+                  <span class="actor-name">
+                    @for (segment of highlightSegments(actor.name); track $index) {
+                      @if (segment.bold) {
+                        <strong>{{ segment.text }}</strong>
+                      } @else {
+                        <span>{{ segment.text }}</span>
+                      }
+                    }
+                  </span>
+                  <span class="actor-count">{{ actor.movie_count }} film{{ actor.movie_count > 1 ? 's' : '' }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+        } @else if (suggestionsOpen() && query.trim().length >= minQueryLength && !searchingSuggestions()) {
+          <ul class="suggestions">
+            <li class="no-result">Aucun acteur trouve dans la bibliotheque.</li>
+          </ul>
+        }
+      </div>
+    </div>
+
+    <!-- ---------- Partie 2 : filmographie de l'acteur selectionne ---------- -->
+    @if (selectedActor()) {
+      <div class="filmography-block">
+        @if (filmography(); as filmo) {
+          <div class="filmography-header">
+            <h3>Filmographie — {{ filmo.name }}</h3>
+            <span class="filmography-meta">
+              {{ filmo.movies_in_library }} / {{ filmo.total_movies }} film{{ filmo.total_movies > 1 ? 's' : '' }} dans la bibliotheque
+              @if (filmo.source === 'local') {
+                <span class="local-note">(TheMovieDB indisponible — bibliotheque locale uniquement)</span>
+              }
+            </span>
+          </div>
+
+          <div class="grid">
+            @for (entry of filmo.movies; track entry.tmdb_movie_id + '-' + entry.title) {
+              <button
+                class="movie-card"
+                [class.absent]="!entry.in_library"
+                [disabled]="!entry.in_library"
+                (click)="openMovie(entry.movie_id)"
+              >
+                <div class="poster">
+                  @if (posterUrl(entry.poster_filename)) {
+                    <img [src]="posterUrl(entry.poster_filename)" [alt]="entry.title" loading="lazy" />
+                  } @else {
+                    <div class="poster-placeholder"><span>{{ entry.title.charAt(0) }}</span></div>
+                  }
+                  <span
+                    class="heart"
+                    [class.filled]="entry.in_library"
+                    [attr.title]="entry.in_library ? 'Present dans la bibliotheque' : 'Absent de la bibliotheque'"
+                  >{{ entry.in_library ? '♥' : '♡' }}</span>
+                </div>
+                <div class="movie-label">
+                  <span class="movie-title">{{ entry.title }}{{ entry.year ? ' (' + entry.year + ')' : '' }}</span>
+                </div>
+              </button>
+            }
+          </div>
+        } @else if (loadingFilmography()) {
+          <div class="empty-state"><p>Chargement de la filmographie…</p></div>
+        } @else if (filmographyError()) {
+          <div class="empty-state"><p>{{ filmographyError() }}</p></div>
+        }
+      </div>
+    }
+  }
+</div>
+
+@if (selectedMovie()) {
+  <app-movie-detail [movie]="selectedMovie()!" (close)="closeDetail()" (movieUpdated)="onMovieUpdated($event)"></app-movie-detail>
+}

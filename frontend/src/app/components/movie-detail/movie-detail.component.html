@@ -1,0 +1,134 @@
+<div class="backdrop" (click)="onBackdropClick($event)">
+  <div class="panel">
+    <button class="close-btn" (click)="close.emit()">✕</button>
+
+    @if (!editing) {
+      <button class="edit-btn" (click)="openMetadataEditor()">Modifier les informations</button>
+    }
+
+    <div class="panel-body">
+      <div class="poster-col">
+        @if (posterUrl) {
+          <img [src]="posterUrl" [alt]="movie.title" />
+        } @else {
+          <div class="poster-placeholder"><span>{{ movie.title.charAt(0) }}</span></div>
+        }
+      </div>
+
+      <div class="info-col">
+        <p class="folder-name">{{ movie.folder_name }}</p>
+        <h2>{{ movie.title }}<span class="year" *ngIf="movie.year"> ({{ movie.year }})</span></h2>
+
+        @if (movie.original_title && movie.original_title !== movie.title) {
+          <p class="original-title">Titre original : {{ movie.original_title }}</p>
+        }
+
+        @if (movie.genres) {
+          <p class="genres">{{ movie.genres }}</p>
+        }
+
+        @if (movie.overview) {
+          <p class="overview">{{ movie.overview }}</p>
+        }
+
+        @if (cast.length) {
+          <div class="cast-block">
+            <h3>Distribution</h3>
+            <div class="cast-list">
+              @for (member of cast; track member.name) {
+                <span class="cast-chip">{{ member.name }}</span>
+              }
+            </div>
+          </div>
+        }
+
+        @if (mainVideoFile) {
+          <div class="tech-block">
+            <h3>Fichier video</h3>
+            <div class="tech-grid">
+              <div><span class="tech-label">Fichier</span><span class="tech-value">{{ mainVideoFile.filename }}</span></div>
+              <div><span class="tech-label">Video</span><span class="tech-value">{{ mainVideoFile.video_codec || '—' }} · {{ mainVideoFile.width && mainVideoFile.height ? (mainVideoFile.width + 'x' + mainVideoFile.height) : '—' }}</span></div>
+              <div><span class="tech-label">Taille</span><span class="tech-value">{{ formatSize(mainVideoFile.size_bytes) }}</span></div>
+              <div><span class="tech-label">Duree</span><span class="tech-value">{{ formatDuration(mainVideoFile.duration_sec) }}</span></div>
+            </div>
+
+            @if (mainVideoFile.audio_tracks.length) {
+              <h3>Pistes audio</h3>
+              <ul class="audio-list">
+                @for (track of mainVideoFile.audio_tracks; track track.id) {
+                  <li>
+                    <span class="audio-lang">{{ track.language || '?' }}</span>
+                    <span class="audio-codec">{{ track.codec || '?' }}</span>
+                    <span class="audio-bitrate">{{ formatBitrate(track.bitrate) }}</span>
+                    @if (track.title) { <span class="audio-title">{{ track.title }}</span> }
+                  </li>
+                }
+              </ul>
+            }
+
+            @if (movie.subtitles.length) {
+              <h3>Sous-titres</h3>
+              <p class="subtitles-line">
+                @for (sub of movie.subtitles; track sub.id) {
+                  <span class="subtitle-chip">{{ sub.language_guess || sub.filename }}</span>
+                }
+              </p>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (editing) {
+    <div class="editor-backdrop" (click)="onBackdropClick($event)">
+      <div class="editor-panel" (click)="$event.stopPropagation()">
+        <div class="editor-header">
+          <div>
+            <span class="editor-kicker">TMDb</span>
+            <h3>Choisir le bon film</h3>
+            <p>Plusieurs résultats peuvent correspondre à « {{ movie.title }} ({{ movie.year || '—' }}) ». Sélectionnez celui qui doit remplacer les informations actuelles.</p>
+          </div>
+          <button class="editor-close" (click)="cancelMetadataEdit()">✕</button>
+        </div>
+
+        @if (loadingCandidates) {
+          <div class="editor-state">Recherche des films…</div>
+        } @else if (candidates.length) {
+          <div class="candidate-list">
+            @for (candidate of candidates; track candidate.tmdb_id) {
+              <button class="candidate" [class.selected]="selectedCandidateId === candidate.tmdb_id" (click)="selectCandidate(candidate)">
+                <div class="candidate-poster">
+                  @if (candidatePosterUrl(candidate)) {
+                    <img [src]="candidatePosterUrl(candidate)" [alt]="candidate.title" />
+                  } @else {
+                    <div class="poster-placeholder"><span>?</span></div>
+                  }
+                </div>
+                <div class="candidate-info">
+                  <strong>{{ candidate.title }}</strong>
+                  @if (candidate.release_date) { <span class="candidate-year">{{ candidate.release_date.substring(0, 4) }}</span> }
+                  @if (candidate.original_title && candidate.original_title !== candidate.title) { <span class="candidate-original">{{ candidate.original_title }}</span> }
+                  @if (candidate.genres) { <span class="candidate-genres">{{ candidate.genres }}</span> }
+                  <p>{{ candidate.overview || 'Aucune description disponible.' }}</p>
+                </div>
+                <span class="candidate-check">{{ selectedCandidateId === candidate.tmdb_id ? '✓' : '' }}</span>
+              </button>
+            }
+          </div>
+        } @else if (errorMessage) {
+          <div class="editor-error">{{ errorMessage }}</div>
+        }
+
+        @if (errorMessage && candidates.length) { <div class="editor-error">{{ errorMessage }}</div> }
+
+        <div class="editor-actions">
+          <button class="secondary-btn" (click)="cancelMetadataEdit()" [disabled]="saving">Annuler</button>
+          <button class="primary-btn" (click)="saveMetadata()" [disabled]="!selectedCandidateId || saving">
+            {{ saving ? 'Mise à jour…' : 'Remplacer les informations' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,85 @@
+<aside class="sidebar">
+  <div class="brand">
+    <!-- <span class="brand-mark">MF</span> -->
+    <div>
+      <h1>TinyMovieCatalog v0.1</h1>
+      <p class="tagline">Collection de films locales</p>
+    </div>
+  </div>
+
+  <nav class="library-list">
+    @for (lib of libraries(); track lib.id) {
+      <div class="library-item" [class.active]="lib.id === activeLibraryId()" (click)="select(lib)">
+        <div class="library-item-main">
+          <span class="library-name">{{ lib.name }}</span>
+          <span class="library-path">{{ lib.root_path }}</span>
+        </div>
+        <div class="library-item-meta">
+          <span class="movie-count">{{ lib.movie_count }} film{{ lib.movie_count > 1 ? 's' : '' }}</span>
+          <div class="library-actions">
+            <button class="icon-btn" title="Scanner cette bibliotheque" (click)="scan(lib, $event)" [disabled]="scanningId() === lib.id">
+              {{ scanningId() === lib.id ? '…' : '⟳' }}
+            </button>
+            <button class="icon-btn danger" title="Supprimer cette bibliotheque" (click)="askDelete(lib, $event)">✕</button>
+          </div>
+        </div>
+
+        @if (pendingDeleteId() === lib.id) {
+          <div class="confirm-delete" (click)="$event.stopPropagation()">
+            <p>Supprimer "{{ lib.name }}" ? Les films references en base seront retires (les fichiers sur le disque ne sont pas touches).</p>
+            <div class="confirm-actions">
+              <button class="btn btn-ghost" (click)="cancelDelete()">Annuler</button>
+              <button class="btn btn-danger" (click)="confirmDelete(lib)">Supprimer</button>
+            </div>
+          </div>
+        }
+      </div>
+    } @empty {
+      <p class="empty-hint">Aucune bibliotheque pour le moment.</p>
+    }
+  </nav>
+
+  @if (scanProgress(); as progress) {
+    @if (progress.status === 'queued' || progress.status === 'running') {
+      <div class="scan-progress">
+        <div class="scan-progress-header">
+          <span>Scan en cours</span>
+          <strong>{{ progress.progress }}%</strong>
+        </div>
+        <div class="progress-track">
+          <div class="progress-bar" [style.width.%]="progress.progress"></div>
+        </div>
+        <div class="scan-progress-detail">
+          {{ progress.current }} / {{ progress.total }} dossier{{ progress.total > 1 ? 's' : '' }}
+          @if (progress.current_folder) { · {{ progress.current_folder }} }
+        </div>
+      </div>
+    }
+  }
+
+  @if (scanMessage()) {
+    <div class="scan-toast">{{ scanMessage() }}</div>
+  }
+
+  @if (!showAddForm()) {
+    <button class="btn btn-add" (click)="openAddForm()">+ Nouvelle bibliotheque</button>
+  } @else {
+    <div class="add-form">
+      <label>
+        Nom
+        <input type="text" [(ngModel)]="newName" placeholder="Ex : Films Action" />
+      </label>
+      <label>
+        Dossier racine
+        <input type="text" [(ngModel)]="newPath" placeholder="C:\MesFilms ou /home/user/Films" />
+      </label>
+      @if (formError()) {
+        <p class="form-error">{{ formError() }}</p>
+      }
+      <div class="form-actions">
+        <button class="btn btn-ghost" (click)="cancelAddForm()">Annuler</button>
+        <button class="btn btn-primary" (click)="submitAddForm()">Ajouter</button>
+      </div>
+    </div>
+  }
+</aside>

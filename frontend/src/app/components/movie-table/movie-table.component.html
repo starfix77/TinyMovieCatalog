@@ -1,0 +1,63 @@
+<div class="page">
+  <div class="page-header">
+    <h2>Detail technique</h2>
+    <div class="search-box">
+      <span class="search-icon">⌕</span>
+      <input
+        type="text"
+        placeholder="Rechercher un film…"
+        [(ngModel)]="search"
+        (ngModelChange)="onSearchInput()"
+      />
+    </div>
+  </div>
+
+  @if (!activeLibraryId()) {
+    <div class="empty-state"><p>Ajoutez une bibliotheque dans le panneau de gauche pour commencer.</p></div>
+  } @else if (loading()) {
+    <div class="empty-state"><p>Chargement…</p></div>
+  } @else if (movies().length === 0) {
+    <div class="empty-state"><p>Aucun film trouve. Lancez un scan de la bibliotheque depuis le panneau de gauche.</p></div>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            @for (col of columns; track col.key) {
+              <th (click)="toggleSort(col.key)" [class.sorted]="sortBy() === col.key">
+                {{ col.label }} <span class="sort-icon">{{ sortIcon(col.key) }}</span>
+              </th>
+            }
+            <th class="no-sort">Pistes audio</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (movie of movies(); track movie.id) {
+            <tr>
+              <td class="title-cell">{{ movie.folder_name }}</td>
+              <td class="mono">{{ mainVideo(movie)?.filename || '—' }}</td>
+              <td class="mono"><span class="codec-badge">{{ mainVideo(movie)?.video_codec || '—' }}</span></td>
+              <td class="mono">{{ resolutionLabel(movie) }}</td>
+              <td class="mono">{{ formatSize(mainVideo(movie)?.size_bytes) }}</td>
+              <td class="audio-cell">
+                @if (mainVideo(movie)?.audio_tracks?.length) {
+                  <div class="audio-lines">
+                    @for (track of mainVideo(movie)!.audio_tracks; track track.id) {
+                      <div class="audio-line">
+                        <span class="audio-lang">{{ track.language || 'und' }}</span>
+                        <span class="audio-codec">{{ track.codec || '?' }}</span>
+                        <span class="audio-bitrate">{{ formatBitrate(track.bitrate) }}</span>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <span class="mono">—</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

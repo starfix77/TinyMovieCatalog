@@ -1,0 +1,12 @@
+.vscode/
+.DS_Store
+
+frontend/node_modules/
+frontend/.angular/
+backend/.env
+backend/data/db/*
+backend/data/thumbnails/*
+backend/venv/
+
+# ignore tous les dossiers __pycache__
+__pycache__/

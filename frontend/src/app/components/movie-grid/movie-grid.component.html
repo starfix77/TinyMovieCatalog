@@ -1,0 +1,49 @@
+<div class="page">
+  <div class="page-header">
+    <h2>Vignettes</h2>
+    <div class="search-box">
+      <span class="search-icon">⌕</span>
+      <input
+        type="text"
+        placeholder="Rechercher un film…"
+        [(ngModel)]="search"
+        (ngModelChange)="onSearchInput()"
+      />
+    </div>
+  </div>
+
+  @if (!activeLibraryId()) {
+    <div class="empty-state">
+      <p>Ajoutez une bibliotheque dans le panneau de gauche pour commencer.</p>
+    </div>
+  } @else if (loading()) {
+    <div class="empty-state"><p>Chargement…</p></div>
+  } @else if (movies().length === 0) {
+    <div class="empty-state">
+      <p>Aucun film trouve. Lancez un scan de la bibliotheque depuis le panneau de gauche.</p>
+    </div>
+  } @else {
+    <div class="grid">
+      @for (movie of movies(); track movie.id) {
+        <button class="movie-card" (click)="openDetail(movie)">
+          <div class="poster">
+            @if (posterUrl(movie)) {
+              <img [src]="posterUrl(movie)" [alt]="movie.title" loading="lazy" />
+            } @else {
+              <div class="poster-placeholder">
+                <span>{{ movie.title.charAt(0) }}</span>
+              </div>
+            }
+          </div>
+          <div class="movie-label">
+            <span class="movie-title">{{ movie.folder_name }}</span>
+          </div>
+        </button>
+      }
+    </div>
+  }
+</div>
+
+@if (selectedMovie()) {
+  <app-movie-detail [movie]="selectedMovie()!" (close)="closeDetail()" (movieUpdated)="onMovieUpdated($event)"></app-movie-detail>
+}

@@ -1,0 +1,218 @@
+"""
+Scan d'une bibliotheque : parcourt le dossier racine, detecte chaque
+sous-dossier "Titre du film (Annee)", analyse le fichier video avec ffprobe,
+et enrichit les metadonnees via TheMovieDB.
+"""
+import re
+from datetime import datetime
+from pathlib import Path
+
+from sqlalchemy.orm import Session
+
+from app import tmdb, ffprobe_utils
+from app.config import settings
+from app.models import Library, Movie, VideoFile, AudioTrack, Subtitle
+from app.schemas import ScanResult
+
+# "Le Titre du Film (2010)" -> groupes: titre / annee
+FOLDER_PATTERN = re.compile(r"^(?P<title>.+?)\s*\((?P<year>\d{4})\)\s*$")
+
+SUBTITLE_LANG_HINTS = {
+    "fr": "fr", "fre": "fr", "french": "fr", "vf": "fr", "vff": "fr",
+    "en": "en", "eng": "en", "english": "en", "vo": "en", "vostfr": "en",
+}
+
+
+def parse_folder_name(folder_name: str):
+    match = FOLDER_PATTERN.match(folder_name)
+    if match:
+        return match.group("title").strip(), int(match.group("year"))
+    return folder_name.strip(), None
+
+
+def _guess_subtitle_language(filename: str) -> str | None:
+    stem = Path(filename).stem.lower()
+    for token in re.split(r"[.\-_ ]+", stem):
+        if token in SUBTITLE_LANG_HINTS:
+            return SUBTITLE_LANG_HINTS[token]
+    return None
+
+
+def _find_main_video_file(folder: Path) -> Path | None:
+    """Retourne le plus gros fichier video du dossier (le film), en ignorant
+    les extraits/bandes-annonces si un fichier nettement plus gros existe."""
+    candidates = [
+        f for f in folder.iterdir()
+        if f.is_file() and f.suffix.lower() in settings.video_extensions
+    ]
+    if not candidates:
+        return None
+    return max(candidates, key=lambda f: f.stat().st_size)
+
+
+def _find_subtitles(folder: Path) -> list[Path]:
+    return [
+        f for f in folder.iterdir()
+        if f.is_file() and f.suffix.lower() in settings.subtitle_extensions
+    ]
+
+
+def _sync_movie_from_disk(db: Session, library: Library, folder: Path, errors: list) -> tuple[Movie, bool]:
+    """Cree ou met a jour un Movie a partir d'un dossier. Retourne (movie, was_created)."""
+    title, year = parse_folder_name(folder.name)
+
+    movie = (
+        db.query(Movie)
+        .filter(Movie.library_id == library.id, Movie.folder_name == folder.name)
+        .first()
+    )
+    was_created = movie is None
+    if movie is None:
+        movie = Movie(library_id=library.id, folder_name=folder.name)
+        db.add(movie)
+
+    movie.folder_path = str(folder)
+    movie.title = title
+    movie.year = year
+
+    video_path = _find_main_video_file(folder)
+    if video_path is None:
+        errors.append(f"Aucun fichier video trouve dans '{folder.name}'")
+        db.flush()
+        return movie, was_created
+
+    # --- Analyse ffprobe du fichier video ---
+    stat = video_path.stat()
+    video_file = (
+        db.query(VideoFile)
+        .filter(VideoFile.movie_id == movie.id, VideoFile.filename == video_path.name)
+        .first()
+        if movie.id else None
+    )
+    if video_file is None:
+        video_file = VideoFile(filename=video_path.name)
+        movie.video_files.append(video_file)
+
+    video_file.filepath = str(video_path)
+    video_file.size_bytes = stat.st_size
+
+    try:
+        probe = ffprobe_utils.probe_file(str(video_path))
+        video_file.container = probe.container
+        video_file.duration_sec = probe.duration_sec
+        video_file.video_codec = probe.video_codec
+        video_file.width = probe.width
+        video_file.height = probe.height
+        video_file.video_bitrate = probe.video_bitrate
+
+        # Remplace les pistes audio existantes par le resultat courant
+        video_file.audio_tracks.clear()
+        for track in probe.audio_tracks:
+            video_file.audio_tracks.append(
+                AudioTrack(
+                    track_index=track.index,
+                    language=track.language,
+                    title=track.title,
+                    codec=track.codec,
+                    channels=track.channels,
+                    bitrate=track.bitrate,
+                )
+            )
+    except Exception as exc:  # ffprobe absent, fichier corrompu, etc.
+        errors.append(f"ffprobe: {folder.name}: {exc}")
+
+    video_file.scanned_at = datetime.utcnow()
+
+    # --- Sous-titres ---
+    movie.subtitles.clear()
+    for sub_path in _find_subtitles(folder):
+        movie.subtitles.append(
+            Subtitle(
+                filename=sub_path.name,
+                filepath=str(sub_path),
+                language_guess=_guess_subtitle_language(sub_path.name),
+            )
+        )
+
+    db.flush()
+
+    # --- Enrichissement TheMovieDB (uniquement si pas deja synchronise) ---
+    if movie.tmdb_id is None and settings.tmdb_api_key:
+        try:
+            match = tmdb.search_movie(title, year)
+            if match:
+                movie.tmdb_id = match.tmdb_id
+                movie.original_title = match.original_title
+                movie.overview = match.overview
+                movie.release_date = match.release_date
+                movie.genres = match.genres
+                movie.cast = match.cast_json
+                movie.tmdb_synced_at = datetime.utcnow()
+
+                if match.poster_path:
+                    poster_filename = f"tmdb_{match.tmdb_id}.jpg"
+                    dest = settings.thumbnails_dir / poster_filename
+                    if not dest.exists():
+                        tmdb.download_poster(match.poster_path, dest)
+                    movie.poster_filename = poster_filename
+            else:
+                errors.append(f"TMDb: aucun resultat pour '{title}' ({year})")
+        except Exception as exc:
+            errors.append(f"TMDb: {folder.name}: {exc}")
+
+    return movie, was_created
+
+
+def scan_library(db: Session, library: Library, progress_callback=None) -> ScanResult:
+    root = Path(library.root_path)
+    errors: list[str] = []
+
+    if not root.exists() or not root.is_dir():
+        return ScanResult(
+            library_id=library.id, folders_scanned=0, movies_added=0,
+            movies_updated=0, movies_removed=0,
+            errors=[f"Dossier racine introuvable: {library.root_path}"],
+        )
+
+    folders = [f for f in root.iterdir() if f.is_dir()]
+    seen_folder_names = set()
+    added, updated = 0, 0
+    total_folders = len(folders)
+    if progress_callback:
+        progress_callback(0, total_folders, None)
+
+    for index, folder in enumerate(folders, start=1):
+        seen_folder_names.add(folder.name)
+        existed = (
+            db.query(Movie)
+            .filter(Movie.library_id == library.id, Movie.folder_name == folder.name)
+            .first()
+            is not None
+        )
+        _sync_movie_from_disk(db, library, folder, errors)
+        if existed:
+            updated += 1
+        else:
+            added += 1
+        if progress_callback:
+            progress_callback(index, total_folders, folder.name)
+
+    # Supprime de la base les films dont le dossier n'existe plus sur le disque
+    removed = 0
+    existing_movies = db.query(Movie).filter(Movie.library_id == library.id).all()
+    for movie in existing_movies:
+        if movie.folder_name not in seen_folder_names:
+            db.delete(movie)
+            removed += 1
+
+    library.last_scanned_at = datetime.utcnow()
+    db.commit()
+
+    return ScanResult(
+        library_id=library.id,
+        folders_scanned=len(folders),
+        movies_added=added,
+        movies_updated=updated,
+        movies_removed=removed,
+        errors=errors,
+    )

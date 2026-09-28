@@ -1,0 +1,44 @@
+<div class="shell">
+  <app-library-selector [class.collapsed]="sidebarCollapsed"></app-library-selector>
+
+  <div class="main-column">
+    <header class="topbar">
+      <button
+        class="sidebar-toggle"
+        type="button"
+        (click)="toggleSidebar()"
+        [attr.aria-label]="sidebarCollapsed ? 'Afficher le bandeau lateral' : 'Masquer le bandeau lateral'"
+        [attr.title]="sidebarCollapsed ? 'Afficher le bandeau lateral' : 'Masquer le bandeau lateral'"
+        [attr.aria-pressed]="sidebarCollapsed"
+      >
+        <span class="sidebar-toggle-icon" aria-hidden="true">☰</span>
+      </button>
+
+
+      <nav class="view-tabs">
+        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Vignettes</a>
+        <a routerLink="/technique" routerLinkActive="active">Detail technique</a>
+      </nav>
+
+      <div class="active-library-heading" *ngIf="libraryService.activeLibrary() as library">
+        <strong>{{ library.name }}</strong>
+        <span>{{ library.movie_count }} film{{ library.movie_count > 1 ? 's' : '' }}</span>
+      </div>
+      
+      <button
+        class="theme-toggle"
+        type="button"
+        (click)="toggleTheme()"
+        [attr.aria-label]="isDarkMode ? 'Passer au thème clair' : 'Passer au thème sombre'"
+        [attr.title]="isDarkMode ? 'Thème clair' : 'Thème sombre'"
+      >
+        <span class="theme-icon" aria-hidden="true">{{ isDarkMode ? '☀' : '☾' }}</span>
+        <span>{{ isDarkMode ? 'Clair' : 'Sombre' }}</span>
+      </button>
+    </header>
+
+    <main class="content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

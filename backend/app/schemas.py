@@ -150,3 +150,28 @@ class SagaDetailOut(BaseModel):
     overview: Optional[str] = None
     poster_filename: Optional[str] = None
     movies: List[SagaMovieEntryOut] = []
+
+
+# ---------- Acteurs / Filmographie ----------
+
+class ActorSearchResult(BaseModel):
+    name: str
+    movie_count: int  # nombre de films de CETTE bibliotheque ou l'acteur apparait
+
+
+class ActorFilmographyEntry(BaseModel):
+    tmdb_movie_id: int
+    title: str
+    year: Optional[int] = None
+    poster_filename: Optional[str] = None
+    in_library: bool
+    movie_id: Optional[int] = None
+    folder_name: Optional[str] = None
+
+
+class ActorFilmographyOut(BaseModel):
+    name: str
+    source: str  # "tmdb" (filmographie complete) ou "local" (repli bibliotheque uniquement)
+    movies_in_library: int
+    total_movies: int
+    movies: List[ActorFilmographyEntry] = []

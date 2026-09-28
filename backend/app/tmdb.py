@@ -112,6 +112,57 @@ def _fetch_movie_details(tmdb_id: int) -> TmdbMovieMatch:
     )
 
 
+@dataclass
+class TmdbPersonMovie:
+    tmdb_movie_id: int
+    title: str
+    release_date: str
+    poster_path: Optional[str]
+    character: str
+
+
+def search_person(name: str) -> Optional[dict]:
+    """Recherche une personne (acteur/actrice) par nom, retourne le meilleur
+    resultat TMDb (dict brut avec au moins 'id' et 'name') ou None."""
+    _check_configured()
+    params = {
+        "api_key": settings.tmdb_api_key,
+        "query": name,
+        "language": settings.tmdb_language,
+        "include_adult": "false",
+    }
+    resp = requests.get(f"{BASE_URL}/search/person", params=params, headers=_headers(), timeout=20)
+    resp.raise_for_status()
+    results = resp.json().get("results", [])
+    return results[0] if results else None
+
+
+def fetch_person_movie_credits(person_id: int) -> list[TmdbPersonMovie]:
+    """Retourne la filmographie complete (en tant qu'acteur) d'une personne TMDb."""
+    _check_configured()
+    params = {"api_key": settings.tmdb_api_key, "language": settings.tmdb_language}
+    resp = requests.get(
+        f"{BASE_URL}/person/{person_id}/movie_credits", params=params, headers=_headers(), timeout=20
+    )
+    resp.raise_for_status()
+    data = resp.json()
+
+    credits: list[TmdbPersonMovie] = []
+    for c in data.get("cast", []):
+        if not c.get("title"):
+            continue
+        credits.append(
+            TmdbPersonMovie(
+                tmdb_movie_id=c["id"],
+                title=c.get("title") or "",
+                release_date=c.get("release_date") or "",
+                poster_path=c.get("poster_path"),
+                character=c.get("character") or "",
+            )
+        )
+    return credits
+
+
 def fetch_collection(collection_id: int) -> dict:
     """Retourne le detail complet d'une collection TMDb, dont la liste des
     films qui la composent ('parts'), presents ou non dans une bibliotheque."""

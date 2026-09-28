@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.database import init_db
 from app.config import settings
-from app.routers import libraries, movies, sagas
+from app.routers import libraries, movies, sagas, actors
 
 app = FastAPI(
     title="TinyMovieCatalog Library Manager API",
@@ -25,6 +25,7 @@ app.add_middleware(
 app.include_router(libraries.router)
 app.include_router(movies.router)
 app.include_router(sagas.router)
+app.include_router(actors.router)
 
 # Sert directement les vignettes en statique (alternative a /api/movies/{id}/poster)
 app.mount("/data/thumbnails", StaticFiles(directory=str(settings.thumbnails_dir)), name="thumbnails")

@@ -68,12 +68,17 @@ export class LibraryInfoComponent {
     return unit === 0 ? `${value} B` : `${value.toFixed(2)} ${units[unit]}`;
   }
 
-  /** Part d'espace libre du filesystem, ex: "3.9 %". */
-  freePercent(lib: LibraryInfo): string {
-    if (lib.fs_total_size === null || lib.fs_free_size === null || lib.fs_total_size <= 0) {
-      return '—';
-    }
-    return `${((lib.fs_free_size / lib.fs_total_size) * 100).toFixed(1)} %`;
+  /** Espace utilise = taille totale - espace disponible (en octets). */
+  usedBytes(lib: LibraryInfo): number | null {
+    if (lib.fs_total_size === null || lib.fs_free_size === null) return null;
+    return Math.max(lib.fs_total_size - lib.fs_free_size, 0);
+  }
+
+  /** Pourcentage du filesystem utilise (0-100, 1 decimale), ou null si inconnu. */
+  usedPercent(lib: LibraryInfo): number | null {
+    const used = this.usedBytes(lib);
+    if (used === null || !lib.fs_total_size || lib.fs_total_size <= 0) return null;
+    return Math.min(Math.round((used / lib.fs_total_size) * 1000) / 10, 100);
   }
 
   formatDate(value: string | null): string | null {

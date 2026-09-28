@@ -46,9 +46,36 @@
           <dt>Espace disponible</dt>
           <dd>{{ formatSize(lib.fs_free_size) }}</dd>
         </div>
-        <div class="info-row">
-          <dt>Espace disponible (%)</dt>
-          <dd>{{ freePercent(lib) }}</dd>
+        <div class="info-row gauge-row">
+          <div
+            class="gauge"
+            role="progressbar"
+            aria-label="Utilisation du disque"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            [attr.aria-valuenow]="usedPercent(lib)"
+          >
+            <div class="gauge-title">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <ellipse cx="12" cy="5" rx="8" ry="3"></ellipse>
+                <path d="M4 5v14c0 1.66 3.58 3 8 3s8-1.34 8-3V5"></path>
+                <path d="M4 12c0 1.66 3.58 3 8 3s8-1.34 8-3"></path>
+              </svg>
+              <span>DISK USAGE</span>
+            </div>
+            <div class="gauge-value">
+              <strong>{{ usedPercent(lib) ?? '—' }}</strong>
+              @if (usedPercent(lib) !== null) { <span>%</span> }
+            </div>
+            <div class="gauge-track">
+              <div class="gauge-fill" [style.width.%]="usedPercent(lib) ?? 0"></div>
+            </div>
+            <div class="gauge-legend">
+              <span>{{ formatSize(usedBytes(lib)) }} utilisés</span>
+              <span>{{ formatSize(lib.fs_total_size) }}</span>
+            </div>
+          </div>
         </div>
       </dl>
 

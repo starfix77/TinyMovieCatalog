@@ -10,6 +10,7 @@ from pathlib import Path
 from sqlalchemy.orm import Session
 
 from app import tmdb, ffprobe_utils
+from app.fs_utils import refresh_library_fs_stats
 from app.config import settings
 from app.models import Library, Movie, VideoFile, AudioTrack, Subtitle, Saga, SagaMovie
 from app.schemas import ScanResult
@@ -280,6 +281,7 @@ def scan_library(db: Session, library: Library, progress_callback=None) -> ScanR
             removed += 1
 
     library.last_scanned_at = datetime.utcnow()
+    refresh_library_fs_stats(library)
     db.commit()
 
     return ScanResult(

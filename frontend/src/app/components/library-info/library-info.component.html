@@ -1,0 +1,59 @@
+<div class="page">
+  <div class="page-header">
+    <h2>Info</h2>
+  </div>
+
+  @if (!activeLibraryId()) {
+    <div class="empty-state"><p>Ajoutez une bibliotheque dans le panneau de gauche pour commencer.</p></div>
+  } @else if (loading()) {
+    <div class="empty-state"><p>Chargement…</p></div>
+  } @else if (error()) {
+    <div class="empty-state"><p>Impossible de charger les informations de la bibliotheque.</p></div>
+  } @else {
+    @if (info(); as lib) {
+      <dl class="info-card">
+        <div class="info-row">
+          <dt>Nom de la bibliotheque</dt>
+          <dd>{{ lib.name }}</dd>
+        </div>
+        <div class="info-row">
+          <dt>Dossier racine</dt>
+          <dd class="mono">{{ lib.root_path }}</dd>
+        </div>
+        <div class="info-row">
+          <dt>Nombre total de films</dt>
+          <dd>{{ lib.movie_count }}</dd>
+        </div>
+        <div class="info-row">
+          <dt>Date de creation</dt>
+          <dd>{{ formatDate(lib.created_at) ?? '—' }}</dd>
+        </div>
+        <div class="info-row">
+          <dt>Derniere mise a jour</dt>
+          <dd>
+            @if (formatDate(lib.last_scanned_at); as updated) {
+              {{ updated }}
+            } @else {
+              <span class="muted">Jamais scannee</span>
+            }
+          </dd>
+        </div>
+        <div class="info-row">
+          <dt>Taille totale du filesystem</dt>
+          <dd>{{ lib.fs_total_size ?? '—' }}</dd>
+        </div>
+        <div class="info-row">
+          <dt>Espace disponible</dt>
+          <dd>{{ lib.fs_free_size ?? '—' }}</dd>
+        </div>
+      </dl>
+
+      @if (!lib.fs_available) {
+        <p class="fs-warning">
+          Le dossier racine est inaccessible (disque deconnecte ou dossier deplace) :
+          {{ lib.fs_total_size ? 'les tailles affichees sont les dernieres valeurs connues.' : 'les tailles du filesystem ne sont pas disponibles.' }}
+        </p>
+      }
+    }
+  }
+</div>

@@ -36,10 +36,17 @@ def _run_light_migrations():
     from sqlalchemy import inspect, text
 
     inspector = inspect(engine)
-    if "movies" not in inspector.get_table_names():
-        return
+    tables = inspector.get_table_names()
 
-    existing_columns = {c["name"] for c in inspector.get_columns("movies")}
-    if "saga_id" not in existing_columns:
-        with engine.begin() as conn:
-            conn.execute(text("ALTER TABLE movies ADD COLUMN saga_id INTEGER"))
+    if "movies" in tables:
+        existing_columns = {c["name"] for c in inspector.get_columns("movies")}
+        if "saga_id" not in existing_columns:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE movies ADD COLUMN saga_id INTEGER"))
+
+    if "libraries" in tables:
+        existing_columns = {c["name"] for c in inspector.get_columns("libraries")}
+        for column in ("fs_total_size", "fs_free_size"):
+            if column not in existing_columns:
+                with engine.begin() as conn:
+                    conn.execute(text(f"ALTER TABLE libraries ADD COLUMN {column} VARCHAR"))

@@ -52,6 +52,12 @@ class Library(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     last_scanned_at = Column(DateTime, nullable=True)
 
+    # Filesystem hebergeant le dossier racine, formate en GB/TB (ex: "931.51 GB",
+    # "1.82 TB"). Rafraichi a la creation, a chaque scan et a l'ouverture de la
+    # page "Info".
+    fs_total_size = Column(String, nullable=True)
+    fs_free_size = Column(String, nullable=True)
+
     movies = relationship("Movie", back_populates="library", cascade="all, delete-orphan")
 
 

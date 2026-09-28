@@ -21,6 +21,22 @@ class LibraryOut(BaseModel):
     movie_count: int = 0
 
 
+class LibraryInfoOut(BaseModel):
+    """Fiche d'information d'une bibliotheque (page \"Info\")."""
+    id: int
+    name: str
+    root_path: str
+    movie_count: int
+    created_at: Optional[datetime] = None
+    last_scanned_at: Optional[datetime] = None
+    # Taille du filesystem du dossier racine, deja formatee (\"1.82 TB\", \"931.51 GB\")
+    fs_total_size: Optional[str] = None
+    fs_free_size: Optional[str] = None
+    # False si le dossier racine est inaccessible : les valeurs ci-dessus sont
+    # alors les dernieres connues (ou None si jamais lues).
+    fs_available: bool = True
+
+
 class ScanResult(BaseModel):
     library_id: int
     folders_scanned: int

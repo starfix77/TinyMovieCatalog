@@ -7,6 +7,21 @@ export interface Library {
   movie_count: number;
 }
 
+/** Fiche d'information d'une bibliotheque (page "Info"). */
+export interface LibraryInfo {
+  id: number;
+  name: string;
+  root_path: string;
+  movie_count: number;
+  created_at: string | null;
+  last_scanned_at: string | null;
+  /** Taille du filesystem du dossier racine, deja formatee ("1.82 TB", "931.51 GB"). */
+  fs_total_size: string | null;
+  fs_free_size: string | null;
+  /** false si le dossier racine est inaccessible (valeurs = derniere lecture connue). */
+  fs_available: boolean;
+}
+
 export interface LibraryCreate {
   name: string;
   root_path: string;

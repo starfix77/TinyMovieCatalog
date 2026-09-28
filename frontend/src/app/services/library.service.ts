@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { Library, LibraryCreate, ScanResult, ScanProgress } from '../models/library.model';
+import { Library, LibraryCreate, LibraryInfo, ScanResult, ScanProgress } from '../models/library.model';
 
 @Injectable({ providedIn: 'root' })
 export class LibraryService {
@@ -37,6 +37,10 @@ export class LibraryService {
         }
       })
     );
+  }
+
+  getLibraryInfo(id: number): Observable<LibraryInfo> {
+    return this.http.get<LibraryInfo>(`${this.baseUrl}/${id}/info`);
   }
 
   createLibrary(payload: LibraryCreate): Observable<Library> {

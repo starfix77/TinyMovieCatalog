@@ -132,6 +132,16 @@ td {
   white-space: nowrap;
 }
 
+/* Colonne "Fichier vidéo" : prend l'espace restant, largeur mini 200px,
+   nom tronqué avec des points de suspension s'il est trop long */
+.file-cell {
+  width: 100%;
+  min-width: 200px;
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .codec-badge {
   display: inline-block;
   background: var(--teal-soft);

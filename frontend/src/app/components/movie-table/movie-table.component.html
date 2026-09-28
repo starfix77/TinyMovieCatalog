@@ -1,6 +1,6 @@
 <div class="page">
   <div class="page-header">
-    <h2>Détail technique (ecnodage vidéo, pistes audios...)</h2>
+    <h2>Détail technique (encodage vidéo, pistes audios...)</h2>
     <div class="search-box">
       <span class="search-icon">⌕</span>
       <input
@@ -35,7 +35,7 @@
           @for (movie of movies(); track movie.id) {
             <tr>
               <td class="title-cell">{{ movie.folder_name }}</td>
-              <td class="mono">{{ mainVideo(movie)?.filename || '—' }}</td>
+              <td class="mono file-cell" [attr.title]="mainVideo(movie)?.filename || null">{{ mainVideo(movie)?.filename || '—' }}</td>
               <td class="mono"><span class="codec-badge">{{ mainVideo(movie)?.video_codec || '—' }}</span></td>
               <td class="mono">{{ resolutionLabel(movie) }}</td>
               <td class="mono">{{ formatSize(mainVideo(movie)?.size_bytes) }}</td>

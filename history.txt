@@ -28,3 +28,11 @@
 **v0.8.1 
 - Ajout de la vue « Genre » tri des sections genre
 - centrage verticale icone Loupe dans la zeone recherche
+
+**v0.8.2
+Adaptation du tableau dans la vue "Détail technique", 
+si le contenu du tableau est plus large que la largeur de la fenêtre
+- supprime barre de scroll horizontale 
+- reduit la largeur de la 2eme colonne "Fichier vidéo" largeur mini 200px et si le nom du fichier est trop long pour la largeur de colonne 
+ajoute le principe  l'ellipsis (ou troncature avec points de suspension).
+

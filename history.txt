@@ -1,4 +1,23 @@
-v0.8 - Ajout de la vue « Genre » est ajoutée juste après « Films » 
+**v0.1 - alpha
+
+**v0.2 - Ajout Collection Sagas
+
+**v0.3 - Informations de la bibliothèque
+
+**v0.3.1 - Informations de la bibliothèque : correction mineure taille espace disque
+
+**v0.3.2 - Informations de la bibliothèque : ajout section utilisation disque
+
+**v0.4 - Ajout filmographie d'un acteur/actrice
+
+**v0.5 - Ajout option scan mise à jour simple vs approfondie basée sur le contenu du dossier
+
+**v0.6 - Ajout filmographie d'un acteur/actrice : option TMDB filmographie complète 
+
+**v0.7 - Détail du film : ajout lien vers le site TheMovieDb
+
+**v0.8 - Ajout de la vue « Genre » est ajoutée juste après « Films » 
+
 - En-tête : le titre « Films par genre » et le sous-titre demandés s'affichent en haut de la page, sur le modèle de votre image.
 - Sections : chaque genre présent dans la bibliothèque a sa propre section, avec « Action (48) » aligné à gauche et « Voir tout › » aligné à droite sur la même ligne. Les genres sont triés par nombre de films décroissant, puis par ordre alphabétique.
 - Aperçu : chaque section montre d'abord une seule ligne de vignettes, avec le titre du film et l'année en dessous. Le nombre de vignettes visibles s'adapte à la largeur de l'écran.
@@ -6,4 +25,6 @@ v0.8 - Ajout de la vue « Genre » est ajoutée juste après « Films »
 - Fiche film : cliquer sur une vignette ouvre la fiche détaillée existante.
 - Thèmes : les couleurs suivent le thème clair ou sombre de l'application, et pas seulement le sombre de votre image.
 
-
+**v0.8.1 
+- Ajout de la vue « Genre » tri des sections genre
+- centrage verticale icone Loupe dans la zeone recherche

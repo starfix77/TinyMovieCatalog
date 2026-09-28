@@ -45,7 +45,7 @@
   color: var(--text-muted);
   font-size: 32px;
   line-height: 1;
-  margin-top: -6px;
+  margin-top: 0px;
 }
 
 .search-box input {

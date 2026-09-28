@@ -39,7 +39,7 @@ export class GenreViewComponent {
   /** Un film peut appartenir a plusieurs genres ("Action, Science-fiction") :
    *  il apparait alors dans chacune des sections correspondantes.
    *  Seuls les genres presents dans la bibliotheque sont generes ; tri par
-   *  nombre de films decroissant, puis ordre alphabetique. */
+   *  ordre alphabetique du nom de genre. */
   sections = computed<GenreSection[]>(() => {
     const byGenre = new Map<string, Movie[]>();
     for (const movie of this.movies()) {
@@ -57,7 +57,7 @@ export class GenreViewComponent {
         name,
         movies: [...list].sort((a, b) => a.title.localeCompare(b.title, 'fr', { sensitivity: 'base' })),
       }))
-      .sort((a, b) => b.movies.length - a.movies.length || a.name.localeCompare(b.name, 'fr'));
+      .sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
   });
 
   constructor() {

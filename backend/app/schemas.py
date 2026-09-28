@@ -179,7 +179,10 @@ class ActorFilmographyEntry(BaseModel):
 
 class ActorFilmographyOut(BaseModel):
     name: str
-    source: str  # "tmdb" (filmographie complete) ou "local" (repli bibliotheque uniquement)
+    # "tmdb" (filmographie complete recuperee depuis TheMovieDB),
+    # "local" (TMDb interroge mais indisponible/acteur non trouve -> repli bibliotheque),
+    # "local_only" (TMDb non interroge du tout, mode bibliotheque uniquement demande explicitement)
+    source: str
     movies_in_library: int
     total_movies: int
     movies: List[ActorFilmographyEntry] = []

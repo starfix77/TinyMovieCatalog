@@ -15,7 +15,10 @@ export interface ActorFilmographyEntry {
 
 export interface ActorFilmography {
   name: string;
-  source: 'tmdb' | 'local';
+  // 'tmdb' : filmographie complete recuperee depuis TheMovieDB.
+  // 'local' : TMDb interroge mais indisponible / acteur non trouve (repli).
+  // 'local_only' : TMDb non interroge (mode "bibliotheque uniquement").
+  source: 'tmdb' | 'local' | 'local_only';
   movies_in_library: number;
   total_movies: number;
   movies: ActorFilmographyEntry[];

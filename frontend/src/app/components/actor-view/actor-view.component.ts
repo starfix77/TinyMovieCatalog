@@ -50,18 +50,28 @@ export class ActorViewComponent {
 
   selectedMovie = signal<Movie | null>(null);
 
-  // Case a cocher "affiche uniquement les films de la bibliotheque" (cochee
-  // par defaut) : filtre l'affichage de la filmographie cote client, sans
-  // nouvel appel serveur (les donnees completes sont deja recuperees).
-  onlyLibraryMovies = signal(true);
+  // Case a cocher "Voir toute la filmographie" (decochee par defaut) :
+  // - decochee (defaut) : aucun appel TMDB, seuls les films de l'acteur deja
+  //   presents dans la bibliotheque sont recuperes (rapide, hors-ligne).
+  // - cochee : relance l'appel serveur avec interrogation de TheMovieDB pour
+  //   recuperer toute la filmographie de l'acteur (avec les vignettes des
+  //   films absents de la bibliotheque) ; la grille affiche alors tous les
+  //   films retournes, presents ou non dans la bibliotheque.
+  showFullFilmography = signal(false);
 
-  toggleOnlyLibraryMovies(checked: boolean): void {
-    this.onlyLibraryMovies.set(checked);
+  toggleShowFullFilmography(checked: boolean): void {
+    this.showFullFilmography.set(checked);
+    const libId = this.activeLibraryId();
+    const actor = this.selectedActor();
+    if (libId && actor) {
+      this.loadFilmography(libId, actor, checked);
+    }
   }
 
-  /** Films a afficher dans la grille, filtres selon la case a cocher. */
+  /** Films a afficher dans la grille : tous les films renvoyes si "Voir toute
+   *  la filmographie" est cochee, sinon uniquement ceux de la bibliotheque. */
   visibleMovies(filmo: ActorFilmography): ActorFilmographyEntry[] {
-    return this.onlyLibraryMovies() ? filmo.movies.filter((m) => m.in_library) : filmo.movies;
+    return this.showFullFilmography() ? filmo.movies : filmo.movies.filter((m) => m.in_library);
   }
 
   constructor() {
@@ -134,11 +144,17 @@ export class ActorViewComponent {
     this.suggestionsOpen.set(false);
     this.suggestions.set([]);
 
+    this.loadFilmography(libId, actor.name, this.showFullFilmography());
+  }
+
+  /** Charge la filmographie de l'acteur. includeTmdb determine si le backend
+   *  interroge TheMovieDB (voir showFullFilmography / toggleShowFullFilmography). */
+  private loadFilmography(libId: number, actorName: string, includeTmdb: boolean): void {
     this.loadingFilmography.set(true);
     this.filmographyError.set(null);
     this.filmography.set(null);
 
-    this.actorService.getFilmography(libId, actor.name).subscribe({
+    this.actorService.getFilmography(libId, actorName, includeTmdb).subscribe({
       next: (data) => {
         this.filmography.set(data);
         this.loadingFilmography.set(false);

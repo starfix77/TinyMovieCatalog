@@ -16,8 +16,15 @@ export class ActorService {
     return this.http.get<ActorSearchResult[]>(`${this.baseUrl}/search`, { params });
   }
 
-  getFilmography(libraryId: number, name: string): Observable<ActorFilmography> {
-    const params = new HttpParams().set('library_id', libraryId).set('name', name);
+  /** includeTmdb : si true, le backend interroge TheMovieDB pour recuperer
+   *  toute la filmographie de l'acteur (et rafraichir les vignettes) ; si
+   *  false (defaut), seuls les films deja presents dans la bibliotheque sont
+   *  renvoyes, sans aucun appel TMDB. */
+  getFilmography(libraryId: number, name: string, includeTmdb: boolean): Observable<ActorFilmography> {
+    const params = new HttpParams()
+      .set('library_id', libraryId)
+      .set('name', name)
+      .set('include_tmdb', includeTmdb);
     return this.http.get<ActorFilmography>(`${this.baseUrl}/filmography`, { params });
   }
 

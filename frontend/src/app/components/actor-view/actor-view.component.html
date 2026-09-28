@@ -14,14 +14,14 @@
         <label for="actor-search">Rechercher acteur</label>
       </div>
       <div class="search-block-header-filter">
-        <label class="library-only-toggle" for="only-library-movies">
+        <label class="library-only-toggle" for="show-full-filmography">
           <input
-            id="only-library-movies"
+            id="show-full-filmography"
             type="checkbox"
-            [checked]="onlyLibraryMovies()"
-            (change)="toggleOnlyLibraryMovies($any($event.target).checked)"
+            [checked]="showFullFilmography()"
+            (change)="toggleShowFullFilmography($any($event.target).checked)"
           />
-          Affiche uniquement les films de la bibliotheque
+          Voir toute la filmographie
         </label>
       </div>
       <div class="search-input-wrap">
@@ -75,6 +75,8 @@
               {{ filmo.movies_in_library }} / {{ filmo.total_movies }} film{{ filmo.total_movies > 1 ? 's' : '' }} dans la bibliotheque
               @if (filmo.source === 'local') {
                 <span class="local-note">(TheMovieDB indisponible — bibliotheque locale uniquement)</span>
+              } @else if (filmo.source === 'local_only') {
+                <span class="local-note">(cochez « Voir toute la filmographie » pour interroger TheMovieDB)</span>
               }
             </span>
           </div>

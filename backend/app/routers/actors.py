@@ -69,20 +69,72 @@ def search_actors(
     return [ActorSearchResult(name=name, movie_count=count) for name, count in ranked]
 
 
+def _local_only_entries(local_matches: list[Movie]) -> list[ActorFilmographyEntry]:
+    """Construit la liste des entrees a partir des seuls films deja presents
+    dans la bibliotheque (aucun appel reseau / TMDB)."""
+    entries = [
+        ActorFilmographyEntry(
+            tmdb_movie_id=movie.tmdb_id or 0,
+            title=movie.title,
+            year=movie.year,
+            poster_filename=movie.poster_filename,
+            in_library=True,
+            movie_id=movie.id,
+            folder_name=movie.folder_name,
+        )
+        for movie in local_matches
+    ]
+    entries.sort(key=lambda e: (e.year or 0), reverse=True)
+    return entries
+
+
 @router.get("/filmography", response_model=ActorFilmographyOut)
 def get_filmography(
     library_id: int = Query(...),
     name: str = Query(..., min_length=1),
+    include_tmdb: bool = Query(
+        False,
+        description=(
+            "Si true, interroge TheMovieDB pour recuperer toute la filmographie de "
+            "l'acteur (et telecharger les vignettes manquantes). Si false (defaut), "
+            "aucun appel TMDB n'est effectue : seuls les films deja presents dans la "
+            "bibliotheque active sont renvoyes."
+        ),
+    ),
     db: Session = Depends(get_db),
 ):
-    """Filmographie complete d'un acteur (via TheMovieDB si disponible), avec
-    pour chaque film un indicateur de presence dans la bibliotheque active."""
+    """Filmographie d'un acteur, avec pour chaque film un indicateur de
+    presence dans la bibliotheque active.
+
+    Par defaut (include_tmdb=False), aucune requete n'est faite vers
+    TheMovieDB : seuls les films de la bibliotheque locale ou l'acteur
+    apparait dans le cast sont renvoyes (rapide, hors-ligne).
+
+    Quand include_tmdb=True (case "Voir toute la filmographie" cochee cote
+    frontend), la filmographie complete est recuperee depuis TheMovieDB afin
+    d'obtenir/rafraichir les vignettes de tous les films de l'acteur, y
+    compris ceux absents de la bibliotheque.
+    """
     name_norm = _normalize(name)
 
     library_movies = db.query(Movie).filter(Movie.library_id == library_id).all()
     local_matches = [m for m in library_movies if name_norm in {_normalize(n) for n in _cast_names(m)}]
     local_by_tmdb_id = {m.tmdb_id: m for m in local_matches if m.tmdb_id}
     local_without_tmdb_id = [m for m in local_matches if not m.tmdb_id]
+
+    if not include_tmdb:
+        # Mode local uniquement, demande explicitement (pas de fallback TMDB) :
+        # aucun appel reseau, on se limite a la bibliotheque active.
+        entries = _local_only_entries(local_matches)
+        if not entries:
+            raise HTTPException(404, "Aucun film trouve pour cet acteur.")
+        return ActorFilmographyOut(
+            name=name,
+            source="local_only",
+            movies_in_library=len(entries),
+            total_movies=len(entries),
+            movies=entries,
+        )
 
     entries: list[ActorFilmographyEntry] = []
     source = "local"
@@ -151,23 +203,12 @@ def get_filmography(
             entries = []
 
     if not person:
-        # TMDb indisponible / acteur non trouve : on se limite aux films de
-        # la bibliotheque locale ou l'acteur apparait dans le cast.
+        # TMDb indisponible / acteur non trouve alors qu'on l'a interroge : on
+        # se limite aux films de la bibliotheque locale ou l'acteur apparait
+        # dans le cast (source="local" distingue ce repli du mode
+        # "local_only" choisi deliberement sans meme interroger TMDB).
         source = "local"
-        entries = []
-        for movie in local_matches:
-            entries.append(
-                ActorFilmographyEntry(
-                    tmdb_movie_id=movie.tmdb_id or 0,
-                    title=movie.title,
-                    year=movie.year,
-                    poster_filename=movie.poster_filename,
-                    in_library=True,
-                    movie_id=movie.id,
-                    folder_name=movie.folder_name,
-                )
-            )
-        entries.sort(key=lambda e: (e.year or 0), reverse=True)
+        entries = _local_only_entries(local_matches)
 
     # Films locaux sans tmdb_id : toujours presents dans local_matches mais
     # jamais dans les credits TMDb (pas d'id commun) -> on les ajoute a part.

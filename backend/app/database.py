@@ -25,3 +25,21 @@ def get_db():
 def init_db():
     from app import models  # noqa: F401 (assure l'enregistrement des modeles)
     Base.metadata.create_all(bind=engine)
+    _run_light_migrations()
+
+
+def _run_light_migrations():
+    """SQLite + pas d'Alembic ici : create_all() cree les nouvelles tables
+    mais n'ajoute pas de colonnes sur une table existante. On complete donc
+    a la main les quelques colonnes ajoutees apres la premiere version du
+    schema, pour ne pas casser une base library.db deja peuplee."""
+    from sqlalchemy import inspect, text
+
+    inspector = inspect(engine)
+    if "movies" not in inspector.get_table_names():
+        return
+
+    existing_columns = {c["name"] for c in inspector.get_columns("movies")}
+    if "saga_id" not in existing_columns:
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE movies ADD COLUMN saga_id INTEGER"))

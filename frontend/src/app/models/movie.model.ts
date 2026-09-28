@@ -65,5 +65,5 @@ export interface MoviePage {
   items: Movie[];
 }
 
-export type SortField = 'title' | 'filename' | 'video_codec' | 'resolution' | 'size';
+export type SortField = 'title' | 'filename' | 'video_codec' | 'resolution' | 'size' | 'genre' | 'year' | 'duration';
 export type SortDir = 'asc' | 'desc';

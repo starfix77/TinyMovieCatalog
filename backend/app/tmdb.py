@@ -30,6 +30,9 @@ class TmdbMovieMatch:
     poster_path: Optional[str]
     genres: str
     cast_json: str  # JSON serialise: [{"name": "...", "character": "..."}]
+    collection_id: Optional[int] = None
+    collection_name: Optional[str] = None
+    collection_poster_path: Optional[str] = None
 
 
 def _check_configured():
@@ -92,6 +95,7 @@ def _fetch_movie_details(tmdb_id: int) -> TmdbMovieMatch:
         for c in data.get("credits", {}).get("cast", [])[: settings.max_cast]
     ]
     genres = ", ".join(g["name"] for g in data.get("genres", []))
+    collection = data.get("belongs_to_collection") or {}
 
     return TmdbMovieMatch(
         tmdb_id=data["id"],
@@ -102,7 +106,20 @@ def _fetch_movie_details(tmdb_id: int) -> TmdbMovieMatch:
         poster_path=data.get("poster_path"),
         genres=genres,
         cast_json=json.dumps(cast, ensure_ascii=False),
+        collection_id=collection.get("id"),
+        collection_name=collection.get("name"),
+        collection_poster_path=collection.get("poster_path"),
     )
+
+
+def fetch_collection(collection_id: int) -> dict:
+    """Retourne le detail complet d'une collection TMDb, dont la liste des
+    films qui la composent ('parts'), presents ou non dans une bibliotheque."""
+    _check_configured()
+    params = {"api_key": settings.tmdb_api_key, "language": settings.tmdb_language}
+    resp = requests.get(f"{BASE_URL}/collection/{collection_id}", params=params, headers=_headers(), timeout=20)
+    resp.raise_for_status()
+    return resp.json()
 
 
 def download_poster(poster_path: str, dest_file) -> bool:

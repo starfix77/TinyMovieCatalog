@@ -8,6 +8,40 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 
 
+class Saga(Base):
+    """Une saga/collection de films telle que definie par TheMovieDB
+    (ex: 'Harry Potter Collection'). Mise en cache localement pour pouvoir
+    afficher tous les films de la saga, meme ceux absents des bibliotheques."""
+    __tablename__ = "sagas"
+
+    id = Column(Integer, primary_key=True, index=True)
+    tmdb_collection_id = Column(Integer, unique=True, nullable=False)
+    name = Column(String, nullable=False)
+    overview = Column(Text, nullable=True)
+    poster_filename = Column(String, nullable=True)  # nom de fichier dans data/thumbnails
+    synced_at = Column(DateTime, nullable=True)
+
+    entries = relationship("SagaMovie", back_populates="saga", cascade="all, delete-orphan")
+
+
+class SagaMovie(Base):
+    """Un film appartenant a une saga TMDb (cache des 'parts' de la collection),
+    qu'il soit present ou non dans une bibliotheque locale."""
+    __tablename__ = "saga_movies"
+    __table_args__ = (UniqueConstraint("saga_id", "tmdb_movie_id", name="uq_saga_tmdb_movie"),)
+
+    id = Column(Integer, primary_key=True, index=True)
+    saga_id = Column(Integer, ForeignKey("sagas.id"), nullable=False)
+
+    tmdb_movie_id = Column(Integer, nullable=False)
+    title = Column(String, nullable=False)
+    release_date = Column(String, nullable=True)
+    poster_filename = Column(String, nullable=True)
+    order_index = Column(Integer, nullable=True)  # position dans la saga (ordre TMDb)
+
+    saga = relationship("Saga", back_populates="entries")
+
+
 class Library(Base):
     """Une bibliotheque = un dossier racine contenant des sous-dossiers de films."""
     __tablename__ = "libraries"
@@ -43,6 +77,7 @@ class Movie(Base):
     cast = Column(Text, nullable=True)                 # JSON: liste d'acteurs
     genres = Column(String, nullable=True)             # "Action, Science-fiction"
     tmdb_synced_at = Column(DateTime, nullable=True)
+    saga_id = Column(Integer, ForeignKey("sagas.id"), nullable=True)  # collection TMDb
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -50,6 +85,7 @@ class Movie(Base):
     library = relationship("Library", back_populates="movies")
     video_files = relationship("VideoFile", back_populates="movie", cascade="all, delete-orphan")
     subtitles = relationship("Subtitle", back_populates="movie", cascade="all, delete-orphan")
+    saga = relationship("Saga")
 
 
 class VideoFile(Base):

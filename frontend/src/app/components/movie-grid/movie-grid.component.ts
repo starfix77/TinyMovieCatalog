@@ -5,7 +5,7 @@ import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 
 import { LibraryService } from '../../services/library.service';
 import { MovieService } from '../../services/movie.service';
-import { Movie } from '../../models/movie.model';
+import { Movie, SortDir, SortField } from '../../models/movie.model';
 import { MovieDetailComponent } from '../movie-detail/movie-detail.component';
 
 @Component({
@@ -28,6 +28,17 @@ export class MovieGridComponent {
   loading = signal(false);
   selectedMovie = signal<Movie | null>(null);
 
+  // Le tri est disponible uniquement dans l'affichage Vignettes.
+  readonly sortOptions: { value: SortField; label: string }[] = [
+    { value: 'title', label: 'Titre' },
+    { value: 'genre', label: 'Genre' },
+    { value: 'year', label: 'Année' },
+    { value: 'duration', label: 'Durée du film' },
+    { value: 'size', label: 'Taille du fichier' },
+  ];
+  sortBy = signal<SortField>('title');
+  sortDir = signal<SortDir>('asc');
+
   constructor() {
     this.searchChanged.pipe(debounceTime(250), distinctUntilChanged()).subscribe(() => this.fetch());
 
@@ -38,12 +49,24 @@ export class MovieGridComponent {
     effect(() => {
       this.activeLibraryId();
       this.libraryService.moviesRefreshTick();
+      this.sortBy();
+      this.sortDir();
       this.fetch();
     }, { allowSignalWrites: true });
   }
 
   onSearchInput(): void {
     this.searchChanged.next(this.search);
+  }
+
+  onSortChange(value: string): void {
+    if (!value) return;
+    this.sortBy.set(value as SortField);
+    this.sortDir.set('asc');
+  }
+
+  toggleSortDirection(): void {
+    this.sortDir.set(this.sortDir() === 'asc' ? 'desc' : 'asc');
   }
 
   fetch(): void {
@@ -53,7 +76,7 @@ export class MovieGridComponent {
       return;
     }
     this.loading.set(true);
-    this.movieService.listMovies(libId, this.search || undefined, 'title', 'asc').subscribe({
+    this.movieService.listMovies(libId, this.search || undefined, this.sortBy(), this.sortDir()).subscribe({
       next: (page) => {
         this.movies.set(page.items);
         this.loading.set(false);

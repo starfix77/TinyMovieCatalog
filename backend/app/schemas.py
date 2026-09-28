@@ -106,3 +106,31 @@ class MovieMetadataUpdate(BaseModel):
 class MoviePage(BaseModel):
     total: int
     items: List[MovieOut]
+
+
+# ---------- Sagas ----------
+
+class SagaListItemOut(BaseModel):
+    id: int
+    name: str
+    poster_filename: Optional[str] = None
+    movies_in_library: int
+    total_movies: int
+
+
+class SagaMovieEntryOut(BaseModel):
+    tmdb_movie_id: int
+    title: str
+    year: Optional[int] = None
+    poster_filename: Optional[str] = None
+    in_library: bool
+    movie_id: Optional[int] = None
+    folder_name: Optional[str] = None
+
+
+class SagaDetailOut(BaseModel):
+    id: int
+    name: str
+    overview: Optional[str] = None
+    poster_filename: Optional[str] = None
+    movies: List[SagaMovieEntryOut] = []

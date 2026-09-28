@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app import tmdb, ffprobe_utils
 from app.config import settings
-from app.models import Library, Movie, VideoFile, AudioTrack, Subtitle
+from app.models import Library, Movie, VideoFile, AudioTrack, Subtitle, Saga, SagaMovie
 from app.schemas import ScanResult
 
 # "Le Titre du Film (2010)" -> groupes: titre / annee
@@ -55,6 +55,75 @@ def _find_subtitles(folder: Path) -> list[Path]:
         f for f in folder.iterdir()
         if f.is_file() and f.suffix.lower() in settings.subtitle_extensions
     ]
+
+
+def sync_saga_for_match(db: Session, match) -> "int | None":
+    """Cree/retrouve la Saga TMDb associee a un match de film, synchronise le
+    detail complet de la collection (liste des films, affiche) au besoin, et
+    retourne l'id local de la Saga (ou None si le film n'appartient a aucune
+    collection TMDb)."""
+    if not match.collection_id:
+        return None
+
+    saga = db.query(Saga).filter(Saga.tmdb_collection_id == match.collection_id).first()
+    if saga is None:
+        saga = Saga(tmdb_collection_id=match.collection_id, name=match.collection_name or "?")
+        db.add(saga)
+        db.flush()
+
+    if saga.synced_at is None:
+        _sync_saga_details(db, saga)
+
+    return saga.id
+
+
+def _sync_saga_details(db: Session, saga: Saga) -> None:
+    """Recupere aupres de TMDb la liste complete des films de la collection
+    (les 'parts', presents ou non dans une bibliotheque locale) et telecharge
+    les affiches manquantes."""
+    data = tmdb.fetch_collection(saga.tmdb_collection_id)
+
+    saga.name = data.get("name") or saga.name
+    saga.overview = data.get("overview") or None
+
+    poster_path = data.get("poster_path")
+    if poster_path:
+        poster_filename = f"saga_{saga.tmdb_collection_id}.jpg"
+        dest = settings.thumbnails_dir / poster_filename
+        if not dest.exists():
+            tmdb.download_poster(poster_path, dest)
+        saga.poster_filename = poster_filename
+
+    existing_by_tmdb_id = {entry.tmdb_movie_id: entry for entry in saga.entries}
+
+    for index, part in enumerate(data.get("parts", [])):
+        tmdb_movie_id = part.get("id")
+        if tmdb_movie_id is None:
+            continue
+
+        entry = existing_by_tmdb_id.get(tmdb_movie_id)
+        if entry is None:
+            entry = SagaMovie(saga_id=saga.id, tmdb_movie_id=tmdb_movie_id, title="?")
+            db.add(entry)
+            existing_by_tmdb_id[tmdb_movie_id] = entry
+
+        entry.title = part.get("title") or entry.title
+        entry.release_date = part.get("release_date") or None
+        entry.order_index = index
+
+        # Meme convention de nom que l'affiche "principale" d'un Movie
+        # (tmdb_<id>.jpg) : si ce film est deja dans une bibliotheque, son
+        # affiche est reutilisee telle quelle, sans re-telechargement.
+        part_poster_path = part.get("poster_path")
+        if part_poster_path and not entry.poster_filename:
+            poster_filename = f"tmdb_{tmdb_movie_id}.jpg"
+            dest = settings.thumbnails_dir / poster_filename
+            if not dest.exists():
+                tmdb.download_poster(part_poster_path, dest)
+            entry.poster_filename = poster_filename
+
+    saga.synced_at = datetime.utcnow()
+    db.flush()
 
 
 def _sync_movie_from_disk(db: Session, library: Library, folder: Path, errors: list) -> tuple[Movie, bool]:
@@ -148,6 +217,11 @@ def _sync_movie_from_disk(db: Session, library: Library, folder: Path, errors: l
                 movie.genres = match.genres
                 movie.cast = match.cast_json
                 movie.tmdb_synced_at = datetime.utcnow()
+
+                try:
+                    movie.saga_id = sync_saga_for_match(db, match)
+                except Exception as saga_exc:
+                    errors.append(f"TMDb saga: {folder.name}: {saga_exc}")
 
                 if match.poster_path:
                     poster_filename = f"tmdb_{match.tmdb_id}.jpg"

@@ -10,6 +10,7 @@ from app.config import settings
 from app.models import Movie, VideoFile
 from app.schemas import MovieOut, MoviePage, TmdbCandidateOut, MovieMetadataUpdate
 from app import tmdb
+from app.scanner import sync_saga_for_match
 from datetime import datetime
 
 router = APIRouter(prefix="/api/movies", tags=["movies"])
@@ -19,6 +20,9 @@ SORTABLE_FIELDS = {
     "filename": VideoFile.filename,
     "video_codec": VideoFile.video_codec,
     "size": VideoFile.size_bytes,
+    "genre": Movie.genres,
+    "year": Movie.year,
+    "duration": VideoFile.duration_sec,
     # la resolution est triee sur le nombre de pixels (largeur * hauteur)
     "resolution": (VideoFile.width, VideoFile.height),
 }
@@ -28,7 +32,7 @@ SORTABLE_FIELDS = {
 def list_movies(
     library_id: int = Query(..., description="Identifiant de la bibliotheque"),
     search: Optional[str] = Query(None, description="Recherche sur le titre du film"),
-    sort_by: Optional[str] = Query(None, description="title|filename|video_codec|size|resolution"),
+    sort_by: Optional[str] = Query(None, description="title|filename|video_codec|size|resolution|genre|year|duration"),
     sort_dir: str = Query("asc", pattern="^(asc|desc)$"),
     db: Session = Depends(get_db),
 ):
@@ -145,6 +149,10 @@ def update_movie_metadata(
         movie.cast = match.cast_json
         movie.poster_filename = new_poster
         movie.tmdb_synced_at = datetime.utcnow()
+        try:
+            movie.saga_id = sync_saga_for_match(db, match)
+        except Exception:
+            pass  # la fiche du film reste enregistree meme si la saga echoue
         db.commit()
     except Exception as exc:
         db.rollback()

@@ -1,0 +1,76 @@
+<div class="page">
+  <div class="page-header">
+    <h2>Sagas</h2>
+  </div>
+
+  @if (!activeLibraryId()) {
+    <div class="empty-state">
+      <p>Ajoutez une bibliotheque dans le panneau de gauche pour commencer.</p>
+    </div>
+  } @else if (loadingSagas()) {
+    <div class="empty-state"><p>Chargement…</p></div>
+  } @else if (sagas().length === 0) {
+    <div class="empty-state">
+      <p>Aucune saga detectee pour le moment. Les sagas sont identifiees automatiquement via TheMovieDB lors du scan de la bibliotheque.</p>
+    </div>
+  } @else {
+    <div class="saga-strip">
+      @for (saga of sagas(); track saga.id) {
+        <button class="saga-card" [class.active]="selectedSagaId() === saga.id" (click)="selectSaga(saga)">
+          <div class="saga-poster">
+            @if (sagaPosterUrl(saga)) {
+              <img [src]="sagaPosterUrl(saga)" [alt]="saga.name" loading="lazy" />
+            } @else {
+              <div class="poster-placeholder"><span>{{ saga.name.charAt(0) }}</span></div>
+            }
+          </div>
+          <span class="saga-name">{{ saga.name }}</span>
+          <span class="saga-count">{{ saga.movies_in_library }} / {{ saga.total_movies }} film{{ saga.total_movies > 1 ? 's' : '' }}</span>
+        </button>
+      }
+    </div>
+
+    @if (loadingDetail()) {
+      <div class="empty-state"><p>Chargement de la saga…</p></div>
+    } @else {
+      @if (sagaDetail(); as detail) {
+        <div class="saga-detail">
+          <h3>{{ detail.name }}</h3>
+          @if (detail.overview) {
+            <p class="saga-overview">{{ detail.overview }}</p>
+          }
+          <div class="grid">
+            @for (entry of detail.movies; track entry.tmdb_movie_id) {
+              <button
+                class="movie-card"
+                [class.absent]="!entry.in_library"
+                [disabled]="!entry.in_library"
+                (click)="openMovie(entry.movie_id)"
+              >
+                <div class="poster">
+                  @if (movieEntryPosterUrl(entry.poster_filename)) {
+                    <img [src]="movieEntryPosterUrl(entry.poster_filename)" [alt]="entry.title" loading="lazy" />
+                  } @else {
+                    <div class="poster-placeholder"><span>{{ entry.title.charAt(0) }}</span></div>
+                  }
+                  <span
+                    class="heart"
+                    [class.filled]="entry.in_library"
+                    [attr.title]="entry.in_library ? 'Present dans la bibliotheque' : 'Absent de la bibliotheque'"
+                  >{{ entry.in_library ? '♥' : '♡' }}</span>
+                </div>
+                <div class="movie-label">
+                  <span class="movie-title">{{ entry.title }}{{ entry.year ? ' (' + entry.year + ')' : '' }}</span>
+                </div>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    }
+  }
+</div>
+
+@if (selectedMovie()) {
+  <app-movie-detail [movie]="selectedMovie()!" (close)="closeDetail()" (movieUpdated)="onMovieUpdated($event)"></app-movie-detail>
+}

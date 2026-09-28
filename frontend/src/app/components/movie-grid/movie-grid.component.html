@@ -1,7 +1,21 @@
 <div class="page">
   <div class="page-header">
     <h2>Vignettes</h2>
-    <div class="search-box">
+    <div class="header-actions">
+      <div class="sort-box">
+        <label for="grid-sort">Tri</label>
+        <select id="grid-sort" [value]="sortBy()" (change)="onSortChange($any($event.target).value)">
+          @for (option of sortOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+        <button type="button" class="sort-direction" (click)="toggleSortDirection()"
+                [attr.aria-label]="sortDir() === 'asc' ? 'Tri décroissant' : 'Tri croissant'"
+                [attr.title]="sortDir() === 'asc' ? 'Tri décroissant' : 'Tri croissant'">
+          {{ sortDir() === 'asc' ? '△' : '▽' }}
+        </button>
+      </div>
+      <div class="search-box">
       <span class="search-icon">⌕</span>
       <input
         type="text"
@@ -9,6 +23,7 @@
         [(ngModel)]="search"
         (ngModelChange)="onSearchInput()"
       />
+      </div>
     </div>
   </div>
 

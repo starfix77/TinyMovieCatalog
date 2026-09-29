@@ -31,8 +31,13 @@ echo "Démarrage du frontend..."
 
 cd "$PROJECT_DIR/frontend"
 
+# mode dev
 npm start > "$PROJECT_DIR/frontend.log" 2>&1 &
 FRONTEND_PID=$!
+
+
+# mode build 
+# node server.js > "$PROJECT_DIR/frontend.log" 2>&1 & FRONTEND_PID=$!
 
 echo "Frontend démarré (PID: $FRONTEND_PID)"
 
@@ -51,7 +56,6 @@ echo "Démarrage du backend..."
 cd "$PROJECT_DIR/backend"
 
 source .venv/bin/activate
-# pip install -r requirements.txt
 python -m uvicorn app.main:app --reload --port 8000 \
     > "$PROJECT_DIR/backend.log" 2>&1 &
 

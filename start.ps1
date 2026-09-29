@@ -63,10 +63,17 @@ try {
 
     $frontendErrLog = Join-Path $ProjectDir "frontend.error.log"
 
+    # mode developpement
     $FrontendProcess = Start-Process -FilePath "cmd.exe" `
         -ArgumentList "/c", "npm start" `
         -RedirectStandardError $frontendErrLog `
         -PassThru -NoNewWindow -WorkingDirectory (Join-Path $ProjectDir "frontend")
+
+    # mode build
+    # $FrontendProcess = Start-Process -FilePath "cmd.exe" `
+        # -ArgumentList "/c", "node server.js" `
+        # -RedirectStandardError $frontendErrLog `
+        # -PassThru -NoNewWindow -WorkingDirectory (Join-Path $ProjectDir "frontend")
 
     Write-Host "Frontend demarre (PID: $($FrontendProcess.Id))"
 

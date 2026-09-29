@@ -45,6 +45,7 @@ echo ">> Installation des dépendances npm..."
 echo ""
 
 npm install
+npm run build
 
 echo ""
 echo ">> Installation frontend terminée."

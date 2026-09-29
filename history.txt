@@ -57,3 +57,7 @@ Changer un paramètre efface le tableau affiché, pour ne pas montrer un résult
 modification la vue « Comparaison » : le statut est renommé et la case « Voir les détails des différences uniquement » est ajoutée. 
 
 **v0.9.1 - correction petit bug Vue Genre (Voir tout quand pour la section 1 film  par d'affichage "Voir tout")
+
+**v0.9.1 - .gitignore ajout /frontend/dist/
+
+**v0.9.1 - modification README.md (2 modes frontend developpement ou build + express)

@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "tiny-movie-catalog-frontend": {
+    "tinymoviecatalog-frontend": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/tiny-movie-catalog-frontend",
+            "outputPath": "dist/tinymoviecatalog-frontend",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": ["zone.js"],
@@ -41,8 +41,8 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
-            "production": { "buildTarget": "tiny-movie-catalog-frontend:build:production" },
-            "development": { "buildTarget": "tiny-movie-catalog-frontend:build:development" }
+            "production": { "buildTarget": "tinymoviecatalog-frontend:build:production" },
+            "development": { "buildTarget": "tinymoviecatalog-frontend:build:development" }
           },
           "defaultConfiguration": "development"
         }

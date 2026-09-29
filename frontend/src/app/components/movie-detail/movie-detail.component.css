@@ -154,6 +154,14 @@
   color: var(--text-muted);
 }
 
+
+.cast-chip:hover,
+.subtitle-chip:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
+
 .tech-block {
   margin-top: 8px;
   padding-top: 14px;

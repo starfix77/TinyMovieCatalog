@@ -63,3 +63,5 @@ modification la vue « Comparaison » : le statut est renommé et la case « Voi
 **v0.9.1 - modification README.md (2 modes frontend developpement ou build + express)
 
 **v0.9.2 - ajout lien pour obtenir le detail du film dans les vues Comparaison et Détail Technique
+
+**v0.9.2 - Dialogue "Detail film" ajout subrillance sur survol acteur et sous-titre

@@ -1,4 +1,4 @@
-# TinyMovieCatalog — Gestionnaire de bibliotheques films MKV/MP4
+# TinyMovieCatalog
 
 Application locale de gestion de bibliotheques de films (MKV/MP4) :
 - **Frontend** : Angular 19 (standalone components)
@@ -35,7 +35,7 @@ option, un ou plusieurs fichiers de sous-titres (`.srt`, `.ass`, `.ssa`,
 
 
 
-## 1. Prerequis
+## 1. Prérequis
 
 | Outil | Windows | Linux |
 |---|---|---|
@@ -48,6 +48,16 @@ Vous aurez également besoin d'une **clé API TheMovieDB** (gratuite) :
 https://www.themoviedb.org/settings/api
 
 ---
+
+<span style="color:darkgreen">**Astuce installation et lancement RAPIDE pour LINUX**</span>
+
+```bash
+chmod +x *.sh
+./install.sh
+./start.sh
+```
+sinon suivre les étapes suivantes voir chapitre Installation et lancement (backend + frontend) 
+
 
 ## 2. Installation
 
@@ -115,7 +125,7 @@ venv\Scripts\activate
 uvicorn app.main:app --reload --port 8000
 ```
 
-### 4.2 démarrage Front 
+### 4.2 démarrage Frontend 
 
 
 ```bash
@@ -128,7 +138,7 @@ node server.js
 ```
 
 Puis suivre les étapes ci-dessous:
-1. L'application est disponible sur `http://localhost:4200` en mode developement ou `http://localhost:3000`
+1. L'application est disponible sur `http://localhost:4200` en mode developement ou `http://localhost:3000` en mode build
 
 2. Dans le panneau de gauche, cliquez sur **"+ Nouvelle bibliotheque"**, donnez-lui
    un nom et indiquez le chemin du dossier racine (ex. `C:\movies` ou

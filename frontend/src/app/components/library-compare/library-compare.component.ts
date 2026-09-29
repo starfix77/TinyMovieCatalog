@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { LibraryService } from '../../services/library.service';
+import { MovieService } from '../../services/movie.service';
+import { Movie } from '../../models/movie.model';
+import { MovieDetailComponent } from '../movie-detail/movie-detail.component';
 import { CompareDepth, CompareMode, CompareResult, CompareStatus, CompareVideoDetail } from '../../models/library.model';
 
 interface ModeOption {
@@ -14,12 +17,13 @@ interface ModeOption {
 @Component({
   selector: 'app-library-compare',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MovieDetailComponent],
   templateUrl: './library-compare.component.html',
   styleUrl: './library-compare.component.css',
 })
 export class LibraryCompareComponent {
   private readonly libraryService = inject(LibraryService);
+  private readonly movieService = inject(MovieService);
   private readonly host = inject(ElementRef<HTMLElement>);
 
   readonly libraries = this.libraryService.libraries;
@@ -41,6 +45,7 @@ export class LibraryCompareComponent {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly result = signal<CompareResult | null>(null);
+  readonly selectedMovie = signal<Movie | null>(null);
 
   // readonly currentMode = computed(() => this.modes.find((m) => m.value === this.mode()) ?? this.modes[0]);
   readonly currentMode = computed<ModeOption>(() => {
@@ -163,6 +168,23 @@ export class LibraryCompareComponent {
         this.loading.set(false);
       },
     });
+  }
+
+  /** Ouvre la boite de dialogue « movie-detail » (identique a la vue Films) pour le film de la ligne. */
+  openDetail(movieId: number | null | undefined): void {
+    if (movieId == null) return;
+    this.movieService.getMovie(movieId).subscribe({
+      next: (movie) => this.selectedMovie.set(movie),
+      error: (err) => this.error.set(err?.error?.detail ?? 'Impossible de charger la fiche du film.'),
+    });
+  }
+
+  closeDetail(): void {
+    this.selectedMovie.set(null);
+  }
+
+  onMovieUpdated(updated: Movie): void {
+    this.selectedMovie.set(updated);
   }
 
   private resetResult(): void {

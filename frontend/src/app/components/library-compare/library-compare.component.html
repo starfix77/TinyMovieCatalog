@@ -129,7 +129,7 @@
                     <tr>
                       <td class="film-cell" [class.film-cell-details]="detailsActive()">
                         @if (row.left) {
-                          {{ row.left }}
+                          <button type="button" class="film-link" (click)="openDetail(row.left_movie_id)" [attr.title]="row.left">{{ row.left }}</button>
                         } @else {
                           <span class="none">—</span>
                         }
@@ -146,7 +146,7 @@
 
                       <td class="film-cell" [class.film-cell-details]="detailsActive()">
                         @if (row.right) {
-                          {{ row.right }}
+                          <button type="button" class="film-link" (click)="openDetail(row.right_movie_id)" [attr.title]="row.right">{{ row.right }}</button>
                         } @else {
                           <span class="none">—</span>
                         }
@@ -204,3 +204,7 @@
     <span class="none">Aucun fichier vidéo</span>
   }
 </ng-template>
+
+@if (selectedMovie()) {
+  <app-movie-detail [movie]="selectedMovie()!" (close)="closeDetail()" (movieUpdated)="onMovieUpdated($event)"></app-movie-detail>
+}

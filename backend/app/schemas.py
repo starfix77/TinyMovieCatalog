@@ -60,6 +60,8 @@ class CompareRow(BaseModel):
     """Une ligne du tableau de comparaison (film a gauche / statut / film a droite)."""
     left: Optional[str] = None    # "Titre (Annee)" dans la bibliotheque #1, None si absent
     right: Optional[str] = None   # "Titre (Annee)" dans la bibliotheque #2, None si absent
+    left_movie_id: Optional[int] = None    # id du film en base (ouverture de la fiche detail)
+    right_movie_id: Optional[int] = None
     status: str                   # identical | identical_different_file | missing_right | missing_left
     left_detail: Optional[CompareVideoDetail] = None    # renseigne uniquement en mode "details"
     right_detail: Optional[CompareVideoDetail] = None

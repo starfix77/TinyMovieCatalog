@@ -84,6 +84,8 @@ export interface CompareVideoDetail {
 export interface CompareRow {
   left: string | null;
   right: string | null;
+  left_movie_id?: number | null;
+  right_movie_id?: number | null;
   status: CompareStatus;
   left_detail?: CompareVideoDetail | null;
   right_detail?: CompareVideoDetail | null;

@@ -176,3 +176,25 @@ td {
 
 .audio-codec { width: 55px; color: var(--teal); }
 .audio-bitrate { color: var(--text-faint); }
+
+.title-link {
+  display: block;
+  max-width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.title-link:hover,
+.title-link:focus-visible {
+  color: var(--accent, var(--text));
+  text-decoration: underline;
+  outline: none;
+}

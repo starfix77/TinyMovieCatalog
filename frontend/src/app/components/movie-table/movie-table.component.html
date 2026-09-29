@@ -34,7 +34,9 @@
         <tbody>
           @for (movie of movies(); track movie.id) {
             <tr>
-              <td class="title-cell">{{ movie.folder_name }}</td>
+              <td class="title-cell">
+                <button type="button" class="title-link" (click)="openDetail(movie)" [attr.title]="movie.folder_name">{{ movie.folder_name }}</button>
+              </td>
               <td class="mono file-cell" [attr.title]="mainVideo(movie)?.filename || null">{{ mainVideo(movie)?.filename || '—' }}</td>
               <td class="mono"><span class="codec-badge">{{ mainVideo(movie)?.video_codec || '—' }}</span></td>
               <td class="mono">{{ resolutionLabel(movie) }}</td>
@@ -61,3 +63,7 @@
     </div>
   }
 </div>
+
+@if (selectedMovie()) {
+  <app-movie-detail [movie]="selectedMovie()!" (close)="closeDetail()" (movieUpdated)="onMovieUpdated($event)"></app-movie-detail>
+}

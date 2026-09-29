@@ -67,6 +67,14 @@ def _load_library_index(db: Session, library_id: int):
     return build_library(rows)
 
 
+def _load_movie_ids(db: Session, library_id: int) -> dict:
+    """{cle de dossier: id du film} pour ouvrir la fiche detail depuis la comparaison."""
+    out = {}
+    for movie_id, folder_name in db.query(Movie.id, Movie.folder_name).filter(Movie.library_id == library_id).order_by(Movie.id):
+        out.setdefault(folder_key(folder_name), movie_id)
+    return out
+
+
 def _load_video_details(db: Session, library_id: int) -> dict:
     """{cle de dossier: CompareVideoDetail} du fichier video principal de chaque film."""
     movies = (
@@ -130,6 +138,12 @@ def compare(
         for row in rows:
             row["left_detail"] = left_details.get(folder_key(row["left"]))
             row["right_detail"] = right_details.get(folder_key(row["right"]))
+
+    left_ids = _load_movie_ids(db, left.id)
+    right_ids = _load_movie_ids(db, right.id)
+    for row in rows:
+        row["left_movie_id"] = left_ids.get(folder_key(row["left"])) if row["left"] else None
+        row["right_movie_id"] = right_ids.get(folder_key(row["right"])) if row["right"] else None
 
     return CompareOut(
         left_library_id=left.id,

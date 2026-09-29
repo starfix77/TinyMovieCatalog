@@ -6,6 +6,7 @@ import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { LibraryService } from '../../services/library.service';
 import { MovieService } from '../../services/movie.service';
 import { Movie, SortDir, SortField } from '../../models/movie.model';
+import { MovieDetailComponent } from '../movie-detail/movie-detail.component';
 
 interface ColumnDef {
   key: SortField;
@@ -16,7 +17,7 @@ interface ColumnDef {
 @Component({
   selector: 'app-movie-table',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MovieDetailComponent],
   templateUrl: './movie-table.component.html',
   styleUrl: './movie-table.component.css',
 })
@@ -42,6 +43,7 @@ export class MovieTableComponent {
 
   movies = signal<Movie[]>([]);
   loading = signal(false);
+  selectedMovie = signal<Movie | null>(null);
 
   constructor() {
     this.searchChanged.pipe(debounceTime(250), distinctUntilChanged()).subscribe(() => this.fetch());
@@ -90,6 +92,22 @@ export class MovieTableComponent {
       },
       error: () => this.loading.set(false),
     });
+  }
+
+  openDetail(movie: Movie): void {
+    this.selectedMovie.set(movie);
+  }
+
+  closeDetail(): void {
+    this.selectedMovie.set(null);
+  }
+
+  onMovieUpdated(updated: Movie): void {
+    // Meme comportement que la vue Films : mise a jour immediate de la ligne,
+    // puis rechargement depuis la DB pour resynchroniser toutes les colonnes.
+    this.movies.update(items => items.map(movie => movie.id === updated.id ? updated : movie));
+    this.selectedMovie.set(updated);
+    this.fetch();
   }
 
   mainVideo(movie: Movie) {

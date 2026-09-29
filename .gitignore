@@ -1,8 +1,10 @@
 .vscode/
 .DS_Store
 
-frontend/node_modules/
 frontend/.angular/
+frontend/node_modules/
+frontend/dist/
+
 backend/.env
 backend/data/db/*
 backend/data/thumbnails/*

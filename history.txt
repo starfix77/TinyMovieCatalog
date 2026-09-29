@@ -55,3 +55,5 @@ Les noms de dossiers sont rapprochés sans tenir compte de la casse ni des espac
 Changer un paramètre efface le tableau affiché, pour ne pas montrer un résultat qui ne correspond plus aux choix.
 
 modification la vue « Comparaison » : le statut est renommé et la case « Voir les détails des différences uniquement » est ajoutée. 
+
+**v0.9.1 - correction petit bug Vue Genre (Voir tout quand pour la section 1 film  par d'affichage "Voir tout")

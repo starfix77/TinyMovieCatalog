@@ -14,6 +14,11 @@
           <div class="poster-placeholder"><span>{{ movie.title.charAt(0) }}</span></div>
         }
 
+        <button class="play-btn" (click)="playMovieFile()" [disabled]="playing" title="Lancer le film avec ffplay">
+          {{ playing ? 'Lancement…' : '▶ PLAY' }}
+        </button>
+        @if (playError) { <div class="play-error">{{ playError }}</div> }
+
         <button class="change-poster-btn" (click)="openPosterDialog()" [disabled]="!movie.tmdb_id"
                 [title]="movie.tmdb_id ? 'Choisir une autre pochette sur TheMovieDB' : 'Film non associé à TheMovieDB'">
           Change pochette

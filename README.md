@@ -69,6 +69,7 @@ Editez le fichier de configuration `backend/.env` :
 TMDB_API_KEY=votre_cle_ici
 TMDB_LANGUAGE=fr-FR
 FFPROBE_PATH=ffprobe   # ou chemin complet si ffprobe n'est pas dans le PATH
+FFPLAY_PATH=ffplay     # utilise par le bouton PLAY (ou chemin complet si ffplay n'est pas dans le PATH)
 ```
 
 

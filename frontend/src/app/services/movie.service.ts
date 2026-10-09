@@ -35,6 +35,10 @@ export class MovieService {
     return this.http.put<Movie>(`${this.baseUrl}/${movieId}/metadata`, { tmdb_id: tmdbId });
   }
 
+  playMovie(movieId: number): Observable<{ status: string; file: string }> {
+    return this.http.post<{ status: string; file: string }>(`${this.baseUrl}/${movieId}/play`, {});
+  }
+
   getTmdbLanguages(): Observable<TmdbLanguages> {
     return this.http.get<TmdbLanguages>(`${environment.apiUrl}/tmdb/languages`);
   }

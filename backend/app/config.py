@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     # peut etre "C:\\ffmpeg\\bin\\ffprobe.exe" si ffprobe n'est pas dans le PATH.
     ffprobe_path: str = "ffprobe"
 
+    # Chemin vers l'executable ffplay (lecture des films). Si laisse a "ffplay"
+    # et que FFPROBE_PATH contient un dossier, ffplay est cherche dans le meme dossier.
+    ffplay_path: str = "ffplay"
+
     # Dossier commun de donnees (affiches/vignettes) partage par toutes les
     # bibliotheques, + base SQLite.
     data_dir: Path = BACKEND_ROOT / "data"
@@ -32,6 +36,15 @@ class Settings(BaseSettings):
     # Extensions video reconnues comme "fichier principal" d'un dossier film
     video_extensions: tuple = (".mkv", ".mp4", ".avi", ".m4v")
     subtitle_extensions: tuple = (".srt", ".ass", ".ssa", ".sub", ".vtt")
+
+    @property
+    def ffplay_executable(self) -> str:
+        if self.ffplay_path == "ffplay":
+            probe = Path(self.ffprobe_path)
+            if probe.parent != Path("."):
+                suffix = probe.suffix
+                return str(probe.parent / f"ffplay{suffix}")
+        return self.ffplay_path
 
     @property
     def thumbnails_dir(self) -> Path:

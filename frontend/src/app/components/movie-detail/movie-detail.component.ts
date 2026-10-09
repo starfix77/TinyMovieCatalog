@@ -122,6 +122,25 @@ export class MovieDetailComponent {
     });
   }
 
+  // ---------- Lecture du film (ffplay) ----------
+  playing = false;
+  playError = '';
+
+  playMovieFile(): void {
+    if (this.playing) return;
+    this.playing = true;
+    this.playError = '';
+    this.movieService.playMovie(this.movie.id).subscribe({
+      next: () => {
+        this.playing = false;
+      },
+      error: (error) => {
+        this.playing = false;
+        this.playError = error?.error?.detail || 'Impossible de lancer la lecture du film.';
+      },
+    });
+  }
+
   // ---------- Changement de pochette ----------
   posterDialogOpen = false;
   languages: { code: string; label: string; search: string }[] = [];

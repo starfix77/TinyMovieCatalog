@@ -1,5 +1,8 @@
 from typing import Optional
+import os
 import re
+import shutil
+import subprocess
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
@@ -279,6 +282,51 @@ def change_movie_poster(
         .filter(Movie.id == movie_id)
         .first()
     )
+
+
+@router.post("/{movie_id}/play")
+def play_movie(movie_id: int, db: Session = Depends(get_db)):
+    """Lance la lecture du film avec ffplay (nouvelle fenetre, sur la machine du backend)."""
+    movie = (
+        db.query(Movie)
+        .options(joinedload(Movie.video_files))
+        .filter(Movie.id == movie_id)
+        .first()
+    )
+    if not movie:
+        raise HTTPException(404, "Film introuvable.")
+
+    video = next((v for v in movie.video_files if v.filepath and os.path.isfile(v.filepath)), None)
+    if video is None:
+        raise HTTPException(404, "Film non disponible : le fichier vidéo est introuvable "
+                                 "(disque débranché, fichier déplacé ou supprimé).")
+
+    ffplay = settings.ffplay_executable
+    if not shutil.which(ffplay):
+        raise HTTPException(500, "ffplay est introuvable. Installez FFmpeg ou renseignez "
+                                 "FFPLAY_PATH dans backend/.env.")
+
+    cmd = [ffplay, "-autoexit", "-window_title", movie.title, video.filepath]
+    kwargs = {}
+    if os.name == "nt":
+        kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
+    else:
+        kwargs["start_new_session"] = True
+    try:
+        proc = subprocess.Popen(
+            cmd, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, **kwargs
+        )
+    except OSError as exc:
+        raise HTTPException(500, f"Impossible de lancer ffplay : {exc}")
+
+    # Si ffplay s'arrete immediatement, c'est un echec (fichier illisible, pas d'affichage...).
+    try:
+        code = proc.wait(timeout=1.0)
+    except subprocess.TimeoutExpired:
+        return {"status": "playing", "file": video.filename}
+    if code != 0:
+        raise HTTPException(500, "ffplay n'a pas pu lire ce film.")
+    return {"status": "finished", "file": video.filename}
 
 
 @router.get("/{movie_id}/poster")

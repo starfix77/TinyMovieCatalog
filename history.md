@@ -88,3 +88,11 @@ Un rescan ne remet pas l’ancienne pochette, car il ne retouche pas un film dé
 Les noms de langues viennent de Intl.DisplayNames (navigateur), avec repli sur le nom TMDb si le navigateur ne le gère pas.
 
 
+**v0.9.4** - Dialogue "Detail film" : ajout du bouton "PLAY" (lecture du film avec ffplay, message d'erreur si le fichier est indisponible), variable `FFPLAY_PATH` dans .env
+
+Le bouton « ▶ PLAY » est ajouté dans « Détail film », juste au-dessus de « Change pochette ». Il lance le film avec ffplay dans sa propre fenêtre. 
+
+Film indisponible : si le fichier vidéo est introuvable (disque débranché, fichier déplacé ou supprimé), un message rouge s’affiche sous le bouton : « Film non disponible : le fichier vidéo est introuvable… ». Un message demande d’installer FFmpeg ou de renseigner FFPLAY_PATH dans backend/.env.
+Si ffplay se ferme tout de suite : le bouton affiche une erreur au lieu de ne rien faire.
+Lancement : la fenêtre s’ouvre sur la machine qui fait tourner le backend, ce qui convient pour ton usage local. Elle porte le titre du film et se ferme à la fin de la lecture. Le bouton passe à « Lancement… » le temps du démarrage.
+Configuration : *FFPLAY_PATH* est une nouvelle variable de backend/.env.example, par défaut ffplay. Si FFPROBE_PATH est un chemin complet, ffplay est cherché dans le même dossier (par exemple C:\ffmpeg\bin\), donc rien à changer dans ce cas. 

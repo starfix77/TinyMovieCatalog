@@ -415,3 +415,31 @@
   .poster-search-bar { flex-wrap: wrap; }
   .lang-combo { max-width: none; flex-basis: 100%; order: 3; }
 }
+
+/* ---------- Bouton PLAY ---------- */
+.play-btn {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 9px 10px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  cursor: pointer;
+}
+.play-btn:hover:not(:disabled) { filter: brightness(1.1); }
+.play-btn:disabled { opacity: .6; cursor: wait; }
+.play-error {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(180, 70, 70, .15);
+  border: 1px solid rgba(180, 70, 70, .4);
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.4;
+}

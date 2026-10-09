@@ -60,6 +60,25 @@ export interface TmdbCandidate {
   cast: string;
 }
 
+export interface TmdbLanguage {
+  code: string; // ex: fr-FR
+  english_name: string;
+  native_name: string;
+}
+
+export interface TmdbLanguages {
+  default: string;
+  languages: TmdbLanguage[];
+}
+
+export interface MoviePoster {
+  file_path: string;
+  width: number;
+  height: number;
+  language: string | null;
+  vote_average: number;
+}
+
 export interface MoviePage {
   total: number;
   items: Movie[];

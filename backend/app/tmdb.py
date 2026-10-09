@@ -173,6 +173,68 @@ def fetch_collection(collection_id: int) -> dict:
     return resp.json()
 
 
+_languages_cache: Optional[list[dict]] = None
+
+
+def fetch_available_languages() -> list[dict]:
+    """Retourne les langues/regions disponibles dans TMDb sous la forme
+    [{"code": "fr-FR", "english_name": "French", "native_name": "Français"}, ...].
+
+    Combine /configuration/primary_translations (codes langue-PAYS) et
+    /configuration/languages (noms). Le resultat est mis en cache en memoire."""
+    global _languages_cache
+    if _languages_cache is not None:
+        return _languages_cache
+    _check_configured()
+    params = {"api_key": settings.tmdb_api_key}
+    resp = requests.get(f"{BASE_URL}/configuration/primary_translations", params=params,
+                        headers=_headers(), timeout=20)
+    resp.raise_for_status()
+    codes: list[str] = resp.json()
+
+    resp = requests.get(f"{BASE_URL}/configuration/languages", params=params,
+                        headers=_headers(), timeout=20)
+    resp.raise_for_status()
+    names = {l["iso_639_1"]: l for l in resp.json()}
+
+    result = []
+    for code in sorted(set(codes)):
+        iso = code.split("-")[0]
+        info = names.get(iso, {})
+        result.append({
+            "code": code,
+            "english_name": info.get("english_name") or iso,
+            "native_name": info.get("name") or "",
+        })
+    _languages_cache = result
+    return result
+
+
+def fetch_movie_posters(tmdb_id: int, language: str) -> list[dict]:
+    """Retourne toutes les affiches TMDb d'un film pour la langue demandee
+    (code 'fr-FR' ou 'fr' : seule la partie langue est utilisee, les affiches
+    TMDb etant etiquetees par langue ISO 639-1)."""
+    _check_configured()
+    iso = (language or "").split("-")[0].lower()
+    params = {"api_key": settings.tmdb_api_key, "include_image_language": iso}
+    resp = requests.get(f"{BASE_URL}/movie/{tmdb_id}/images", params=params,
+                        headers=_headers(), timeout=20)
+    resp.raise_for_status()
+    posters = resp.json().get("posters", [])
+    posters = [p for p in posters if (p.get("iso_639_1") or "").lower() == iso]
+    posters.sort(key=lambda p: (p.get("vote_average") or 0, p.get("vote_count") or 0), reverse=True)
+    return [
+        {
+            "file_path": p["file_path"],
+            "width": p.get("width") or 0,
+            "height": p.get("height") or 0,
+            "language": p.get("iso_639_1"),
+            "vote_average": p.get("vote_average") or 0,
+        }
+        for p in posters
+    ]
+
+
 def download_poster(poster_path: str, dest_file) -> bool:
     """Telecharge l'affiche vers dest_file (Path). Retourne True si succes."""
     if not poster_path:

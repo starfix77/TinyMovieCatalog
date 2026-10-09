@@ -1,4 +1,5 @@
 from typing import Optional
+import re
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
@@ -7,8 +8,8 @@ from sqlalchemy import asc, desc
 
 from app.database import get_db
 from app.config import settings
-from app.models import Movie, VideoFile
-from app.schemas import MovieOut, MoviePage, TmdbCandidateOut, MovieMetadataUpdate
+from app.models import Movie, VideoFile, SagaMovie
+from app.schemas import MovieOut, MoviePage, TmdbCandidateOut, MovieMetadataUpdate, PosterOut, PosterUpdate
 from app import tmdb
 from app.scanner import sync_saga_for_match
 from datetime import datetime
@@ -192,6 +193,92 @@ def update_movie_metadata(
                 pass
 
     return updated_movie
+
+
+@router.get("/{movie_id}/posters", response_model=list[PosterOut])
+def list_tmdb_posters(
+    movie_id: int,
+    language: str = Query(..., description="Code langue TMDb, ex: fr-FR"),
+    db: Session = Depends(get_db),
+):
+    """Liste toutes les pochettes TMDb du film dans la langue demandee."""
+    movie = db.get(Movie, movie_id)
+    if not movie:
+        raise HTTPException(404, "Film introuvable.")
+    if not movie.tmdb_id:
+        raise HTTPException(400, "Ce film n'est pas associe a TheMovieDB.")
+    try:
+        return tmdb.fetch_movie_posters(movie.tmdb_id, language)
+    except tmdb.TmdbNotConfiguredError as exc:
+        raise HTTPException(503, str(exc))
+    except Exception as exc:
+        raise HTTPException(502, f"Recherche des pochettes impossible : {exc}")
+
+
+_POSTER_PATH_RE = re.compile(r"^/([A-Za-z0-9_-]+)\.(jpg|jpeg|png)$")
+
+
+@router.put("/{movie_id}/poster", response_model=MovieOut)
+def change_movie_poster(
+    movie_id: int,
+    payload: PosterUpdate,
+    db: Session = Depends(get_db),
+):
+    """Remplace la vignette du film par une pochette TMDb choisie."""
+    match = _POSTER_PATH_RE.match(payload.file_path)
+    if not match:
+        raise HTTPException(400, "Chemin de pochette invalide.")
+
+    movie = db.get(Movie, movie_id)
+    if not movie:
+        raise HTTPException(404, "Film introuvable.")
+    if not movie.tmdb_id:
+        raise HTTPException(400, "Ce film n'est pas associe a TheMovieDB.")
+
+    old_poster = movie.poster_filename
+    new_poster = f"tmdb_{movie.tmdb_id}_{match.group(1)}.jpg"
+    dest = settings.thumbnails_dir / new_poster
+    downloaded = False
+    if not dest.exists():
+        try:
+            ok = tmdb.download_poster(payload.file_path, dest)
+        except Exception as exc:
+            raise HTTPException(502, f"Impossible de telecharger la pochette : {exc}")
+        if not ok:
+            raise HTTPException(502, "Impossible de telecharger la pochette.")
+        downloaded = True
+
+    try:
+        movie.poster_filename = new_poster
+        db.commit()
+    except Exception as exc:
+        db.rollback()
+        if downloaded and dest.exists():
+            try:
+                dest.unlink()
+            except OSError:
+                pass
+        raise HTTPException(500, f"Impossible d'enregistrer la pochette : {exc}")
+
+    if old_poster and old_poster != new_poster:
+        still_used = (
+            db.query(Movie).filter(Movie.poster_filename == old_poster).first()
+            or db.query(SagaMovie).filter(SagaMovie.poster_filename == old_poster).first()
+        )
+        old_path = settings.thumbnails_dir / old_poster
+        if still_used is None and old_path.exists():
+            try:
+                old_path.unlink()
+            except OSError:
+                pass
+
+    return (
+        db.query(Movie)
+        .options(joinedload(Movie.video_files).joinedload(VideoFile.audio_tracks),
+                 joinedload(Movie.subtitles))
+        .filter(Movie.id == movie_id)
+        .first()
+    )
 
 
 @router.get("/{movie_id}/poster")

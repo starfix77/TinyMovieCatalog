@@ -168,6 +168,29 @@ class MovieMetadataUpdate(BaseModel):
     tmdb_id: int
 
 
+class TmdbLanguageOut(BaseModel):
+    code: str
+    english_name: str
+    native_name: str = ""
+
+
+class TmdbLanguagesOut(BaseModel):
+    default: str
+    languages: list[TmdbLanguageOut]
+
+
+class PosterOut(BaseModel):
+    file_path: str
+    width: int = 0
+    height: int = 0
+    language: Optional[str] = None
+    vote_average: float = 0
+
+
+class PosterUpdate(BaseModel):
+    file_path: str
+
+
 class MoviePage(BaseModel):
     total: int
     items: List[MovieOut]

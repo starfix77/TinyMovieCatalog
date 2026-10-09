@@ -14,6 +14,11 @@
           <div class="poster-placeholder"><span>{{ movie.title.charAt(0) }}</span></div>
         }
 
+        <button class="change-poster-btn" (click)="openPosterDialog()" [disabled]="!movie.tmdb_id"
+                [title]="movie.tmdb_id ? 'Choisir une autre pochette sur TheMovieDB' : 'Film non associé à TheMovieDB'">
+          Change pochette
+        </button>
+
         @if (movie.tmdb_id) {
           <a class="tmdb-link" [href]="'https://www.themoviedb.org/movie/' + movie.tmdb_id" target="_blank" rel="noopener noreferrer" title="Voir sur TMDB">
             <svg class="tmdb-icon" viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -137,6 +142,74 @@
           <button class="primary-btn" (click)="saveMetadata()" [disabled]="!selectedCandidateId || saving">
             {{ saving ? 'Mise à jour…' : 'Remplacer les informations' }}
           </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (posterDialogOpen) {
+    <div class="editor-backdrop" (click)="closePosterDialog()">
+      <div class="editor-panel poster-dialog" (click)="$event.stopPropagation()">
+        <div class="editor-header">
+          <div>
+            <span class="editor-kicker">TMDb</span>
+            <h3>Choisir une pochette</h3>
+            <p>Double-cliquez sur une pochette pour remplacer la vignette de « {{ movie.title }} ».</p>
+          </div>
+          <button class="editor-close" (click)="closePosterDialog()">✕</button>
+        </div>
+
+        <div class="poster-search-bar">
+          <label for="poster-lang">Langue</label>
+          <div class="lang-combo">
+            <input id="poster-lang" type="text" autocomplete="off" placeholder="Rechercher une langue…"
+                   [(ngModel)]="languageQuery"
+                   (input)="onLanguageInput()"
+                   (focus)="suggestionsOpen = true"
+                   (blur)="closeSuggestionsLater()"
+                   (keydown)="onLanguageKey($event)"
+                   [disabled]="loadingLanguages" />
+            @if (suggestionsOpen && filteredLanguages.length) {
+              <ul class="lang-suggestions">
+                @for (lang of filteredLanguages; track lang.code; let i = $index) {
+                  <li [class.active]="i === activeSuggestion" (mousedown)="chooseLanguage(lang.code)">{{ lang.label }}</li>
+                }
+              </ul>
+            }
+          </div>
+          <button class="primary-btn" (click)="searchPosters()" [disabled]="searchingPosters || applyingPoster || loadingLanguages || !selectedLanguageCode">
+            {{ searchingPosters ? 'Recherche…' : 'Recherche' }}
+          </button>
+        </div>
+
+        <div class="poster-results">
+          @if (loadingLanguages) {
+            <div class="editor-state">Chargement des langues…</div>
+          } @else if (searchingPosters) {
+            <div class="editor-state">Recherche des pochettes…</div>
+          } @else if (posters.length) {
+            <div class="poster-grid">
+              @for (poster of posters; track poster.file_path) {
+                <div class="poster-thumb" [class.selected]="selectedPosterPath === poster.file_path"
+                     (click)="selectPoster(poster)" (dblclick)="applyPoster(poster)"
+                     [title]="poster.width + ' × ' + poster.height">
+                  <img [src]="posterThumbUrl(poster)" alt="Pochette" loading="lazy" draggable="false" />
+                  <span class="poster-size">{{ poster.width }}×{{ poster.height }}</span>
+                </div>
+              }
+            </div>
+          } @else if (posterSearched) {
+            <div class="editor-state">Aucune pochette disponible dans cette langue.</div>
+          } @else {
+            <div class="editor-state">Choisissez une langue puis cliquez sur « Recherche ».</div>
+          }
+          @if (applyingPoster) { <div class="poster-applying">Remplacement de la pochette…</div> }
+        </div>
+
+        @if (posterError) { <div class="editor-error">{{ posterError }}</div> }
+
+        <div class="editor-actions">
+          <button class="secondary-btn" (click)="closePosterDialog()" [disabled]="applyingPoster">Fermer</button>
         </div>
       </div>
     </div>

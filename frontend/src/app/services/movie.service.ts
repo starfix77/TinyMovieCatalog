@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { Movie, MoviePage, SortDir, SortField, TmdbCandidate } from '../models/movie.model';
+import { Movie, MoviePage, MoviePoster, SortDir, SortField, TmdbCandidate, TmdbLanguages } from '../models/movie.model';
 
 @Injectable({ providedIn: 'root' })
 export class MovieService {
@@ -33,6 +33,23 @@ export class MovieService {
 
   updateMetadata(movieId: number, tmdbId: number): Observable<Movie> {
     return this.http.put<Movie>(`${this.baseUrl}/${movieId}/metadata`, { tmdb_id: tmdbId });
+  }
+
+  getTmdbLanguages(): Observable<TmdbLanguages> {
+    return this.http.get<TmdbLanguages>(`${environment.apiUrl}/tmdb/languages`);
+  }
+
+  searchPosters(movieId: number, language: string): Observable<MoviePoster[]> {
+    const params = new HttpParams().set('language', language);
+    return this.http.get<MoviePoster[]>(`${this.baseUrl}/${movieId}/posters`, { params });
+  }
+
+  changePoster(movieId: number, filePath: string): Observable<Movie> {
+    return this.http.put<Movie>(`${this.baseUrl}/${movieId}/poster`, { file_path: filePath });
+  }
+
+  tmdbThumbUrl(posterPath: string): string {
+    return `https://image.tmdb.org/t/p/w342${posterPath}`;
   }
 
   tmdbPosterUrl(posterPath: string | null): string | null {

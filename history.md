@@ -98,7 +98,7 @@ Lancement : la fenêtre s’ouvre sur la machine qui fait tourner le backend, ce
 Configuration : *FFPLAY_PATH* est une nouvelle variable de backend/.env.example, par défaut ffplay. Si FFPROBE_PATH est un chemin complet, ffplay est cherché dans le même dossier (par exemple C:\ffmpeg\bin\), donc rien à changer dans ce cas. 
 
 
-**v0.9.5** Structure dossier simple + mixte + gestion des doublons
+**v0.9.5** Structure dossier simple + mixte + gestion des doublons en base
 Modifications apportées
 - Deux modes de bibliothèque : structure simple (un dossier par film) et structure mixte (dossiers et fichiers vidéo directement dans les répertoires).
 - Parseur indépendant : extraction du titre et de l’année, normalisation des séparateurs et exclusion des suffixes techniques reconnus.
@@ -106,6 +106,16 @@ Modifications apportées
 - Gestion des doublons : regroupement des copies d'un même film dans une fiche commune, avec conservation des différents fichiers vidéo et de leurs chemins.
 - Sous-titres externes : association par nom de base et prise en compte des variantes linguistiques.
 - Analyse plus robuste : gestion des erreurs FFprobe, conservation des entrées existantes, profondeur de parcours configurable et exclusion des liens symboliques.
-- Interface Angular : ajout du choix du mode de structure et de la profondeur du scan.
-- Base de données : ajout de champs pour la fréquence d’images, la profondeur de couleur, les informations HDR et le statut d’analyse FFprobe, avec migration légère des bases existantes.
-- Documentation et tests : mise à jour du README et ajout de tests du parseur.
+
+
+**v0.9.6** - Modifications apportées
+- Navigation : ajout de l’onglet « Doublons » et de la route /doublons.
+- Regroupement des films : création d’une section par titre de film, affichant le nombre de fichiers associés.
+- Sections repliables : bouton pour développer ou réduire chaque section.
+- Vignette : affiche du film et titre dans le bloc de gauche.
+- Tableau technique : affichage des informations suivantes pour chaque fichier :
+  - Fichier : chemin complet.
+  - Encodage vidéo.
+  - Résolution, par exemple 1920x802.
+  - Taille, par exemple 3.49 GB.
+  - Pistes audio sur plusieurs lignes, avec langue, encodage et débit.

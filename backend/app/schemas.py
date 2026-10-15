@@ -116,6 +116,7 @@ class VideoFileOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     filename: str
+    filepath: str
     container: Optional[str] = None
     size_bytes: int
     duration_sec: Optional[float] = None

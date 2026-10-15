@@ -6,6 +6,7 @@ import { SagaViewComponent } from './components/saga-view/saga-view.component';
 import { ActorViewComponent } from './components/actor-view/actor-view.component';
 import { LibraryInfoComponent } from './components/library-info/library-info.component';
 import { LibraryCompareComponent } from './components/library-compare/library-compare.component';
+import { DuplicatesComponent } from './components/duplicates/duplicates.component';
 
 export const routes: Routes = [
   { path: '', component: MovieGridComponent, title: 'TinyMovieCatalog — Vignettes' },
@@ -13,6 +14,7 @@ export const routes: Routes = [
   { path: 'sagas', component: SagaViewComponent, title: 'TinyMovieCatalog — Sagas' },
   { path: 'acteurs', component: ActorViewComponent, title: 'TinyMovieCatalog — Acteur / Filmographie' },
   { path: 'technique', component: MovieTableComponent, title: 'TinyMovieCatalog — Detail technique' },
+  { path: 'doublons', component: DuplicatesComponent, title: 'TinyMovieCatalog — Doublons' },
   { path: 'info', component: LibraryInfoComponent, title: 'TinyMovieCatalog — Info' },
   { path: 'comparaison', component: LibraryCompareComponent, title: 'TinyMovieCatalog — Comparaison' },
   { path: '**', redirectTo: '' },

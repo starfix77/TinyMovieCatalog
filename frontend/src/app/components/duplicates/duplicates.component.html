@@ -1,0 +1,86 @@
+<section class="duplicates-page">
+  <header class="page-heading">
+    <div>
+      <span class="eyebrow">BIBLIOTHÈQUE</span>
+      <h1>Doublons</h1>
+      <p>Films possédant plusieurs fichiers vidéo dans la bibliothèque sélectionnée.</p>
+    </div>
+    <span class="group-count">{{ groups().length }} section{{ groups().length > 1 ? 's' : '' }}</span>
+  </header>
+
+  @if (loading()) {
+    <div class="state-message">Recherche des doublons…</div>
+  } @else if (error()) {
+    <div class="state-message error">{{ error() }}</div>
+  } @else if (!groups().length) {
+    <div class="empty-state">
+      <span class="empty-icon">✓</span>
+      <h2>Aucun doublon détecté</h2>
+      <p>Les films ayant au moins deux fichiers vidéo sont affichés ici.</p>
+    </div>
+  } @else {
+    <div class="duplicate-groups">
+      @for (group of groups(); track trackGroup($index, group)) {
+        <section class="duplicate-section">
+          <button class="section-heading" type="button" (click)="toggle(group.key)" [attr.aria-expanded]="!isCollapsed(group.key)">
+            <span class="disclosure">{{ isCollapsed(group.key) ? '▸' : '▾' }}</span>
+            <span class="section-title">{{ group.title }} @if (group.year) { <span class="year">({{ group.year }})</span> }</span>
+            <span class="file-count">{{ group.files.length }} fichiers</span>
+          </button>
+
+          @if (!isCollapsed(group.key)) {
+            <div class="section-content">
+              <aside class="movie-summary">
+                @if (group.posterUrl) {
+                  <img [src]="group.posterUrl" [alt]="'Affiche de ' + group.title" />
+                } @else {
+                  <div class="poster-placeholder">{{ group.title.charAt(0) }}</div>
+                }
+                <strong>{{ group.title }}</strong>
+                @if (group.year) { <span class="year">{{ group.year }}</span> }
+              </aside>
+
+              <div class="files-table-wrap">
+                <table class="files-table">
+                  <thead>
+                    <tr>
+                      <th>Fichier</th>
+                      <th>Encodage</th>
+                      <th>Résolution</th>
+                      <th>Taille</th>
+                      <th>Pistes Audios</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (item of group.files; track trackFile($index, item)) {
+                      <tr>
+                        <td class="filepath">{{ item.file.filepath || item.file.filename }}</td>
+                        <td>{{ item.file.video_codec || '—' }}</td>
+                        <td>{{ item.file.width && item.file.height ? item.file.width + 'x' + item.file.height : '—' }}</td>
+                        <td class="size-cell">{{ formatSize(item.file.size_bytes) }}</td>
+                        <td>
+                          @if (item.file.audio_tracks.length) {
+                            <div class="audio-tracks">
+                              @for (track of item.file.audio_tracks; track track.id) {
+                                <div class="audio-track">
+                                  <span>{{ track.language || '?' }}</span>
+                                  <span>{{ track.codec || '?' }}</span>
+                                  <span>{{ formatBitrate(track.bitrate) }}</span>
+                                  @if (track.title) { <small>{{ track.title }}</small> }
+                                </div>
+                              }
+                            </div>
+                          } @else { <span class="muted">Aucune piste audio</span> }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+        </section>
+      }
+    </div>
+  }
+</section>

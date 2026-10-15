@@ -35,8 +35,7 @@ export class LibrarySelectorComponent implements OnInit {
   scanCompareMode: ScanCompareMode = 'simple';
   scanStructureMode: 'simple' | 'mixed' = 'mixed';
   scanMaxDepth = 1;
-  scanStructureMode: 'simple' | 'mixed' = 'mixed';
-  scanMaxDepth = 1;
+
   @ViewChild('scanYesBtn') private scanYesBtnRef?: ElementRef<HTMLButtonElement>;
 
   constructor() {

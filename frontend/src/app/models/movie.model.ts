@@ -11,6 +11,7 @@ export interface AudioTrack {
 export interface VideoFile {
   id: number;
   filename: string;
+  filepath: string;
   container: string | null;
   size_bytes: number;
   duration_sec: number | null;

@@ -110,6 +110,12 @@ class VideoFile(Base):
     width = Column(Integer, nullable=True)
     height = Column(Integer, nullable=True)
     video_bitrate = Column(Integer, nullable=True)  # bits/s
+    frame_rate = Column(String, nullable=True)
+    color_depth = Column(Integer, nullable=True)
+    hdr_info = Column(Text, nullable=True)
+    stream_metadata_json = Column(Text, nullable=True)
+    ffprobe_status = Column(String, nullable=True)
+    ffprobe_error = Column(Text, nullable=True)
 
     scanned_at = Column(DateTime, default=datetime.utcnow)
 

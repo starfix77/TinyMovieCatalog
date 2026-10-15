@@ -64,8 +64,10 @@ export class LibraryService {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 
-  scanLibrary(id: number, compareMode: ScanCompareMode = 'simple'): Observable<ScanProgress> {
-    return this.http.post<ScanProgress>(`${this.baseUrl}/${id}/scan`, { compare_mode: compareMode });
+  scanLibrary(id: number, compareMode: ScanCompareMode = 'simple', structureMode: 'simple' | 'mixed' = 'mixed', maxDepth = 1): Observable<ScanProgress> {
+    return this.http.post<ScanProgress>(`${this.baseUrl}/${id}/scan`, {
+      compare_mode: compareMode, structure_mode: structureMode, max_depth: maxDepth
+    });
   }
 
   watchScan(id: number): WebSocket {

@@ -33,6 +33,10 @@ export class LibrarySelectorComponent implements OnInit {
   // ---------- Boite de dialogue de confirmation de scan ----------
   scanDialogLibrary = signal<Library | null>(null);
   scanCompareMode: ScanCompareMode = 'simple';
+  scanStructureMode: 'simple' | 'mixed' = 'mixed';
+  scanMaxDepth = 1;
+  scanStructureMode: 'simple' | 'mixed' = 'mixed';
+  scanMaxDepth = 1;
   @ViewChild('scanYesBtn') private scanYesBtnRef?: ElementRef<HTMLButtonElement>;
 
   constructor() {
@@ -129,6 +133,8 @@ export class LibrarySelectorComponent implements OnInit {
     if (this.scanningId() === lib.id) return;
 
     this.scanCompareMode = 'simple';
+    this.scanStructureMode = 'mixed';
+    this.scanMaxDepth = 1;
     this.scanDialogLibrary.set(lib);
   }
 
@@ -140,17 +146,19 @@ export class LibrarySelectorComponent implements OnInit {
     const lib = this.scanDialogLibrary();
     if (!lib) return;
     const compareMode = this.scanCompareMode;
+    const structureMode = this.scanStructureMode;
+    const maxDepth = Math.max(0, Math.min(20, Number(this.scanMaxDepth) || 0));
     this.scanDialogLibrary.set(null);
-    this.scan(lib, compareMode);
+    this.scan(lib, compareMode, structureMode, maxDepth);
   }
 
-  private scan(lib: Library, compareMode: ScanCompareMode): void {
+  private scan(lib: Library, compareMode: ScanCompareMode, structureMode: 'simple' | 'mixed', maxDepth: number): void {
     if (this.scanningId() === lib.id) return;
 
     this.scanningId.set(lib.id);
     this.scanMessage.set(null);
 
-    this.libraryService.scanLibrary(lib.id, compareMode).subscribe({
+    this.libraryService.scanLibrary(lib.id, compareMode, structureMode, maxDepth).subscribe({
       next: () => {
         const socket = this.libraryService.watchScan(lib.id);
         this.scanSockets.get(lib.id)?.close();

@@ -84,6 +84,8 @@ class ScanRequest(BaseModel):
     # "deep" : compare en plus le nom du fichier video principal avec celui
     # deja enregistre en base ; ne relance ffprobe que si celui-ci differe.
     compare_mode: str = "simple"
+    structure_mode: str = "mixed"  # simple | mixed
+    max_depth: int = 1
 
 
 class ScanResult(BaseModel):
@@ -121,6 +123,12 @@ class VideoFileOut(BaseModel):
     width: Optional[int] = None
     height: Optional[int] = None
     video_bitrate: Optional[int] = None
+    frame_rate: Optional[str] = None
+    color_depth: Optional[int] = None
+    hdr_info: Optional[str] = None
+    stream_metadata_json: Optional[str] = None
+    ffprobe_status: Optional[str] = None
+    ffprobe_error: Optional[str] = None
     audio_tracks: List[AudioTrackOut] = []
 
 

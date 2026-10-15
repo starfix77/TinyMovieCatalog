@@ -34,6 +34,10 @@ class VideoProbeResult:
     width: Optional[int] = None
     height: Optional[int] = None
     video_bitrate: Optional[int] = None
+    frame_rate: Optional[str] = None
+    color_depth: Optional[int] = None
+    hdr_info: Optional[str] = None
+    stream_metadata_json: Optional[str] = None
     audio_tracks: list = field(default_factory=list)  # list[AudioTrackInfo]
 
 
@@ -83,6 +87,24 @@ def probe_file(filepath: str) -> VideoProbeResult:
             result.height = stream.get("height")
             br = stream.get("bit_rate")
             result.video_bitrate = int(br) if br else None
+            rate = stream.get("avg_frame_rate") or stream.get("r_frame_rate")
+            if rate and rate != "0/0":
+                result.frame_rate = rate
+            try:
+                result.color_depth = int(stream.get("bits_per_raw_sample") or stream.get("bits_per_sample") or 0) or None
+            except (TypeError, ValueError):
+                result.color_depth = None
+            tags = stream.get("tags", {}) or {}
+            side_data = stream.get("side_data_list", []) or []
+            hdr = []
+            for key in ("color_transfer", "color_primaries", "color_space"):
+                if stream.get(key) and stream.get(key) not in ("unknown", "unspecified"):
+                    hdr.append(f"{key}={stream[key]}")
+            for item in side_data:
+                for key in ("side_data_type", "dv_profile", "dv_level"):
+                    if item.get(key) is not None:
+                        hdr.append(f"{key}={item[key]}")
+            result.hdr_info = "; ".join(hdr) or None
         elif codec_type == "audio":
             tags = stream.get("tags", {}) or {}
             br = stream.get("bit_rate")
@@ -109,4 +131,13 @@ def probe_file(filepath: str) -> VideoProbeResult:
         except ValueError:
             pass
 
+    result.stream_metadata_json = json.dumps([
+        {"index": st.get("index"), "type": st.get("codec_type"),
+         "codec": st.get("codec_name"),
+         "language": (st.get("tags") or {}).get("language"),
+         "title": (st.get("tags") or {}).get("title"),
+         "channels": st.get("channels"),
+         "channel_layout": st.get("channel_layout")}
+        for st in data.get("streams", [])
+    ], ensure_ascii=False)
     return result

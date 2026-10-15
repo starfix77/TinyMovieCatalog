@@ -44,6 +44,21 @@ def _run_light_migrations():
             with engine.begin() as conn:
                 conn.execute(text("ALTER TABLE movies ADD COLUMN saga_id INTEGER"))
 
+    if "video_files" in tables:
+        existing_video_columns = {c["name"] for c in inspector.get_columns("video_files")}
+        additions = {
+            "frame_rate": "VARCHAR",
+            "color_depth": "INTEGER",
+            "hdr_info": "TEXT",
+            "stream_metadata_json": "TEXT",
+            "ffprobe_status": "VARCHAR",
+            "ffprobe_error": "TEXT",
+        }
+        with engine.begin() as conn:
+            for column, sql_type in additions.items():
+                if column not in existing_video_columns:
+                    conn.execute(text(f"ALTER TABLE video_files ADD COLUMN {column} {sql_type}"))
+
     if "libraries" in tables:
         existing = {c["name"]: c["type"] for c in inspector.get_columns("libraries")}
         for column in ("fs_total_size", "fs_free_size"):

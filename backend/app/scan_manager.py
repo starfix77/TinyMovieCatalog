@@ -23,6 +23,8 @@ class ScanState:
     started_at: Optional[str] = None
     finished_at: Optional[str] = None
     compare_mode: str = "simple"
+    structure_mode: str = "mixed"
+    max_depth: int = 1
     clients: set = field(default_factory=set)
 
 
@@ -31,12 +33,12 @@ class ScanManager:
         self._states: dict[int, ScanState] = {}
         self._lock = asyncio.Lock()
 
-    async def start(self, library_id: int, compare_mode: str = "simple") -> ScanState:
+    async def start(self, library_id: int, compare_mode: str = "simple", structure_mode: str = "mixed", max_depth: int = 1) -> ScanState:
         async with self._lock:
             state = self._states.get(library_id)
             if state and state.status in ("queued", "running"):
                 return state
-            state = ScanState(library_id=library_id, status="queued", compare_mode=compare_mode)
+            state = ScanState(library_id=library_id, status="queued", compare_mode=compare_mode, structure_mode=structure_mode, max_depth=max(0, min(max_depth, 20)))
             self._states[library_id] = state
         asyncio.create_task(self._run(state))
         return state
@@ -81,6 +83,8 @@ class ScanManager:
             "started_at": state.started_at,
             "finished_at": state.finished_at,
             "compare_mode": state.compare_mode,
+            "structure_mode": state.structure_mode,
+            "max_depth": state.max_depth,
         }
 
     async def _run(self, state: ScanState):
@@ -109,7 +113,7 @@ class ScanManager:
                     loop,
                 )
 
-            result = await asyncio.to_thread(scan_library, db, library, progress, state.compare_mode)
+            result = await asyncio.to_thread(scan_library, db, library, progress, state.compare_mode, state.structure_mode, state.max_depth)
             await self._update(
                 state,
                 status="completed",

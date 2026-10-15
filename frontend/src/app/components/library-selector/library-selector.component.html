@@ -2,7 +2,7 @@
   <div class="brand">
     <!-- <span class="brand-mark">MF</span> -->
     <div>
-      <h1>TinyMovieCatalog v0.9.4</h1>
+      <h1>TinyMovieCatalog v0.9.5</h1>
       <p class="tagline">Collection de films locales</p>
     </div>
   </div>
@@ -113,6 +113,30 @@
             <strong>Comparaison approfondie</strong>
             <small>(basée sur le contenu du dossier)</small>
           </span>
+        </label>
+      </div>
+
+      <div class="scan-dialog-modes">
+        <label class="scan-mode-option">
+          <input type="radio" name="scan-structure-mode" value="simple" [(ngModel)]="scanStructureMode" />
+          <span>
+            <strong>Structure simple</strong>
+            <small>Un dossier par film, titre et année depuis le dossier</small>
+          </span>
+        </label>
+        <label class="scan-mode-option">
+          <input type="radio" name="scan-structure-mode" value="mixed" [(ngModel)]="scanStructureMode" />
+          <span>
+            <strong>Structure mixte</strong>
+            <small>Dossiers de films et vidéos directement dans les dossiers</small>
+          </span>
+        </label>
+        <label class="scan-mode-option">
+          <span>
+            <strong>Profondeur de parcours</strong>
+            <small>0 = racine uniquement, 1 = sous-dossiers directs</small>
+          </span>
+          <input type="number" min="0" max="20" [(ngModel)]="scanMaxDepth" />
         </label>
       </div>
 

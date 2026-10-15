@@ -200,7 +200,8 @@ async def trigger_scan(library_id: int, payload: ScanRequest = ScanRequest(), db
     if not library:
         raise HTTPException(404, "Bibliotheque introuvable.")
     compare_mode = payload.compare_mode if payload.compare_mode in ("simple", "deep") else "simple"
-    state = await scan_manager.start(library_id, compare_mode)
+    structure_mode = payload.structure_mode if payload.structure_mode in ("simple", "mixed") else "mixed"
+    state = await scan_manager.start(library_id, compare_mode, structure_mode, payload.max_depth)
     return scan_manager._serialize(state)
 
 

@@ -34,7 +34,8 @@ class Settings(BaseSettings):
     max_cast: int = 12
 
     # Extensions video reconnues comme "fichier principal" d'un dossier film
-    video_extensions: tuple = (".mkv", ".mp4", ".avi", ".m4v")
+    video_extensions: tuple = (".mkv", ".mp4", ".avi", ".m4v", ".dvix")
+    scan_max_depth: int = 5
     subtitle_extensions: tuple = (".srt", ".ass", ".ssa", ".sub", ".vtt")
 
     @property

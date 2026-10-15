@@ -217,3 +217,23 @@ Compresser le projet au format ZIP et exclure tous les fichiers/dossiers inutile
 ./compress.ps1
 ```
 
+
+
+## Scan des bibliothèques (parsing et FFprobe)
+
+Le dialogue de scan permet de choisir la structure :
+- **Simple** : dossiers de films nommés `Titre (Année)`.
+- **Mixte** : dossiers de films et fichiers vidéo directement dans les répertoires parcourus.
+
+La profondeur de parcours est configurable (0 à 20). Le parseur de noms (`backend/app/filename_parser.py`)
+ne retourne que le titre candidat et l'année; les données techniques proviennent de FFprobe (`-print_format json`,
+flux et conteneur réels). Les copies du même titre/année sont regroupées dans une fiche de film et chaque
+emplacement vidéo est conservé séparément avec son chemin complet et son nom de fichier. Le scan n'efface
+pas automatiquement les entrées devenues indisponibles et n'effectue aucune opération de déplacement,
+renommage ou suppression sur les fichiers du disque.
+
+Le statut et l'erreur de FFprobe sont conservés pour chaque fichier vidéo. Une erreur d'analyse ne bloque pas
+la création de l'entrée de catalogue. Les champs techniques supplémentaires (fréquence d'images, profondeur
+de couleur, informations HDR et résumé des flux) sont exposés par l'API lorsqu'ils sont disponibles.
+
+Les tests du parseur se lancent depuis `backend/` avec `python -m unittest discover -s tests`.

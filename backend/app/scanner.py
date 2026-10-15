@@ -10,6 +10,7 @@ from pathlib import Path
 from sqlalchemy.orm import Session
 
 from app import tmdb, ffprobe_utils
+from app.filename_parser import parse_name, VIDEO_EXTENSIONS
 from app.fs_utils import refresh_library_fs_stats
 from app.config import settings
 from app.models import Library, Movie, VideoFile, AudioTrack, Subtitle, Saga, SagaMovie
@@ -270,62 +271,223 @@ def _sync_movie_from_disk(
     return movie, was_created
 
 
-def scan_library(
-    db: Session,
-    library: Library,
-    progress_callback=None,
-    compare_mode: str = "simple",
-) -> ScanResult:
+
+def _movie_for_candidate(db: Session, library: Library, title: str, year: int | None,
+                         folder: Path, video_path: Path) -> tuple[Movie, bool]:
+    """Regroupe les copies d'un même film, sans confondre les chemins des fichiers."""
+    normalized = re.sub(r"\s+", " ", title).strip().casefold()
+    candidates = db.query(Movie).filter(Movie.library_id == library.id).all()
+    same_title = [m for m in candidates
+                  if re.sub(r"\s+", " ", (m.title or "")).strip().casefold() == normalized]
+    exact = [m for m in same_title if m.year == year]
+    if exact:
+        movie = exact[0]
+    elif year is None and len(same_title) == 1:
+        # Une année absente peut rejoindre un seul film déjà identifié sans année
+        # ambiguë; si plusieurs années existent, on ne devine pas.
+        movie = same_title[0]
+    elif year is not None and len([m for m in same_title if m.year is None]) == 1 and len(same_title) == 1:
+        movie = same_title[0]
+    else:
+        movie = None
+    created = movie is None
+    if movie is None:
+        display_name = f"{title} ({year})" if year else title
+        # Le champ historique folder_name est conservé pour compatibilité UI/API.
+        existing_names = {m.folder_name for m in candidates}
+        if display_name in existing_names:
+            display_name = f"{display_name} [{video_path.parent.name}]"
+        movie = Movie(library_id=library.id, folder_name=display_name,
+                      folder_path=str(folder), title=title, year=year)
+        db.add(movie)
+        db.flush()
+    elif not movie.video_files:
+        # Garde le premier emplacement connu comme chemin canonique.
+        movie.folder_path = str(folder)
+    return movie, created
+
+
+def _sync_candidate(db: Session, library: Library, video_path: Path, folder: Path,
+                    parsed_title: str, parsed_year: int | None, errors: list[str],
+                    compare_mode: str = "simple") -> tuple[Movie, bool]:
+    title = parsed_title.strip() or video_path.stem
+    movie, created = _movie_for_candidate(db, library, title, parsed_year, folder, video_path)
+    existing = db.query(VideoFile).filter(VideoFile.movie_id == movie.id,
+                                           VideoFile.filepath == str(video_path)).first()
+    try:
+        stat = video_path.stat()
+    except OSError as exc:
+        errors.append(f"Fichier vidéo inaccessible '{video_path}': {exc}")
+        return movie, created
+
+    if existing is not None and compare_mode == "deep":
+        try:
+            if existing.size_bytes == stat.st_size and existing.scanned_at and existing.scanned_at >= datetime.fromtimestamp(stat.st_mtime):
+                return movie, created
+        except (OSError, TypeError):
+            pass
+    video_file = existing or VideoFile(filename=video_path.name, filepath=str(video_path), size_bytes=stat.st_size)
+    if existing is None:
+        movie.video_files.append(video_file)
+    video_file.filename = video_path.name
+    video_file.filepath = str(video_path)
+    video_file.size_bytes = stat.st_size
+    try:
+        probe = ffprobe_utils.probe_file(str(video_path))
+        video_file.container = probe.container
+        video_file.duration_sec = probe.duration_sec
+        video_file.video_codec = probe.video_codec
+        video_file.width = probe.width
+        video_file.height = probe.height
+        video_file.video_bitrate = probe.video_bitrate
+        video_file.frame_rate = probe.frame_rate
+        video_file.color_depth = probe.color_depth
+        video_file.hdr_info = probe.hdr_info
+        video_file.stream_metadata_json = probe.stream_metadata_json
+        video_file.ffprobe_status = "success"
+        video_file.ffprobe_error = None
+        video_file.audio_tracks.clear()
+        for track in probe.audio_tracks:
+            video_file.audio_tracks.append(AudioTrack(
+                track_index=track.index, language=track.language, title=track.title,
+                codec=track.codec, channels=track.channels, bitrate=track.bitrate))
+    except Exception as exc:
+        errors.append(f"ffprobe: {video_path}: {exc}")
+    video_file.scanned_at = datetime.utcnow()
+
+    # Sous-titres externes associés au même dossier; pas de suppression sur disque.
+    subtitles = [f for f in folder.iterdir() if f.is_file() and f.suffix.lower() in settings.subtitle_extensions] if folder.exists() else []
+    video_base = video_path.stem.casefold()
+    title_base = re.sub(r"[^a-z0-9]+", "", title.casefold())
+    known = {sub.filepath for sub in movie.subtitles}
+    for sub_path in subtitles:
+        sub_base = sub_path.stem.casefold()
+        # Accept exact basename or language-tagged variants such as Film.fr.srt.
+        normalized_sub = re.sub(r"[._ -](fr|fre|en|eng|vf|vff|vfq|vostfr|multi)$", "", sub_base)
+        normalized_video = re.sub(r"[._ -]+", "", video_base)
+        normalized_sub_compact = re.sub(r"[._ -]+", "", normalized_sub)
+        if normalized_sub_compact not in (normalized_video, title_base):
+            continue
+        if str(sub_path) not in known:
+            movie.subtitles.append(Subtitle(filename=sub_path.name, filepath=str(sub_path),
+                                            language_guess=_guess_subtitle_language(sub_path.name)))
+    db.flush()
+
+    if movie.tmdb_id is None and settings.tmdb_api_key:
+        try:
+            match = tmdb.search_movie(title, parsed_year)
+            if match:
+                movie.tmdb_id = match.tmdb_id
+                movie.original_title = match.original_title
+                movie.overview = match.overview
+                movie.release_date = match.release_date
+                movie.genres = match.genres
+                movie.cast = match.cast_json
+                movie.tmdb_synced_at = datetime.utcnow()
+                try:
+                    movie.saga_id = sync_saga_for_match(db, match)
+                except Exception as saga_exc:
+                    errors.append(f"TMDb saga: {title}: {saga_exc}")
+                if match.poster_path:
+                    poster_filename = f"tmdb_{match.tmdb_id}.jpg"
+                    dest = settings.thumbnails_dir / poster_filename
+                    if not dest.exists():
+                        tmdb.download_poster(match.poster_path, dest)
+                    movie.poster_filename = poster_filename
+        except Exception as exc:
+            errors.append(f"TMDb: {title}: {exc}")
+    return movie, created
+
+
+def scan_library(db: Session, library: Library, progress_callback=None,
+                 compare_mode: str = "simple", structure_mode: str = "mixed",
+                 max_depth: int = 1) -> ScanResult:
+    """Scan en lecture seule du disque: les noms ne fournissent que titre/année;
+    les caractéristiques techniques proviennent uniquement de FFprobe."""
     root = Path(library.root_path)
     errors: list[str] = []
-
     if not root.exists() or not root.is_dir():
-        return ScanResult(
-            library_id=library.id, folders_scanned=0, movies_added=0,
-            movies_updated=0, movies_removed=0,
-            errors=[f"Dossier racine introuvable: {library.root_path}"],
-        )
+        return ScanResult(library_id=library.id, folders_scanned=0, movies_added=0,
+                          movies_updated=0, movies_removed=0,
+                          errors=[f"Dossier racine introuvable: {library.root_path}"])
 
-    folders = [f for f in root.iterdir() if f.is_dir()]
-    seen_folder_names = set()
+    candidates: list[tuple[Path, Path, str, int | None]] = []
+    seen_dirs: set[str] = set()
+    folders_scanned = 0
+    # Parcours contrôlé sans suivre les liens symboliques/jonctions.
+    def walk(directory: Path, depth: int):
+        nonlocal folders_scanned
+        try:
+            real = str(directory.resolve())
+            if real in seen_dirs:
+                return
+            seen_dirs.add(real)
+            children = list(directory.iterdir())
+        except OSError as exc:
+            errors.append(f"Répertoire inaccessible '{directory}': {exc}")
+            return
+        folders_scanned += 1
+        for child in children:
+            try:
+                if child.is_symlink():
+                    continue
+                if child.is_dir():
+                    if depth < max_depth:
+                        walk(child, depth + 1)
+                    continue
+                if not child.is_file() or child.suffix.lower() not in settings.video_extensions:
+                    continue
+                parent_parse = parse_name(directory.name)
+                if directory != root and structure_mode == "simple":
+                    # En mode simple, le dossier parent est la source prioritaire.
+                    folder_match = FOLDER_PATTERN.match(directory.name)
+                    if not folder_match:
+                        errors.append(f"Année/titre de dossier ambigu ou non conforme: {directory}")
+                        parsed = parse_name(child.name)
+                    else:
+                        from app.filename_parser import ParsedName
+                        parsed = ParsedName(folder_match.group("title").strip(), int(folder_match.group("year")))
+                elif directory != root and FOLDER_PATTERN.match(directory.name):
+                    folder_match = FOLDER_PATTERN.match(directory.name)
+                    from app.filename_parser import ParsedName
+                    parsed = ParsedName(folder_match.group("title").strip(), int(folder_match.group("year")))
+                else:
+                    if structure_mode == "simple":
+                        continue
+                    parsed = parse_name(child.name)
+                if parsed.ambiguous_year:
+                    errors.append(f"Année ambiguë dans '{child.name}'")
+                candidates.append((child, directory, parsed.title, parsed.year))
+            except OSError as exc:
+                errors.append(f"Impossible de lire '{child}': {exc}")
+
+    walk(root, 0)
+    # Structure simple : seuls les dossiers directement sous la racine sont des films.
+    if structure_mode == "simple":
+        candidates = [c for c in candidates if c[1] != root and c[1].parent == root]
+
+    # Les candidats dont le dossier fournit une année fiable sont traités en premier
+    # afin que les copies sans année puissent rejoindre le film déjà identifié.
+    candidates.sort(key=lambda item: (item[3] is None, item[1] == root, str(item[0]).casefold()))
     added, updated = 0, 0
-    total_folders = len(folders)
-    if progress_callback:
-        progress_callback(0, total_folders, None)
-
-    for index, folder in enumerate(folders, start=1):
-        seen_folder_names.add(folder.name)
-        existed = (
-            db.query(Movie)
-            .filter(Movie.library_id == library.id, Movie.folder_name == folder.name)
-            .first()
-            is not None
-        )
-        _sync_movie_from_disk(db, library, folder, errors, compare_mode)
-        if existed:
-            updated += 1
-        else:
-            added += 1
+    for index, (video_path, folder, title, year) in enumerate(candidates, start=1):
+        try:
+            movie, created = _sync_candidate(db, library, video_path, folder, title, year, errors, compare_mode)
+            added += int(created)
+            updated += int(not created)
+        except Exception as exc:
+            db.rollback()
+            errors.append(f"Erreur de scan '{video_path}': {exc}")
         if progress_callback:
-            progress_callback(index, total_folders, folder.name)
-
-    # Supprime de la base les films dont le dossier n'existe plus sur le disque
-    removed = 0
-    existing_movies = db.query(Movie).filter(Movie.library_id == library.id).all()
-    for movie in existing_movies:
-        if movie.folder_name not in seen_folder_names:
-            db.delete(movie)
-            removed += 1
-
+            progress_callback(index, len(candidates), str(video_path))
+    # Les entrées absentes ne sont pas supprimées : elles restent récupérables si un
+    # disque réseau est temporairement indisponible ou si le fichier est déplacé.
+    discovered_paths = {str(item[0]) for item in candidates}
+    for video in (db.query(VideoFile).join(Movie).filter(Movie.library_id == library.id).all()):
+        if video.filepath not in discovered_paths and not Path(video.filepath).exists():
+            errors.append(f"Fichier vidéo devenu indisponible: {video.filepath}")
     library.last_scanned_at = datetime.utcnow()
     refresh_library_fs_stats(library)
     db.commit()
-
-    return ScanResult(
-        library_id=library.id,
-        folders_scanned=len(folders),
-        movies_added=added,
-        movies_updated=updated,
-        movies_removed=removed,
-        errors=errors,
-    )
+    return ScanResult(library_id=library.id, folders_scanned=folders_scanned,
+                      movies_added=added, movies_updated=updated, movies_removed=0, errors=errors)

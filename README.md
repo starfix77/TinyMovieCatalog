@@ -37,12 +37,14 @@ option, un ou plusieurs fichiers de sous-titres (`.srt`, `.ass`, `.ssa`,
 
 ## 1. Prérequis
 
-| Outil | Windows | Linux |
-|---|---|---|
-| Python 3.10+ | https://www.python.org/downloads/ | `sudo apt install python3 python3-pip python3-venv` |
-| Node.js 18+ / npm | https://nodejs.org/ | `sudo apt install nodejs npm` (ou nvm) |
-| FFmpeg (fournit `ffprobe`) | https://www.gyan.dev/ffmpeg/builds/ (ajouter `bin\` au PATH) | `sudo apt install ffmpeg` |
-| Angular CLI | `npm install -g @angular/cli` | `npm install -g @angular/cli` |
+| Outil | Windows | Linux | macOS |
+|---|---|---|---|
+| Python 3.10+ | https://www.python.org/downloads/ | `sudo apt install python3 python3-pip python3-venv` | `brew install python` |
+| Node.js 18+ / npm | https://nodejs.org/ | `sudo apt install nodejs npm` (ou nvm) | `brew install node` (ou nvm) |
+| FFmpeg (fournit `ffprobe`) | https://www.gyan.dev/ffmpeg/builds/ (ajouter `bin\` au PATH) | `sudo apt install ffmpeg` | `brew install ffmpeg` |
+| Angular CLI | `npm install -g @angular/cli` | `npm install -g @angular/cli` | `npm install -g @angular/cli` |
+
+Note pour MacOS: Homebrew doit être installé au préalable (https://brew.sh). Sur macOS, brew install python installe la dernière version stable de Python 3, et python3 / pip3 sont alors disponibles dans le PATH.
 
 Vous aurez également besoin d'une **clé API TheMovieDB** (gratuite) :
 https://www.themoviedb.org/settings/api
@@ -76,11 +78,13 @@ FFPLAY_PATH=ffplay     # utilise par le bouton PLAY (ou chemin complet si ffplay
 
 ```bash
 cd backend
-python -m venv venv
 
-# LINUX
+# Linux / macOS
+python3 -m venv venv
 source venv/bin/activate                 
+
 # Windows 
+python -m venv venv
 venv\Scripts\activate
 
 pip install -r requirements.txt

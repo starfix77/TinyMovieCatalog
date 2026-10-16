@@ -117,6 +117,13 @@ chmod +x *.sh
 ./install.sh
 ./start.sh
 ```
+
+<span style="color:darkgreen">**Astuce installation et lancement RAPIDE pour WINDOWS**</span>
+```powershell
+./install.ps1
+./start.ps1
+```
+
 sinon suivre les étapes suivantes voir chapitre Installation et lancement (backend + frontend) 
 
 
@@ -180,7 +187,7 @@ source venv/bin/activate
 uvicorn app.main:app --reload --port 8000
 ```
 
-```bash
+```powerwhell
 #  Windows
 cd backend
  .venv\Scripts\Activate.ps1               

@@ -1,5 +1,14 @@
 # ======================================
-#   TinyMovieCatalog - Démarrage
+#  TinyMovieCatalog - Démarrage
+#  Lance les services backend frontend dans PowerShell process séparés.
+#  tout tourne dans une seule console et Ctrl+C arrête les deux.
+# 
+#  USAGE:
+# ./start.ps1
+#
+# Si PowerShell refuse l’exécution, utilisez une fois:  
+# Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+#
 # ======================================
 
 $ErrorActionPreference = "Stop"
@@ -19,7 +28,7 @@ $BackendProcess = $null
 # --------------------------------------
 function Cleanup {
     Write-Host ""
-    Write-Host "Arret des serveurs..."
+    Write-Host "Arret des services..."
 
     if ($null -ne $FrontendProcess -and -not $FrontendProcess.HasExited) {
         Stop-Process -Id $FrontendProcess.Id -Force -ErrorAction SilentlyContinue

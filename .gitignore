@@ -1,6 +1,7 @@
 .vscode/
 .DS_Store
 
+*.log
 frontend/.angular/
 frontend/node_modules/
 frontend/dist/

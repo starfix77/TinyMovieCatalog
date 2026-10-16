@@ -1,4 +1,4 @@
-Pprojet est une application Angular 19, pas un serveur Node/Express.
+Projet est une application Angular 19, pas un serveur Node/Express.
 
 Le point important est que :
 ```
@@ -51,7 +51,7 @@ Dans ce cas, une solution simple pour tester est par exemple :
 ```
 npx http-server .\dist\tiny-movie-catalog\browser -p 8080
 ```
-mais pour une vraie mise en production, je te conseille plutôt IIS, Nginx, Apache ou un serveur Node configuré pour servir index.html sur les routes Angular.
+mais pour une vraie mise en production, je te conseille plutôt Nginx, Apache ou un serveur Node configuré pour servir index.html sur les routes Angular.
 3. Si ton objectif est de faire tourner la release comme un "serveur Node"
 
 Ton package.json actuel ne le permet pas directement.

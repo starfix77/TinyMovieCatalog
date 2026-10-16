@@ -1,9 +1,58 @@
 # TinyMovieCatalog
 
-Application locale de gestion de bibliotheques de films (MKV/MP4) :
+![TinyMovieCatalog](docs/favicon-128x128.png) 
+
+Application locale de gestion de bibliotheques de films (MKV/MP4).
+TinyMovieCatalog est une application web de catalogue cinématographique organisée autour d'un Frontend JavaScript et d'un Backend Python. Elle propose plusieurs modes de consultation d'une bibliothèque de films, dont un affichage visuel par vignettes, une vue technique et un regroupement par sagas avec navigation horizontale.
+
+## Fonctionnalités principales:
+- **Bibliothèque de films** : centralisation de l’ensemble des films de la collection.
+- **Affichage par Vignettes** : présentation visuelle des films sous forme d’affiches.
+- **Affichage Technique** : consultation des informations techniques et détaillées des films.
+- **Affichage par Saga** : regroupement automatique des films appartenant à une même saga.
+- **Recherche et navigation** : accès rapide aux films et aux différentes catégories de la bibliothèque.
+- **Fiches détaillées** : sélection d’un film pour consulter ses informations et son contenu.
+- **Gestion des collections** : organisation de la bibliothèque autour des films et de leurs sagas.
+- **Interface orientée médiathèque** : priorité donnée aux visuels, aux affiches et à une navigation simple et intuitive.
+
+
+## Architecture / Langages: 
+
+TinyMovieCatalog est une application web destinée à gérer, organiser et consulter une bibliothèque personnelle de films à travers une interface graphique de type médiathèque.
+L'application repose sur une architecture séparant le Frontend, chargé de l'interface utilisateur, et le Backend, responsable du traitement des données et de la logique applicative.
+
 - **Frontend** : Angular 19 (standalone components)
 - **Backend** : Python (FastAPI) — scan des dossiers, analyse video via FFmpeg/ffprobe, enrichissement TheMovieDB, base SQLite locale
 - **Usage 100% local**, aucune authentification
+
+
+![TinyMovieCatalog](docs/schema.png) 
+
+
+**Frontend**
+Le dossier frontend/ contient l'application destinée à l'utilisateur.
+Ses responsabilités sont notamment :
+- Afficher les films sous forme de vignettes avec leurs affiches.
+- Présenter les informations techniques des films.
+- Proposer les différents modes d'affichage.
+- Organiser les films par saga.
+- Gérer la navigation, les interactions et le défilement horizontal des collections.
+- Communiquer avec le Backend pour récupérer les données nécessaires.
+L'installation des dépendances JavaScript est réalisée avec npm install. Le lancement de l'application de développement est prévu avec npm start, selon la configuration du projet.
+
+**Backend**
+
+Le dossier backend/ contient les services Python chargés de la logique applicative.
+Ses responsabilités fonctionnelles peuvent comprendre :
+- Fournir les données du catalogue au Frontend.
+- Lire et traiter les informations des films.
+- Regrouper les films appartenant à une même saga.
+- Transmettre les métadonnées et les chemins des affiches.
+- Centraliser les traitements nécessaires à la consultation du catalogue.
+L'environnement Python est préparé avec un environnement virtuel .venv, puis les dépendances sont installées à partir de requirements.txt.
+
+
+## Organisation des dossiers projets:
 
 ```
 project/
@@ -15,6 +64,16 @@ project/
 └── frontend/         Application Angular
     └── src/
 ```
+
+## Systemes d'exploitation:
+
+- Windows 10 / Windows 11
+- Linux
+- macOS
+
+
+
+
 
 ## Structure de dossiers de bibliotheque attendue
 Exemple de structure de dossiers
@@ -44,7 +103,7 @@ option, un ou plusieurs fichiers de sous-titres (`.srt`, `.ass`, `.ssa`,
 | FFmpeg (fournit `ffprobe`) | https://www.gyan.dev/ffmpeg/builds/ (ajouter `bin\` au PATH) | `sudo apt install ffmpeg` | `brew install ffmpeg` |
 | Angular CLI | `npm install -g @angular/cli` | `npm install -g @angular/cli` | `npm install -g @angular/cli` |
 
-Note pour MacOS: Homebrew doit être installé au préalable (https://brew.sh). Sur macOS, brew install python installe la dernière version stable de Python 3, et python3 / pip3 sont alors disponibles dans le PATH.
+*Note pour MacOS: Homebrew doit être installé au préalable (https://brew.sh). Sur macOS, brew install python installe la dernière version stable de Python 3, et python3 / pip3 sont alors disponibles dans le PATH.*
 
 Vous aurez également besoin d'une **clé API TheMovieDB** (gratuite) :
 https://www.themoviedb.org/settings/api
@@ -61,11 +120,20 @@ chmod +x *.sh
 sinon suivre les étapes suivantes voir chapitre Installation et lancement (backend + frontend) 
 
 
-## 2. Installation
+## 2. Installation et démarrage
+Le projet utilise deux environnements de dépendances distincts.
 
-**Installation du backend**
 
-Editez le fichier de configuration `backend/.env` :
+**Étape 1 — Installer le Frontend**
+```bash
+# Linux / macOS / Windows
+cd frontend
+npm install
+```
+
+**Étape 2 — Installer le Backend**
+
+Copiez le fichier exemple `.env.example` en `.env`, puis edtiez le fichier de configuration `backend/.env` :
 
 ```ini
 TMDB_API_KEY=votre_cle_ici
@@ -74,76 +142,68 @@ FFPROBE_PATH=ffprobe   # ou chemin complet si ffprobe n'est pas dans le PATH
 FFPLAY_PATH=ffplay     # utilise par le bouton PLAY (ou chemin complet si ffplay n'est pas dans le PATH)
 ```
 
-
+```bash
+#  Linux / macOS
+cd backend
+python3 -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+```
 
 ```bash
+#  Windows
 cd backend
-
-# Linux / macOS
-python3 -m venv venv
-source venv/bin/activate                 
-
-# Windows 
 python -m venv venv
-venv\Scripts\activate
-
+source venv/bin/activate                 
 pip install -r requirements.txt
-
-# Copier le fichier d'exemple et renseigner la cle TMDb
-cp .env.example .env      # Windows : copy .env.example .env
 ```
+
+**Étape 3 — Démarrer les services**
+
+Le Frontend et le Backend doivent être lancés selon leurs scripts et points d'entrée respectifs. Il faut éviter qu'un processus interactif comme npm start bloque l'exécution des commandes suivantes dans un script d'installation.
+
+Pour automatiser le démarrage, il est préférable de séparer l'installation des dépendances du lancement des services, puis d'utiliser deux processus distincts ou un mécanisme d'orchestration adapté.
+
+
+
+**lancement frontend**
+```bash
+cd frontend
+npm run start
+```
+
+**lancement backend**
+```bash
+# Linux / macOS
+cd backend
+source venv/bin/activate                 
+uvicorn app.main:app --reload --port 8000
+```
+
+```bash
+#  Windows
+cd backend
+ .venv\Scripts\Activate.ps1               
+uvicorn app.main:app --reload --port 8000
+```
+
+
+
+L'application est disponible sur le lien 'http://localhost:4200'
+
+
+
 
 
 La documentation des API est disponible Swagger sur `http://localhost:8000/docs`.
 Les API backend sont accèssibles depuis l'URL: http://localhost:8000
 
 Pour information, l'URL de l'API est définie dans `src/environments/environment.ts`
-(`apiUrl: 'http://localhost:8000/api'`). Modifiez-la si votre backend tourne sur une autre machine/port.
+(apiUrl: 'http://localhost:8000/api'). Modifiez-la si votre backend tourne sur une autre machine/port.
 
----
-
-**Installation du frontend**
-
-```bash
-cd frontend
-
-# mode  'developement'
-npm install
-# ou mode  'build/release'
-npm run build
-```
-
-
-## 4. Utilisation
-
-### 4.1 démarrage du Backend
-Lancer l'API backend:
-
-```bash
-cd backend
-
-# LINUX
-source venv/bin/activate                 
-# Windows 
-venv\Scripts\activate
-
-uvicorn app.main:app --reload --port 8000
-```
-
-### 4.2 démarrage Frontend 
-
-
-```bash
-cd frontend
-
-# mode debug (developement)
-npm start
-# ou mode build
-node server.js
-```
 
 Puis suivre les étapes ci-dessous:
-1. L'application est disponible sur `http://localhost:4200` en mode developement ou `http://localhost:3000` en mode build
+1. L'application est disponible sur `http://localhost:4200` en mode developement ou `http://localhost:3000` en mode build (npm build au préalable)
 
 2. Dans le panneau de gauche, cliquez sur **"+ Nouvelle bibliotheque"**, donnez-lui
    un nom et indiquez le chemin du dossier racine (ex. `C:\movies` ou
@@ -173,9 +233,9 @@ jamais modifies ni supprimes par l'application).
 
 
 
-## 5. Notes techniques
+# Notes techniques
 
-- La base SQLite est stockée dans `backend/data/db/library.db`.
+- La base **SQLite** est stockée dans `backend/data/db/library.db`.
 - Les affiches sont stockées dans `backend/data/thumbnails/` et nommées
   `tmdb_<id>.jpg` : elles sont donc partagées et dédupliquées entre toutes
   les bibliothèques qui referencent le meme film.
@@ -190,7 +250,7 @@ jamais modifies ni supprimes par l'application).
 
 
 
-# Fonctionalités (features)
+# Fonctionalités techniques
 - Les scans de bibliotheques sont lancés en tâche de fond et ne bloquent pas la requete HTTP.
 - La progression du scan est poussée au frontend via WebSocket avec une barre de progression et le dossier en cours.
 - Le bandeau supérieur affiche le nom de la bibliotheque active en gras et son nombre total de films.
@@ -205,9 +265,6 @@ L’affiche précédente est supprimée automatiquement si elle n’est plus uti
 # Pistes d'evolution possibles
 - Passage en multi-langues / Angular i18n
 - Edition manuelle des metadonnees d'un film
-- Lecture video directe depuis l'interface (streaming du fichier local)
-
-
 
 
 # Extraire le code source uniquement pour le soumettre à l'IA 
@@ -222,8 +279,7 @@ Compresser le projet au format ZIP et exclure tous les fichiers/dossiers inutile
 ```
 
 
-
-## Scan des bibliothèques (parsing et FFprobe)
+# Scan des bibliothèques (parsing et FFprobe)
 
 Le dialogue de scan permet de choisir la structure :
 - **Simple** : dossiers de films nommés `Titre (Année)`.
@@ -241,3 +297,11 @@ la création de l'entrée de catalogue. Les champs techniques supplémentaires (
 de couleur, informations HDR et résumé des flux) sont exposés par l'API lorsqu'ils sont disponibles.
 
 Les tests du parseur se lancent depuis `backend/` avec `python -m unittest discover -s tests`.
+
+
+
+# Documentations
+
+- [Historique du projet](docs/history.md)
+- [Exigences parsing organisation dossiers / fichiers](docs/parsing_ffprobe.md##1.-Principe-général)
+- [Exigences ffprobe](docs/parsing_ffprobe.md##3.-Exigences-analyseur-FFprobe)

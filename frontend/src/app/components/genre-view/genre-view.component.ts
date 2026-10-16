@@ -11,10 +11,6 @@ interface GenreSection {
   movies: Movie[];
 }
 
-/** Nombre maximum de vignettes rendues dans l'apercu (une seule ligne visible,
- *  le CSS masque ce qui depasse selon la largeur de l'ecran). */
-const PREVIEW_LIMIT = 12;
-
 @Component({
   selector: 'app-genre-view',
   standalone: true,
@@ -27,14 +23,14 @@ export class GenreViewComponent {
   private readonly movieService = inject(MovieService);
 
   readonly activeLibraryId = this.libraryService.activeLibraryId;
-  readonly previewLimit = PREVIEW_LIMIT;
 
   movies = signal<Movie[]>([]);
   loading = signal(false);
   selectedMovie = signal<Movie | null>(null);
 
-  /** Genres actuellement affiches en entier ("Voir tout"). */
-  expanded = signal<ReadonlySet<string>>(new Set());
+  /** Genres actuellement reduits (par defaut, toutes les sections sont developpees,
+   *  comme dans l'onglet Doublons). */
+  collapsed = signal<ReadonlySet<string>>(new Set());
 
   /** Un film peut appartenir a plusieurs genres ("Action, Science-fiction") :
    *  il apparait alors dans chacune des sections correspondantes.
@@ -84,20 +80,29 @@ export class GenreViewComponent {
     });
   }
 
-  isExpanded(genre: string): boolean {
-    return this.expanded().has(genre);
+  isCollapsed(genre: string): boolean {
+    return this.collapsed().has(genre);
   }
 
-  /** Bascule l'affichage complet d'un genre, sans recharger la vue. */
-  toggleExpand(genre: string): void {
-    const next = new Set(this.expanded());
+  /** Vrai quand toutes les sections sont reduites. */
+  allCollapsed = computed(() => {
+    const list = this.sections();
+    const collapsed = this.collapsed();
+    return list.length > 0 && list.every(s => collapsed.has(s.name));
+  });
+
+  /** Reduit toutes les sections, ou les developpe toutes si elles sont deja reduites. */
+  toggleAll(): void {
+    if (this.allCollapsed()) this.collapsed.set(new Set());
+    else this.collapsed.set(new Set(this.sections().map(s => s.name)));
+  }
+
+  /** Developpe / reduit une section de genre, sans recharger la vue. */
+  toggle(genre: string): void {
+    const next = new Set(this.collapsed());
     if (next.has(genre)) next.delete(genre);
     else next.add(genre);
-    this.expanded.set(next);
-  }
-
-  visibleMovies(section: GenreSection): Movie[] {
-    return this.isExpanded(section.name) ? section.movies : section.movies.slice(0, PREVIEW_LIMIT);
+    this.collapsed.set(next);
   }
 
   posterUrl(movie: Movie): string | null {

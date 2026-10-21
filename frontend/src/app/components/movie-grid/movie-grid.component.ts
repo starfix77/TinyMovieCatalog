@@ -35,6 +35,8 @@ export class MovieGridComponent {
     { value: 'year', label: 'Année' },
     { value: 'duration', label: 'Durée du film' },
     { value: 'size', label: 'Taille du fichier' },
+    { value: 'vote_average', label: 'Vote TMDB' },
+    { value: 'rating', label: 'Rating' },
   ];
   sortBy = signal<SortField>('title');
   sortDir = signal<SortDir>('asc');

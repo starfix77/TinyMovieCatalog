@@ -39,6 +39,69 @@ export class MovieDetailComponent {
     }
   }
 
+  // ---------- Note TMDB (lecture seule) ----------
+  get voteAverageText(): string | null {
+    const v = this.movie.vote_average;
+    return v && v > 0 ? v.toFixed(1).replace('.', ',') : null;
+  }
+
+  // ---------- Note personnelle (0 a 5 par pas de 0.5) ----------
+  readonly stars = [1, 2, 3, 4, 5];
+  readonly starPath = 'M12 2.5l2.94 5.96 6.58.96-4.76 4.64 1.12 6.55L12 17.52l-5.88 3.09 1.12-6.55L2.48 9.42l6.58-.96L12 2.5z';
+  hoverRating: number | null = null;
+  ratingError = '';
+
+  get displayRating(): number {
+    return this.hoverRating ?? this.movie.rating_perso ?? 0;
+  }
+
+  /** Pourcentage de remplissage (0, 50 ou 100) de l'etoile n° `star`. */
+  starFill(star: number): number {
+    const r = this.displayRating;
+    return r >= star ? 100 : r >= star - 0.5 ? 50 : 0;
+  }
+
+  ratingLabel(value: number): string {
+    return String(value ?? 0).replace('.', ',');
+  }
+
+  setRating(value: number): void {
+    const current = this.movie.rating_perso ?? 0;
+    // Un clic sur la note deja enregistree la remet a zero.
+    const next = value === current ? 0 : value;
+    this.hoverRating = null;
+    this.saveRating(next);
+  }
+
+  onStarsKey(event: KeyboardEvent): void {
+    const current = this.movie.rating_perso ?? 0;
+    let next: number | null = null;
+    if (event.key === 'ArrowRight' || event.key === 'ArrowUp') next = Math.min(5, current + 0.5);
+    else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') next = Math.max(0, current - 0.5);
+    else if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = 5;
+    if (next === null) return;
+    event.preventDefault();
+    this.saveRating(next);
+  }
+
+  private saveRating(value: number): void {
+    const previous = this.movie.rating_perso ?? 0;
+    if (value === previous) return;
+    this.ratingError = '';
+    this.movie = { ...this.movie, rating_perso: value }; // affichage immediat
+    this.movieService.updateRating(this.movie.id, value).subscribe({
+      next: (updated) => {
+        this.movie = updated;
+        this.movieUpdated.emit(updated);
+      },
+      error: (error) => {
+        this.movie = { ...this.movie, rating_perso: previous };
+        this.ratingError = error?.error?.detail || 'Impossible d’enregistrer la note.';
+      },
+    });
+  }
+
   get mainVideoFile() {
     return this.movie.video_files[0] ?? null;
   }

@@ -33,6 +33,27 @@
             <span>Voir sur TMDB</span>
           </a>
         }
+
+        <div class="rating-perso" [title]="'Ma note : ' + ratingLabel(displayRating) + ' / 5'">
+          <div class="stars" role="slider" tabindex="0" aria-label="Ma note"
+               aria-valuemin="0" aria-valuemax="5" [attr.aria-valuenow]="movie.rating_perso"
+               [attr.aria-valuetext]="ratingLabel(movie.rating_perso) + ' sur 5'"
+               (keydown)="onStarsKey($event)" (mouseleave)="hoverRating = null">
+            @for (star of stars; track star) {
+              <span class="star">
+                <svg class="star-svg star-empty" viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="starPath"/></svg>
+                <span class="star-fill" [style.width.%]="starFill(star)">
+                  <svg class="star-svg star-full" viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="starPath"/></svg>
+                </span>
+                <button type="button" class="star-half left" tabindex="-1" [attr.aria-label]="(star - 0.5) + ' étoiles'"
+                        (mouseenter)="hoverRating = star - 0.5" (click)="setRating(star - 0.5)"></button>
+                <button type="button" class="star-half right" tabindex="-1" [attr.aria-label]="star + ' étoiles'"
+                        (mouseenter)="hoverRating = star" (click)="setRating(star)"></button>
+              </span>
+            }
+          </div>
+          @if (ratingError) { <div class="play-error">{{ ratingError }}</div> }
+        </div>
       </div>
 
       <div class="info-col">
@@ -49,6 +70,14 @@
 
         @if (movie.overview) {
           <p class="overview">{{ movie.overview }}</p>
+        }
+
+        @if (voteAverageText) {
+          <div class="vote-badge" title="Note moyenne des utilisateurs TMDB">
+            <svg class="vote-star" viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="starPath"/></svg>
+            <span class="vote-value">{{ voteAverageText }}</span>
+            <span class="vote-max">/10 TMDB</span>
+          </div>
         }
 
         @if (cast.length) {

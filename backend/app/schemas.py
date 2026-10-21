@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, List
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 # ---------- Libraries ----------
@@ -158,8 +158,22 @@ class MovieOut(BaseModel):
     poster_filename: Optional[str] = None
     cast: Optional[str] = None
     genres: Optional[str] = None
+    vote_average: Optional[float] = None
+    rating_perso: float = 0.0
     video_files: List[VideoFileOut] = []
     subtitles: List[SubtitleOut] = []
+
+
+class MovieRatingUpdate(BaseModel):
+    """Note personnelle : 0 a 5 par pas de 0.5."""
+    rating_perso: float
+
+    @field_validator("rating_perso")
+    @classmethod
+    def _check_rating(cls, value: float) -> float:
+        if not 0 <= value <= 5 or (value * 2) != int(value * 2):
+            raise ValueError("La note doit etre comprise entre 0 et 5 par pas de 0.5.")
+        return float(value)
 
 
 class TmdbCandidateOut(BaseModel):

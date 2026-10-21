@@ -2,7 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.database import init_db
+import threading
+
+from app.database import init_db, SessionLocal
+from app.scanner import backfill_vote_averages
 from app.config import settings
 from app.routers import libraries, movies, sagas, actors, tmdb_info
 
@@ -35,6 +38,18 @@ app.mount("/data/thumbnails", StaticFiles(directory=str(settings.thumbnails_dir)
 @app.on_event("startup")
 def on_startup():
     init_db()
+    # Recupere en arriere-plan la note TMDb des films qui n'en ont pas encore.
+    threading.Thread(target=_backfill_votes, daemon=True).start()
+
+
+def _backfill_votes():
+    db = SessionLocal()
+    try:
+        backfill_vote_averages(db)
+    except Exception:
+        pass
+    finally:
+        db.close()
 
 
 @app.get("/api/health")

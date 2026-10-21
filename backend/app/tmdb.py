@@ -33,6 +33,7 @@ class TmdbMovieMatch:
     collection_id: Optional[int] = None
     collection_name: Optional[str] = None
     collection_poster_path: Optional[str] = None
+    vote_average: Optional[float] = None  # note moyenne TMDb sur 10
 
 
 def _check_configured():
@@ -109,7 +110,17 @@ def _fetch_movie_details(tmdb_id: int) -> TmdbMovieMatch:
         collection_id=collection.get("id"),
         collection_name=collection.get("name"),
         collection_poster_path=collection.get("poster_path"),
+        vote_average=round(float(data.get("vote_average") or 0), 1),
     )
+
+
+def fetch_vote_average(tmdb_id: int) -> float:
+    """Note moyenne TMDb (0-10, 1 decimale) d'un film ; 0 si aucun vote."""
+    _check_configured()
+    params = {"api_key": settings.tmdb_api_key}
+    resp = requests.get(f"{BASE_URL}/movie/{tmdb_id}", params=params, headers=_headers(), timeout=20)
+    resp.raise_for_status()
+    return round(float(resp.json().get("vote_average") or 0), 1)
 
 
 @dataclass

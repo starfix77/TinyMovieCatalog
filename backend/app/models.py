@@ -84,6 +84,12 @@ class Movie(Base):
     tmdb_synced_at = Column(DateTime, nullable=True)
     saga_id = Column(Integer, ForeignKey("sagas.id"), nullable=True)  # collection TMDb
 
+    # Note moyenne TMDb (0-10, 1 decimale). None = pas encore recuperee ;
+    # 0 = film sans vote sur TMDb.
+    vote_average = Column(Float, nullable=True)
+    # Note personnelle de 0 a 5 par pas de 0.5 (0 = non notee).
+    rating_perso = Column(Float, nullable=False, default=0.0, server_default="0")
+
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

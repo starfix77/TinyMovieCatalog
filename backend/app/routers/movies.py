@@ -7,12 +7,12 @@ import subprocess
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import asc, desc
+from sqlalchemy import asc, desc, func
 
 from app.database import get_db
 from app.config import settings
 from app.models import Movie, VideoFile, SagaMovie
-from app.schemas import MovieOut, MoviePage, TmdbCandidateOut, MovieMetadataUpdate, PosterOut, PosterUpdate
+from app.schemas import MovieOut, MoviePage, TmdbCandidateOut, MovieMetadataUpdate, PosterOut, PosterUpdate, MovieRatingUpdate
 from app import tmdb
 from app.scanner import sync_saga_for_match
 from datetime import datetime
@@ -26,6 +26,8 @@ SORTABLE_FIELDS = {
     "size": VideoFile.size_bytes,
     "genre": Movie.genres,
     "year": Movie.year,
+    "vote_average": Movie.vote_average,
+    "rating": Movie.rating_perso,
     "duration": VideoFile.duration_sec,
     # la resolution est triee sur le nombre de pixels (largeur * hauteur)
     "resolution": (VideoFile.width, VideoFile.height),
@@ -36,7 +38,7 @@ SORTABLE_FIELDS = {
 def list_movies(
     library_id: int = Query(..., description="Identifiant de la bibliotheque"),
     search: Optional[str] = Query(None, description="Recherche sur le titre du film"),
-    sort_by: Optional[str] = Query(None, description="title|filename|video_codec|size|resolution|genre|year|duration"),
+    sort_by: Optional[str] = Query(None, description="title|filename|video_codec|size|resolution|genre|year|duration|vote_average|rating"),
     sort_dir: str = Query("asc", pattern="^(asc|desc)$"),
     db: Session = Depends(get_db),
 ):
@@ -55,6 +57,9 @@ def list_movies(
     if sort_by and sort_by in SORTABLE_FIELDS:
         field = SORTABLE_FIELDS[sort_by]
         direction = desc if sort_dir == "desc" else asc
+        if sort_by == "vote_average":
+            # Films sans note TMDb toujours en fin de liste, quel que soit le sens.
+            query = query.order_by(asc(func.coalesce(Movie.vote_average, 0) == 0))
         if isinstance(field, tuple):
             for f in field:
                 query = query.order_by(direction(f))
@@ -82,6 +87,23 @@ def get_movie(movie_id: int, db: Session = Depends(get_db)):
     if not movie:
         raise HTTPException(404, "Film introuvable.")
     return movie
+
+
+@router.put("/{movie_id}/rating", response_model=MovieOut)
+def update_movie_rating(movie_id: int, payload: MovieRatingUpdate, db: Session = Depends(get_db)):
+    """Enregistre la note personnelle (0 a 5, pas de 0.5)."""
+    movie = db.get(Movie, movie_id)
+    if not movie:
+        raise HTTPException(404, "Film introuvable.")
+    movie.rating_perso = payload.rating_perso
+    db.commit()
+    return (
+        db.query(Movie)
+        .options(joinedload(Movie.video_files).joinedload(VideoFile.audio_tracks),
+                 joinedload(Movie.subtitles))
+        .filter(Movie.id == movie_id)
+        .first()
+    )
 
 
 @router.get("/{movie_id}/tmdb-search", response_model=list[TmdbCandidateOut])
@@ -151,6 +173,7 @@ def update_movie_metadata(
         movie.release_date = match.release_date
         movie.genres = match.genres
         movie.cast = match.cast_json
+        movie.vote_average = match.vote_average
         movie.poster_filename = new_poster
         movie.tmdb_synced_at = datetime.utcnow()
         try:

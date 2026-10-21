@@ -250,6 +250,7 @@ def _sync_movie_from_disk(
                 movie.release_date = match.release_date
                 movie.genres = match.genres
                 movie.cast = match.cast_json
+                movie.vote_average = match.vote_average
                 movie.tmdb_synced_at = datetime.utcnow()
 
                 try:
@@ -383,6 +384,7 @@ def _sync_candidate(db: Session, library: Library, video_path: Path, folder: Pat
                 movie.release_date = match.release_date
                 movie.genres = match.genres
                 movie.cast = match.cast_json
+                movie.vote_average = match.vote_average
                 movie.tmdb_synced_at = datetime.utcnow()
                 try:
                     movie.saga_id = sync_saga_for_match(db, match)
@@ -397,6 +399,25 @@ def _sync_candidate(db: Session, library: Library, video_path: Path, folder: Pat
         except Exception as exc:
             errors.append(f"TMDb: {title}: {exc}")
     return movie, created
+
+
+def backfill_vote_averages(db: Session, library_id: int | None = None) -> list[str]:
+    """Renseigne vote_average pour les films deja associes a TMDb mais dont la
+    note n'a jamais ete recuperee (bases creees avant l'ajout de la colonne).
+    S'arrete a la premiere erreur reseau pour ne pas bloquer le scan."""
+    if not settings.tmdb_api_key:
+        return []
+    query = db.query(Movie).filter(Movie.tmdb_id.isnot(None), Movie.vote_average.is_(None))
+    if library_id is not None:
+        query = query.filter(Movie.library_id == library_id)
+    for movie in query.all():
+        try:
+            movie.vote_average = tmdb.fetch_vote_average(movie.tmdb_id)
+            db.commit()
+        except Exception as exc:
+            db.rollback()
+            return [f"TMDb: note moyenne indisponible ({exc})"]
+    return []
 
 
 def scan_library(db: Session, library: Library, progress_callback=None,
@@ -489,5 +510,6 @@ def scan_library(db: Session, library: Library, progress_callback=None,
     library.last_scanned_at = datetime.utcnow()
     refresh_library_fs_stats(library)
     db.commit()
+    errors.extend(backfill_vote_averages(db, library.id))
     return ScanResult(library_id=library.id, folders_scanned=folders_scanned,
                       movies_added=added, movies_updated=updated, movies_removed=0, errors=errors)

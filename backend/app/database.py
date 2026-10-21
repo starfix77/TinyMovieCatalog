@@ -43,6 +43,12 @@ def _run_light_migrations():
         if "saga_id" not in existing_columns:
             with engine.begin() as conn:
                 conn.execute(text("ALTER TABLE movies ADD COLUMN saga_id INTEGER"))
+        if "vote_average" not in existing_columns:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE movies ADD COLUMN vote_average FLOAT"))
+        if "rating_perso" not in existing_columns:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE movies ADD COLUMN rating_perso FLOAT NOT NULL DEFAULT 0"))
 
     if "video_files" in tables:
         existing_video_columns = {c["name"] for c in inspector.get_columns("video_files")}

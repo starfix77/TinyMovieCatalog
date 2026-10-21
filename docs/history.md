@@ -119,3 +119,9 @@ Modifications apportées
   - Résolution, par exemple 1920x802.
   - Taille, par exemple 3.49 GB.
   - Pistes audio sur plusieurs lignes, avec langue, encodage et débit.
+
+**v0.9.7**
+- Détail du film : ajout de la note TMDB (`vote_average`, affichée « 8,3 /10 TMDB » au-dessus de « Distribution », adaptée aux thèmes clair/sombre)
+- Détail du film : ajout de la note personnelle (`rating_perso`, 0 à 5 par pas de 0,5, étoiles jaunes modifiables sous « Voir sur TMDB »). Un clic sur la note actuelle la remet à 0.
+- Page « Films » : nouveaux tris « Vote TMDB » et « Rating »
+- Les notes TMDB des films déjà présents en base sont récupérées automatiquement au démarrage du backend et à la fin de chaque scan.

@@ -46,6 +46,8 @@ export interface Movie {
   poster_filename: string | null;
   cast: string | null; // JSON string, voir CastMember[]
   genres: string | null;
+  vote_average: number | null; // note moyenne TMDB (0-10)
+  rating_perso: number; // note personnelle (0-5, pas de 0.5)
   video_files: VideoFile[];
   subtitles: Subtitle[];
 }
@@ -85,5 +87,5 @@ export interface MoviePage {
   items: Movie[];
 }
 
-export type SortField = 'title' | 'filename' | 'video_codec' | 'resolution' | 'size' | 'genre' | 'year' | 'duration';
+export type SortField = 'title' | 'filename' | 'video_codec' | 'resolution' | 'size' | 'genre' | 'year' | 'duration' | 'vote_average' | 'rating';
 export type SortDir = 'asc' | 'desc';

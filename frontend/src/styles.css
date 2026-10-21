@@ -50,6 +50,12 @@
   --gauge-from: #06b6d4;
   --gauge-via: #3b82f6;
   --gauge-to: #8b5cf6;
+
+  /* Etoiles (note TMDB / note perso) */
+  --star: #facc15;
+  --star-empty: #3a3f50;
+  --vote-bg: rgba(250, 204, 21, 0.10);
+  --vote-border: rgba(250, 204, 21, 0.22);
 }
 
 
@@ -87,6 +93,11 @@ html[data-theme="light"] {
   --gauge-from: #0891b2;
   --gauge-via: #2563eb;
   --gauge-to: #7c3aed;
+
+  --star: #eab308;
+  --star-empty: #d9d4c7;
+  --vote-bg: rgba(234, 179, 8, 0.14);
+  --vote-border: rgba(161, 118, 6, 0.28);
 }
 
 html[data-theme="light"] ::-webkit-scrollbar-thumb {

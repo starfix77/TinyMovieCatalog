@@ -27,6 +27,10 @@ export class MovieService {
     return this.http.get<Movie>(`${this.baseUrl}/${id}`);
   }
 
+  updateRating(movieId: number, rating: number): Observable<Movie> {
+    return this.http.put<Movie>(`${this.baseUrl}/${movieId}/rating`, { rating_perso: rating });
+  }
+
   searchTmdb(movieId: number): Observable<TmdbCandidate[]> {
     return this.http.get<TmdbCandidate[]>(`${this.baseUrl}/${movieId}/tmdb-search`);
   }

@@ -23,6 +23,7 @@ export class GenreViewComponent {
   private readonly movieService = inject(MovieService);
 
   readonly activeLibraryId = this.libraryService.activeLibraryId;
+  readonly isTv = computed(() => this.libraryService.activeLibrary()?.media_type === 'tv');
 
   movies = signal<Movie[]>([]);
   loading = signal(false);

@@ -156,3 +156,6 @@ La filmographie complète d’un acteur utilise aussi les crédits TV dans une b
 
 ffprobe analyse chaque épisode, ce qui peut être long sur une grosse série. Le mode « comparaison approfondie » saute les fichiers inchangés lors des scans suivants.
 Les onglets de la barre du haut gardent leurs libellés actuels (« Films », « Saga »…). Les sagas n’existent pas pour les séries, donc cet onglet sera vide.
+
+**v0.9.9**
+- Bibliothèque de type Séries TV : onglet « Films » renommé « Séries TV », onglet « Saga » masqué (redirection vers l'accueil si on s'y trouve), titre de la page de la grille et texte de la vue Genre adaptés

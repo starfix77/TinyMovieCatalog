@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, computed, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { LibrarySelectorComponent } from './components/library-selector/library-selector.component';
 import { LibraryService } from './services/library.service';
@@ -14,6 +14,10 @@ import { MediaTypeIconComponent } from './components/media-type-icon/media-type-
   styleUrl: './app.component.css',
 })
 export class AppComponent {
+  private readonly router = inject(Router);
+  /** true quand la bibliotheque active est de type "Series TV". */
+  readonly isTv = computed(() => this.libraryService.activeLibrary()?.media_type === 'tv');
+
   isDarkMode = false;
   sidebarCollapsed = false;
 
@@ -21,6 +25,13 @@ export class AppComponent {
     const savedTheme = localStorage.getItem('tinymoviecatalog-theme');
     this.isDarkMode = savedTheme ? savedTheme === 'dark' : false;
     this.applyTheme();
+
+    // La page "Saga" n'existe pas pour les series : retour a l'accueil si on s'y trouve.
+    effect(() => {
+      if (this.isTv() && this.router.url.startsWith('/sagas')) {
+        this.router.navigateByUrl('/');
+      }
+    });
 
     const savedSidebar = localStorage.getItem('tinymoviecatalog-sidebar-collapsed');
     this.sidebarCollapsed = savedSidebar === 'true';

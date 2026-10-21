@@ -3,7 +3,11 @@
     <div>
       <span class="eyebrow">BIBLIOTHÈQUE</span>
       <h1>Genres</h1>
-      <p>Explorez tous vos films classés par genre et découvrez facilement ce que vous avez envie de regarder.</p>
+      @if (isTv()) {
+        <p>Explorez toutes vos Séries TV classées par genre et découvrez facilement ce que vous avez envie de regarder.</p>
+      } @else {
+        <p>Explorez tous vos films classés par genre et découvrez facilement ce que vous avez envie de regarder.</p>
+      }
     </div>
     <div class="header-actions">
       @if (sections().length > 0) {

@@ -1,4 +1,4 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
@@ -20,6 +20,7 @@ export class MovieGridComponent {
   private readonly movieService = inject(MovieService);
 
   readonly activeLibraryId = this.libraryService.activeLibraryId;
+  readonly isTv = computed(() => this.libraryService.activeLibrary()?.media_type === 'tv');
 
   search = '';
   private searchChanged = new Subject<string>();

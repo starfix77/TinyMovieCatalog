@@ -129,7 +129,61 @@ export class MovieDetailComponent {
     return `${(bitsPerSec / 1000).toFixed(0)} kb/s`;
   }
 
+  // ---------- Recherche manuelle TMDB ----------
+  manualMode = false;
+  manualQuery = '';
+  manualYear: number | null = null;
+  /** true une fois qu'une recherche manuelle a ete lancee (distingue "pas encore cherche" de "aucun resultat"). */
+  manualSearched = false;
+
+  get isTv(): boolean {
+    return this.movie.media_type === 'tv';
+  }
+
+  /** Ouvre la boite de dialogue de recherche par titre saisi (nom de dossier non identifiable). */
+  openManualSearch(): void {
+    this.editing = true;
+    this.manualMode = true;
+    this.manualQuery = this.movie.title || '';
+    this.manualYear = this.movie.year ?? null;
+    this.manualSearched = false;
+    this.loadingCandidates = false;
+    this.errorMessage = '';
+    this.candidates = [];
+    this.selectedCandidateId = null;
+    setTimeout(() => {
+      const input = document.querySelector<HTMLInputElement>('.manual-input');
+      input?.focus();
+      input?.select();
+    }, 50);
+  }
+
+  runManualSearch(): void {
+    const query = this.manualQuery.trim();
+    if (!query || this.loadingCandidates || this.saving) return;
+    this.loadingCandidates = true;
+    this.manualSearched = true;
+    this.errorMessage = '';
+    this.candidates = [];
+    this.selectedCandidateId = null;
+    const year = this.manualYear ? Number(this.manualYear) : null;
+    this.movieService.searchTmdb(this.movie.id, query, year).subscribe({
+      next: (candidates) => {
+        this.candidates = candidates;
+        this.loadingCandidates = false;
+        if (!candidates.length) {
+          this.errorMessage = `Aucun résultat TMDb pour « ${query} ». Essayez un autre titre (titre original, sans l’année ni les mentions techniques).`;
+        }
+      },
+      error: (error) => {
+        this.loadingCandidates = false;
+        this.errorMessage = error?.error?.detail || 'Impossible de rechercher sur TMDb.';
+      },
+    });
+  }
+
   openMetadataEditor(): void {
+    this.manualMode = false;
     this.editing = true;
     this.loadingCandidates = true;
     this.errorMessage = '';
@@ -139,7 +193,7 @@ export class MovieDetailComponent {
       next: (candidates) => {
         this.candidates = candidates;
         this.loadingCandidates = false;
-        if (!candidates.length) this.errorMessage = 'Aucun film TMDb correspondant n’a été trouvé.';
+        if (!candidates.length) this.errorMessage = this.isTv ? 'Aucune série TMDb correspondante n’a été trouvée.' : 'Aucun film TMDb correspondant n’a été trouvé.';
       },
       error: (error) => {
         this.loadingCandidates = false;
@@ -149,7 +203,10 @@ export class MovieDetailComponent {
   }
 
   cancelMetadataEdit(): void {
-    if (!this.saving) this.editing = false;
+    if (!this.saving) {
+      this.editing = false;
+      this.manualMode = false;
+    }
   }
 
   selectCandidate(candidate: TmdbCandidate): void {
@@ -175,6 +232,7 @@ export class MovieDetailComponent {
             this.movie = updated;
             this.saving = false;
             this.editing = false;
+            this.manualMode = false;
             this.movieUpdated.emit(updated);
           },
           error: (error) => {

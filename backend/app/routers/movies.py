@@ -107,12 +107,27 @@ def update_movie_rating(movie_id: int, payload: MovieRatingUpdate, db: Session =
 
 
 @router.get("/{movie_id}/tmdb-search", response_model=list[TmdbCandidateOut])
-def search_tmdb_candidates(movie_id: int, db: Session = Depends(get_db)):
+def search_tmdb_candidates(
+    movie_id: int,
+    query: Optional[str] = None,
+    year: Optional[int] = None,
+    db: Session = Depends(get_db),
+):
+    """Candidats TMDb pour un film/serie.
+
+    Sans parametre : recherche a partir du titre/annee deduits du nom du
+    dossier ou du fichier. Avec `query` (recherche manuelle) : recherche a
+    partir du titre saisi par l'utilisateur (`year` optionnel)."""
     movie = db.get(Movie, movie_id)
     if not movie:
         raise HTTPException(404, "Film introuvable.")
+    manual = query is not None
+    search_title = query.strip() if manual else movie.title
+    if manual and not search_title:
+        raise HTTPException(422, "Saisissez un titre à rechercher.")
+    search_year = year if manual else movie.year
     try:
-        matches = tmdb.search_movies(movie.title, movie.year, movie.media_type)
+        matches = tmdb.search_movies(search_title, search_year, movie.media_type)
     except tmdb.TmdbNotConfiguredError as exc:
         raise HTTPException(503, str(exc))
     except Exception as exc:

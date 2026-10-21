@@ -159,3 +159,7 @@ Les onglets de la barre du haut gardent leurs libellés actuels (« Films », «
 
 **v0.9.9**
 - Bibliothèque de type Séries TV : onglet « Films » renommé « Séries TV », onglet « Saga » masqué (redirection vers l'accueil si on s'y trouve), titre de la page de la grille et texte de la vue Genre adaptés
+
+**v0.9.10**
+- Fiche détail : bouton « Recherche manuelle » (mis en évidence quand le film n'est pas identifié) pour chercher sur TMDB à partir d'un titre saisi (année facultative) quand le nom du dossier/fichier ne permet pas l'identification. Résultats en vignettes + synopsis, comme « Choisir le bon film » ; le choix remplace les informations et est enregistré en base. Fonctionne pour les films et les séries TV.
+- API : `GET /api/movies/{id}/tmdb-search` accepte `query` et `year` (recherche manuelle)

@@ -238,10 +238,14 @@
   .poster-col { width: 140px; }
 }
 
-.edit-btn {
+.top-actions {
   position: absolute;
   top: 14px;
   right: 52px;
+  display: flex;
+  gap: 8px;
+}
+.edit-btn {
   border: 1px solid var(--border);
   background: var(--surface-raised);
   color: var(--text);
@@ -519,3 +523,32 @@
 .star-half.left { left: 0; }
 .star-half.right { right: 0; }
 .rating-perso .play-error { margin-top: 6px; text-align: center; }
+
+/* ---------- Recherche manuelle TMDB ---------- */
+.edit-btn.manual-btn.attention {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+.manual-search {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.manual-input,
+.manual-year {
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 8px 11px;
+  font-size: 13px;
+}
+.manual-input { flex: 1 1 260px; min-width: 0; }
+.manual-year { width: 150px; }
+.manual-input:focus,
+.manual-year:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}

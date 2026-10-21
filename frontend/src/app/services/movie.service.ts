@@ -31,8 +31,12 @@ export class MovieService {
     return this.http.put<Movie>(`${this.baseUrl}/${movieId}/rating`, { rating_perso: rating });
   }
 
-  searchTmdb(movieId: number): Observable<TmdbCandidate[]> {
-    return this.http.get<TmdbCandidate[]>(`${this.baseUrl}/${movieId}/tmdb-search`);
+  /** Sans `query` : titre/annee du nom de dossier ; avec `query` : recherche manuelle. */
+  searchTmdb(movieId: number, query?: string, year?: number | null): Observable<TmdbCandidate[]> {
+    let params = new HttpParams();
+    if (query !== undefined) params = params.set('query', query);
+    if (query !== undefined && year) params = params.set('year', year);
+    return this.http.get<TmdbCandidate[]>(`${this.baseUrl}/${movieId}/tmdb-search`, { params });
   }
 
   updateMetadata(movieId: number, tmdbId: number): Observable<Movie> {

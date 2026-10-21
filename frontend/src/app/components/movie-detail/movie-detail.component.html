@@ -3,7 +3,13 @@
     <button class="close-btn" (click)="close.emit()">✕</button>
 
     @if (!editing) {
-      <button class="edit-btn" (click)="openMetadataEditor()">Modifier les informations</button>
+      <div class="top-actions">
+        <button class="edit-btn manual-btn" [class.attention]="!movie.tmdb_id" (click)="openManualSearch()"
+                [title]="isTv ? 'Chercher la série sur TMDB avec un titre saisi à la main' : 'Chercher le film sur TMDB avec un titre saisi à la main'">
+          Recherche manuelle
+        </button>
+        <button class="edit-btn" (click)="openMetadataEditor()">Modifier les informations</button>
+      </div>
     }
 
     <div class="panel-body">
@@ -138,14 +144,37 @@
         <div class="editor-header">
           <div>
             <span class="editor-kicker">TMDb</span>
-            <h3>Choisir le bon film</h3>
-            <p>Plusieurs résultats peuvent correspondre à « {{ movie.title }} ({{ movie.year || '—' }}) ». Sélectionnez celui qui doit remplacer les informations actuelles.</p>
+            @if (manualMode) {
+              <h3>Recherche manuelle</h3>
+              <p>Le nom du dossier ou du fichier « {{ movie.folder_name }} » ne permet pas d’identifier {{ isTv ? 'la série' : 'le film' }} ? Saisissez son titre, puis sélectionnez le bon résultat : les informations seront remplacées et enregistrées.</p>
+            } @else {
+              <h3>{{ isTv ? 'Choisir la bonne série' : 'Choisir le bon film' }}</h3>
+              <p>Plusieurs résultats peuvent correspondre à « {{ movie.title }} ({{ movie.year || '—' }}) ». Sélectionnez celui qui doit remplacer les informations actuelles.</p>
+            }
           </div>
           <button class="editor-close" (click)="cancelMetadataEdit()">✕</button>
         </div>
 
+        @if (manualMode) {
+          <div class="manual-search">
+            <input class="manual-input" type="text"
+                   [(ngModel)]="manualQuery" (keydown.enter)="runManualSearch()"
+                   [placeholder]="isTv ? 'Titre de la série TV' : 'Titre du film'"
+                   [attr.aria-label]="isTv ? 'Titre de la série TV' : 'Titre du film'" />
+            <input class="manual-year" type="number" min="1870" max="2100"
+                   [(ngModel)]="manualYear" (keydown.enter)="runManualSearch()"
+                   placeholder="Année (facultatif)" aria-label="Année (facultatif)" />
+            <button class="primary-btn" (click)="runManualSearch()"
+                    [disabled]="!manualQuery.trim() || loadingCandidates || saving">
+              {{ loadingCandidates ? 'Recherche…' : 'Rechercher' }}
+            </button>
+          </div>
+        }
+
         @if (loadingCandidates) {
-          <div class="editor-state">Recherche des films…</div>
+          <div class="editor-state">{{ isTv ? 'Recherche des séries…' : 'Recherche des films…' }}</div>
+        } @else if (manualMode && !manualSearched && !candidates.length && !errorMessage) {
+          <div class="editor-state">Saisissez un titre puis lancez la recherche.</div>
         } @else if (candidates.length) {
           <div class="candidate-list">
             @for (candidate of candidates; track candidate.tmdb_id) {

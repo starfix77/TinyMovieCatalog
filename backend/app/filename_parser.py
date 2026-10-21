@@ -16,6 +16,11 @@ TECHNICAL_MARKERS = re.compile(
 )
 YEAR = re.compile(r"(?<!\d)(19\d{2}|20\d{2})(?!\d)")
 
+# Marqueurs d'episode / saison : S01E02, s1e2, 1x02, "Season 3", "Saison 3"...
+EPISODE_MARKER = re.compile(
+    r"(?i)(?:^|[\s._-])(?:s\d{1,2}[\s._-]?e\d{1,3}|\d{1,2}x\d{2,3}|(?:season|saison)[\s._-]?\d{1,2})(?=$|[\s._-]|e\d)"
+)
+
 @dataclass(frozen=True)
 class ParsedName:
     title: str
@@ -38,3 +43,14 @@ def parse_name(name: str) -> ParsedName:
         candidate = candidate[:marker.start()]
     candidate = re.sub(r"[\s._-]+", " ", candidate).strip(" -_.()[]")
     return ParsedName(candidate or stem, None if ambiguous else year, ambiguous)
+
+
+def parse_tv_name(name: str) -> ParsedName:
+    """Meme principe que parse_name, pour une serie : le titre s'arrete au
+    marqueur d'episode (S01E02, 1x02, Saison 2...) et l'annee est celle du
+    titre de la serie (annee de premiere diffusion)."""
+    stem = Path(name).stem if Path(name).suffix.lower() in VIDEO_EXTENSIONS else Path(name).name
+    marker = EPISODE_MARKER.search(stem)
+    if marker:
+        stem = stem[:marker.start()]
+    return parse_name(stem)

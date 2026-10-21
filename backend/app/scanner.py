@@ -10,7 +10,7 @@ from pathlib import Path
 from sqlalchemy.orm import Session
 
 from app import tmdb, ffprobe_utils
-from app.filename_parser import parse_name, VIDEO_EXTENSIONS
+from app.filename_parser import parse_name, parse_tv_name, VIDEO_EXTENSIONS
 from app.fs_utils import refresh_library_fs_stats
 from app.config import settings
 from app.models import Library, Movie, VideoFile, AudioTrack, Subtitle, Saga, SagaMovie
@@ -242,7 +242,7 @@ def _sync_movie_from_disk(
     # --- Enrichissement TheMovieDB (uniquement si pas deja synchronise) ---
     if movie.tmdb_id is None and settings.tmdb_api_key:
         try:
-            match = tmdb.search_movie(title, year)
+            match = tmdb.search_movie(title, year, library.media_type)
             if match:
                 movie.tmdb_id = match.tmdb_id
                 movie.original_title = match.original_title
@@ -259,7 +259,7 @@ def _sync_movie_from_disk(
                     errors.append(f"TMDb saga: {folder.name}: {saga_exc}")
 
                 if match.poster_path:
-                    poster_filename = f"tmdb_{match.tmdb_id}.jpg"
+                    poster_filename = tmdb.poster_filename(library.media_type, match.tmdb_id)
                     dest = settings.thumbnails_dir / poster_filename
                     if not dest.exists():
                         tmdb.download_poster(match.poster_path, dest)
@@ -357,7 +357,10 @@ def _sync_candidate(db: Session, library: Library, video_path: Path, folder: Pat
     video_file.scanned_at = datetime.utcnow()
 
     # Sous-titres externes associés au même dossier; pas de suppression sur disque.
-    subtitles = [f for f in folder.iterdir() if f.is_file() and f.suffix.lower() in settings.subtitle_extensions] if folder.exists() else []
+    # (pour une serie, 'folder' est le dossier de la serie et les sous-titres
+    # sont dans le dossier de la saison : on cherche donc a cote du fichier.)
+    sub_dir = video_path.parent
+    subtitles = [f for f in sub_dir.iterdir() if f.is_file() and f.suffix.lower() in settings.subtitle_extensions] if sub_dir.exists() else []
     video_base = video_path.stem.casefold()
     title_base = re.sub(r"[^a-z0-9]+", "", title.casefold())
     known = {sub.filepath for sub in movie.subtitles}
@@ -376,7 +379,7 @@ def _sync_candidate(db: Session, library: Library, video_path: Path, folder: Pat
 
     if movie.tmdb_id is None and settings.tmdb_api_key:
         try:
-            match = tmdb.search_movie(title, parsed_year)
+            match = tmdb.search_movie(title, parsed_year, library.media_type)
             if match:
                 movie.tmdb_id = match.tmdb_id
                 movie.original_title = match.original_title
@@ -391,7 +394,7 @@ def _sync_candidate(db: Session, library: Library, video_path: Path, folder: Pat
                 except Exception as saga_exc:
                     errors.append(f"TMDb saga: {title}: {saga_exc}")
                 if match.poster_path:
-                    poster_filename = f"tmdb_{match.tmdb_id}.jpg"
+                    poster_filename = tmdb.poster_filename(library.media_type, match.tmdb_id)
                     dest = settings.thumbnails_dir / poster_filename
                     if not dest.exists():
                         tmdb.download_poster(match.poster_path, dest)
@@ -407,12 +410,13 @@ def backfill_vote_averages(db: Session, library_id: int | None = None) -> list[s
     S'arrete a la premiere erreur reseau pour ne pas bloquer le scan."""
     if not settings.tmdb_api_key:
         return []
-    query = db.query(Movie).filter(Movie.tmdb_id.isnot(None), Movie.vote_average.is_(None))
+    query = (db.query(Movie).join(Library, Library.id == Movie.library_id)
+             .filter(Movie.tmdb_id.isnot(None), Movie.vote_average.is_(None)))
     if library_id is not None:
         query = query.filter(Movie.library_id == library_id)
     for movie in query.all():
         try:
-            movie.vote_average = tmdb.fetch_vote_average(movie.tmdb_id)
+            movie.vote_average = tmdb.fetch_vote_average(movie.tmdb_id, movie.media_type)
             db.commit()
         except Exception as exc:
             db.rollback()
@@ -482,9 +486,59 @@ def scan_library(db: Session, library: Library, progress_callback=None,
             except OSError as exc:
                 errors.append(f"Impossible de lire '{child}': {exc}")
 
-    walk(root, 0)
-    # Structure simple : seuls les dossiers directement sous la racine sont des films.
-    if structure_mode == "simple":
+    # --- Bibliotheque de series TV ---
+    # Meme principe que pour les films : le dossier "Titre (Annee)" identifie
+    # l'entree (ici la serie) ; les episodes sont les videos qu'il contient,
+    # y compris dans des sous-dossiers de saisons ("Saison 1", "Season 01"...).
+    # Une video posee directement a la racine est rattachee a sa serie via
+    # son nom ("Titre.S01E02.mkv" -> "Titre").
+    def walk_tv(directory: Path, depth: int, series_folder: Path | None):
+        nonlocal folders_scanned
+        try:
+            real = str(directory.resolve())
+            if real in seen_dirs:
+                return
+            seen_dirs.add(real)
+            children = list(directory.iterdir())
+        except OSError as exc:
+            errors.append(f"Répertoire inaccessible '{directory}': {exc}")
+            return
+        folders_scanned += 1
+        for child in children:
+            try:
+                if child.is_symlink():
+                    continue
+                if child.is_dir():
+                    if depth < max_depth:
+                        walk_tv(child, depth + 1, series_folder or child)
+                    continue
+                if not child.is_file() or child.suffix.lower() not in settings.video_extensions:
+                    continue
+                if series_folder is None:
+                    parsed = parse_tv_name(child.name)
+                    series = root
+                else:
+                    folder_match = FOLDER_PATTERN.match(series_folder.name)
+                    if folder_match:
+                        from app.filename_parser import ParsedName
+                        parsed = ParsedName(folder_match.group("title").strip(), int(folder_match.group("year")))
+                    else:
+                        parsed = parse_tv_name(series_folder.name)
+                    series = series_folder
+                if parsed.ambiguous_year:
+                    errors.append(f"Année ambiguë dans '{child.name}'")
+                candidates.append((child, series, parsed.title, parsed.year))
+            except OSError as exc:
+                errors.append(f"Impossible de lire '{child}': {exc}")
+
+    if library.media_type == "tv":
+        # Racine -> serie -> saison : il faut au moins 2 niveaux de sous-dossiers.
+        max_depth = max(max_depth, 2)
+        walk_tv(root, 0, None)
+    else:
+        walk(root, 0)
+    # Structure simple (films uniquement) : seuls les dossiers directement sous la racine sont des films.
+    if structure_mode == "simple" and library.media_type != "tv":
         candidates = [c for c in candidates if c[1] != root and c[1].parent == root]
 
     # Les candidats dont le dossier fournit une année fiable sont traités en premier

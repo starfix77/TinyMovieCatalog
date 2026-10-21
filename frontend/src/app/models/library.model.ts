@@ -1,7 +1,11 @@
+/** Type de contenu d'une bibliotheque : films ou series TV. */
+export type MediaType = 'movie' | 'tv';
+
 export interface Library {
   id: number;
   name: string;
   root_path: string;
+  media_type: MediaType;
   created_at: string;
   last_scanned_at: string | null;
   movie_count: number;
@@ -12,6 +16,7 @@ export interface LibraryInfo {
   id: number;
   name: string;
   root_path: string;
+  media_type?: MediaType;
   movie_count: number;
   created_at: string | null;
   last_scanned_at: string | null;
@@ -25,6 +30,7 @@ export interface LibraryInfo {
 export interface LibraryCreate {
   name: string;
   root_path: string;
+  media_type: MediaType;
 }
 
 export interface ScanResult {

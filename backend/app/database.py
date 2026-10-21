@@ -67,6 +67,9 @@ def _run_light_migrations():
 
     if "libraries" in tables:
         existing = {c["name"]: c["type"] for c in inspector.get_columns("libraries")}
+        if "media_type" not in existing:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE libraries ADD COLUMN media_type VARCHAR NOT NULL DEFAULT 'movie'"))
         for column in ("fs_total_size", "fs_free_size"):
             if column in existing and not isinstance(existing[column], Integer):
                 # Version precedente : la colonne stockait un texte formate

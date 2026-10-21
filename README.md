@@ -2,11 +2,11 @@
 
 ![TinyMovieCatalog](docs/favicon-128x128.png) 
 
-Application locale de gestion de bibliotheques de films (MKV/MP4).
+Application locale de gestion de bibliotheques de **Films** ou **Séries TV** (MKV/MP4/Dvix).
 TinyMovieCatalog est une application web de catalogue cinématographique organisée autour d'un Frontend JavaScript et d'un Backend Python. Elle propose plusieurs modes de consultation d'une bibliothèque de films, dont un affichage visuel par vignettes, une vue technique et un regroupement par sagas avec navigation horizontale.
 
 ## Fonctionnalités principales:
-- **Bibliothèque de films** : centralisation de l’ensemble des films de la collection.
+- **Bibliothèque de films** : centralisation de l’ensemble des films ou Séries TV de la collection.
 - **Affichage par Vignettes** : présentation visuelle des films sous forme d’affiches.
 - **Affichage Technique** : consultation des informations techniques et détaillées des films.
 - **Affichage par Saga** : regroupement automatique des films appartenant à une même saga.
@@ -92,6 +92,29 @@ obligatoirement un fichier video (`.mkv`, `.mp4`, `.avi`, `.m4v`) et, en
 option, un ou plusieurs fichiers de sous-titres (`.srt`, `.ass`, `.ssa`,
 `.sub`, `.vtt`).
 
+### Bibliothèque de séries TV
+A la création, une bibliothèque est de type **Films** ou **Séries TV**. Le
+parsing des séries suit le même principe que pour les films : un dossier
+**Titre de la série (Annee)** (l'année est celle de la première diffusion) par
+série ; les épisodes sont les fichiers video qu'il contient, y compris dans des
+sous-dossiers de saisons.
+```
+C:\MesSeries
+├── Breaking Bad (2008)\
+│   ├── Saison 1\
+│   │   ├── Breaking.Bad.S01E01.mkv
+│   │   └── Breaking.Bad.S01E02.fr.srt   (optionnel)
+│   └── Saison 2\
+│       └── Breaking.Bad.S02E01.mkv
+├── Friends\                            (annee facultative)
+│   └── Season 1\Friends.1x01.mkv
+└── Lost.S01E01.mkv                      (fichier a la racine : titre lu avant le marqueur SxxExx)
+```
+Les marqueurs `S01E02`, `1x02` et `Saison 2` / `Season 2` sont reconnus. Une série
+est enregistrée comme une entrée du catalogue, ses épisodes comme fichiers video.
+Les informations TheMovieDB (affiche, genres, distribution, note) proviennent de
+l'API `/tv`. La profondeur de parcours des séries est d'au moins 2 niveaux
+(série puis saison).
 
 
 ## 1. Prérequis

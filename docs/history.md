@@ -125,3 +125,34 @@ Modifications apportées
 - Détail du film : ajout de la note personnelle (`rating_perso`, 0 à 5 par pas de 0,5, étoiles jaunes modifiables sous « Voir sur TMDB »). Un clic sur la note actuelle la remet à 0.
 - Page « Films » : nouveaux tris « Vote TMDB » et « Rating »
 - Les notes TMDB des films déjà présents en base sont récupérées automatiquement au démarrage du backend et à la fin de chaque scan.
+
+**v0.9.8**
+- Bibliothèques : choix du type **Films** ou **Séries TV** à la création (colonne `libraries.media_type`, ajoutée automatiquement aux bases existantes, qui restent en « Films »)
+- Séries TV : même principe de parsing que les films (dossier « Titre (Année) » par série, épisodes dans les sous-dossiers de saisons, fichiers à la racine rattachés par le titre avant S01E02 / 1x02 / Saison 2), données TMDB via l'API `/tv`
+- Icône Film / TV pour chaque bibliothèque dans le bandeau de gauche, et à gauche du nom de la bibliothèque dans l'en-tête
+- Fiche détail : lien « Voir sur TMDB » vers la bonne page (film ou série) et nombre d'épisodes
+
+Les bibliothèques ont maintenant un type Films ou Séries TV, choisi à la création, avec une icône dans le bandeau de gauche et dans l’en-tête. J’ai testé le scan sur des arborescences de films et de séries, et vérifié le rendu en thèmes clair et sombre dans un navigateur headless. Je n’ai pas testé les appels TMDB réels (pas de clé API ici) ni ffprobe.
+
+*Création et icônes*
+
+Le formulaire « + Nouvelle bibliothèque » propose un choix Films / Séries TV.
+Chaque bibliothèque du bandeau de gauche affiche une icône de pellicule ou de téléviseur à gauche de son nom.
+L’en-tête affiche la même icône à gauche du nom de la bibliothèque active. Les icônes suivent la couleur du thème.
+Les compteurs indiquent « série(s) » au lieu de « film(s) » pour une bibliothèque de séries.
+Les bases existantes migrent automatiquement : toutes les bibliothèques actuelles restent en « Films ».
+
+*Parsing des séries*
+
+Le principe est le même que pour les films : un dossier Titre (Année) par série, l’année étant celle de la première diffusion.
+Les épisodes sont les fichiers vidéo du dossier, y compris dans des sous-dossiers de saisons. Les sous-titres sont repérés à côté de chaque épisode.
+Un fichier posé à la racine, comme Lost.S01E01.mkv, est rattaché à sa série : le titre s’arrête avant S01E02, 1x02 ou Saison 2.
+Une série est enregistrée comme une entrée du catalogue, avec ses épisodes comme fichiers vidéo.
+La profondeur de parcours est d’au moins 2 niveaux pour les séries. La fenêtre de scan propose cette profondeur à la place des options « structure simple/mixte ».
+Toutes les données TMDB d’une série (recherche, affiche, genres, distribution, note, changement de pochette) viennent des endpoints /tv. Le lien « Voir sur TMDB » pointe vers la bonne page, et la fiche indique le nombre d’épisodes avec leur taille cumulée.
+La filmographie complète d’un acteur utilise aussi les crédits TV dans une bibliothèque de séries. Sans cela, des identifiants de séries auraient pu être confondus avec des identifiants de films.
+
+*Points à connaître*
+
+ffprobe analyse chaque épisode, ce qui peut être long sur une grosse série. Le mode « comparaison approfondie » saute les fichiers inchangés lors des scans suivants.
+Les onglets de la barre du haut gardent leurs libellés actuels (« Films », « Saga »…). Les sagas n’existent pas pour les séries, donc cet onglet sera vide.

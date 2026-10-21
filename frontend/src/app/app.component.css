@@ -49,10 +49,22 @@
 
 .active-library-heading {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  gap: 9px;
   min-width: 0;
   margin-right: 4px;
   line-height: 1.15;
+}
+
+.active-library-icon {
+  color: var(--accent-strong);
+}
+
+.active-library-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .active-library-heading strong {

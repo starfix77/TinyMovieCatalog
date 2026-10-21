@@ -34,6 +34,20 @@ class TmdbMovieMatch:
     collection_name: Optional[str] = None
     collection_poster_path: Optional[str] = None
     vote_average: Optional[float] = None  # note moyenne TMDb sur 10
+    media_type: str = "movie"  # "movie" ou "tv"
+
+
+def _kind(media_type: str) -> str:
+    """Segment d'URL TMDb : 'movie' ou 'tv'."""
+    return "tv" if media_type == "tv" else "movie"
+
+
+def poster_filename(media_type: str, tmdb_id: int, variant: Optional[str] = None) -> str:
+    """Nom du fichier d'affiche local. Les identifiants TMDb des films et des
+    series sont deux espaces distincts : les series ont leur propre prefixe
+    pour eviter toute collision (les noms des films restent inchanges)."""
+    prefix = "tmdb_tv" if media_type == "tv" else "tmdb"
+    return f"{prefix}_{tmdb_id}_{variant}.jpg" if variant else f"{prefix}_{tmdb_id}.jpg"
 
 
 def _check_configured():
@@ -47,9 +61,11 @@ def _headers():
     return {"Accept": "application/json"}
 
 
-def search_movies(title: str, year: Optional[int]) -> list[TmdbMovieMatch]:
-    """Recherche plusieurs films et retourne leurs details pour permettre un choix manuel."""
+def search_movies(title: str, year: Optional[int], media_type: str = "movie") -> list[TmdbMovieMatch]:
+    """Recherche plusieurs films (ou series si media_type='tv') et retourne leurs
+    details pour permettre un choix manuel."""
     _check_configured()
+    kind = _kind(media_type)
 
     params = {
         "api_key": settings.tmdb_api_key,
@@ -57,37 +73,39 @@ def search_movies(title: str, year: Optional[int]) -> list[TmdbMovieMatch]:
         "language": settings.tmdb_language,
         "include_adult": "false",
     }
+    year_param = "first_air_date_year" if kind == "tv" else "year"
     if year:
-        params["year"] = year
+        params[year_param] = year
 
-    resp = requests.get(f"{BASE_URL}/search/movie", params=params, headers=_headers(), timeout=20)
+    resp = requests.get(f"{BASE_URL}/search/{kind}", params=params, headers=_headers(), timeout=20)
     resp.raise_for_status()
     results = resp.json().get("results", [])
 
     if not results and year:
-        params.pop("year", None)
-        resp = requests.get(f"{BASE_URL}/search/movie", params=params, headers=_headers(), timeout=20)
+        params.pop(year_param, None)
+        resp = requests.get(f"{BASE_URL}/search/{kind}", params=params, headers=_headers(), timeout=20)
         resp.raise_for_status()
         results = resp.json().get("results", [])
 
     matches: list[TmdbMovieMatch] = []
     for result in results[:12]:
         try:
-            matches.append(_fetch_movie_details(result["id"]))
+            matches.append(_fetch_movie_details(result["id"], media_type))
         except Exception:
             continue
     return matches
 
 
-def search_movie(title: str, year: Optional[int]) -> Optional[TmdbMovieMatch]:
+def search_movie(title: str, year: Optional[int], media_type: str = "movie") -> Optional[TmdbMovieMatch]:
     """Compatibilite avec le scanner : retourne le premier resultat."""
-    matches = search_movies(title, year)
+    matches = search_movies(title, year, media_type)
     return matches[0] if matches else None
 
-def _fetch_movie_details(tmdb_id: int) -> TmdbMovieMatch:
+def _fetch_movie_details(tmdb_id: int, media_type: str = "movie") -> TmdbMovieMatch:
+    kind = _kind(media_type)
     params = {"api_key": settings.tmdb_api_key, "language": settings.tmdb_language,
               "append_to_response": "credits"}
-    resp = requests.get(f"{BASE_URL}/movie/{tmdb_id}", params=params, headers=_headers(), timeout=20)
+    resp = requests.get(f"{BASE_URL}/{kind}/{tmdb_id}", params=params, headers=_headers(), timeout=20)
     resp.raise_for_status()
     data = resp.json()
 
@@ -98,12 +116,13 @@ def _fetch_movie_details(tmdb_id: int) -> TmdbMovieMatch:
     genres = ", ".join(g["name"] for g in data.get("genres", []))
     collection = data.get("belongs_to_collection") or {}
 
+    # Series : TMDb utilise name / original_name / first_air_date.
     return TmdbMovieMatch(
         tmdb_id=data["id"],
-        title=data.get("title") or "",
-        original_title=data.get("original_title") or "",
+        title=(data.get("name") if kind == "tv" else data.get("title")) or "",
+        original_title=(data.get("original_name") if kind == "tv" else data.get("original_title")) or "",
         overview=data.get("overview") or "",
-        release_date=data.get("release_date") or "",
+        release_date=(data.get("first_air_date") if kind == "tv" else data.get("release_date")) or "",
         poster_path=data.get("poster_path"),
         genres=genres,
         cast_json=json.dumps(cast, ensure_ascii=False),
@@ -111,14 +130,15 @@ def _fetch_movie_details(tmdb_id: int) -> TmdbMovieMatch:
         collection_name=collection.get("name"),
         collection_poster_path=collection.get("poster_path"),
         vote_average=round(float(data.get("vote_average") or 0), 1),
+        media_type="tv" if kind == "tv" else "movie",
     )
 
 
-def fetch_vote_average(tmdb_id: int) -> float:
-    """Note moyenne TMDb (0-10, 1 decimale) d'un film ; 0 si aucun vote."""
+def fetch_vote_average(tmdb_id: int, media_type: str = "movie") -> float:
+    """Note moyenne TMDb (0-10, 1 decimale) d'un film/serie ; 0 si aucun vote."""
     _check_configured()
     params = {"api_key": settings.tmdb_api_key}
-    resp = requests.get(f"{BASE_URL}/movie/{tmdb_id}", params=params, headers=_headers(), timeout=20)
+    resp = requests.get(f"{BASE_URL}/{_kind(media_type)}/{tmdb_id}", params=params, headers=_headers(), timeout=20)
     resp.raise_for_status()
     return round(float(resp.json().get("vote_average") or 0), 1)
 
@@ -148,25 +168,28 @@ def search_person(name: str) -> Optional[dict]:
     return results[0] if results else None
 
 
-def fetch_person_movie_credits(person_id: int) -> list[TmdbPersonMovie]:
-    """Retourne la filmographie complete (en tant qu'acteur) d'une personne TMDb."""
+def fetch_person_movie_credits(person_id: int, media_type: str = "movie") -> list[TmdbPersonMovie]:
+    """Retourne la filmographie complete (en tant qu'acteur) d'une personne TMDb
+    (films, ou series TV si media_type='tv')."""
     _check_configured()
+    kind = _kind(media_type)
     params = {"api_key": settings.tmdb_api_key, "language": settings.tmdb_language}
     resp = requests.get(
-        f"{BASE_URL}/person/{person_id}/movie_credits", params=params, headers=_headers(), timeout=20
+        f"{BASE_URL}/person/{person_id}/{kind}_credits", params=params, headers=_headers(), timeout=20
     )
     resp.raise_for_status()
     data = resp.json()
 
     credits: list[TmdbPersonMovie] = []
     for c in data.get("cast", []):
-        if not c.get("title"):
+        title = c.get("name") if kind == "tv" else c.get("title")
+        if not title:
             continue
         credits.append(
             TmdbPersonMovie(
                 tmdb_movie_id=c["id"],
-                title=c.get("title") or "",
-                release_date=c.get("release_date") or "",
+                title=title,
+                release_date=(c.get("first_air_date") if kind == "tv" else c.get("release_date")) or "",
                 poster_path=c.get("poster_path"),
                 character=c.get("character") or "",
             )
@@ -221,14 +244,14 @@ def fetch_available_languages() -> list[dict]:
     return result
 
 
-def fetch_movie_posters(tmdb_id: int, language: str) -> list[dict]:
+def fetch_movie_posters(tmdb_id: int, language: str, media_type: str = "movie") -> list[dict]:
     """Retourne toutes les affiches TMDb d'un film pour la langue demandee
     (code 'fr-FR' ou 'fr' : seule la partie langue est utilisee, les affiches
     TMDb etant etiquetees par langue ISO 639-1)."""
     _check_configured()
     iso = (language or "").split("-")[0].lower()
     params = {"api_key": settings.tmdb_api_key, "include_image_language": iso}
-    resp = requests.get(f"{BASE_URL}/movie/{tmdb_id}/images", params=params,
+    resp = requests.get(f"{BASE_URL}/{_kind(media_type)}/{tmdb_id}/images", params=params,
                         headers=_headers(), timeout=20)
     resp.raise_for_status()
     posters = resp.json().get("posters", [])

@@ -102,6 +102,11 @@ export class MovieDetailComponent {
     });
   }
 
+  /** Taille cumulee de tous les fichiers video (episodes d'une serie). */
+  get totalSize(): number {
+    return this.movie.video_files.reduce((sum, v) => sum + (v.size_bytes || 0), 0);
+  }
+
   get mainVideoFile() {
     return this.movie.video_files[0] ?? null;
   }

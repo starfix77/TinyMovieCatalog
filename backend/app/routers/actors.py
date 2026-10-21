@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.config import settings
-from app.models import Movie
+from app.models import Library, Movie
 from app.schemas import ActorSearchResult, ActorFilmographyEntry, ActorFilmographyOut
 from app import tmdb
 
@@ -117,6 +117,8 @@ def get_filmography(
     """
     name_norm = _normalize(name)
 
+    library = db.get(Library, library_id)
+    media_type = (library.media_type if library else None) or "movie"
     library_movies = db.query(Movie).filter(Movie.library_id == library_id).all()
     local_matches = [m for m in library_movies if name_norm in {_normalize(n) for n in _cast_names(m)}]
     local_by_tmdb_id = {m.tmdb_id: m for m in local_matches if m.tmdb_id}
@@ -149,7 +151,7 @@ def get_filmography(
 
     if person:
         try:
-            credits = tmdb.fetch_person_movie_credits(person["id"])
+            credits = tmdb.fetch_person_movie_credits(person["id"], media_type)
             credits.sort(key=lambda c: c.release_date or "", reverse=True)
             source = "tmdb"
 
@@ -162,7 +164,7 @@ def get_filmography(
                 local = local_by_tmdb_id.get(credit.tmdb_movie_id)
                 poster_filename = local.poster_filename if local else None
                 if not poster_filename and credit.poster_path:
-                    poster_filename = f"tmdb_{credit.tmdb_movie_id}.jpg"
+                    poster_filename = tmdb.poster_filename(media_type, credit.tmdb_movie_id)
                     dest = settings.thumbnails_dir / poster_filename
                     if not dest.exists():
                         try:

@@ -10,6 +10,7 @@ $zipPath = Join-Path (Split-Path $source -Parent) 'TinyMovieCatalog.zip'
 # Motifs d'exclusion (regex appliquées sur le chemin relatif avec des "/")
 $excludePatterns = @(
     '(^|/)\.git/',
+	'^docs/.*.png$',
     '^frontend/node_modules/',
     '^frontend/dist/',
     '^frontend/\.angular/',

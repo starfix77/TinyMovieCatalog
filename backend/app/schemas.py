@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Literal, Optional, List
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, field_validator
 class LibraryCreate(BaseModel):
     name: str
     root_path: str
+    media_type: Literal["movie", "tv"] = "movie"
 
 
 class LibraryOut(BaseModel):
@@ -19,6 +20,7 @@ class LibraryOut(BaseModel):
     created_at: datetime
     last_scanned_at: Optional[datetime] = None
     movie_count: int = 0
+    media_type: str = "movie"
 
 
 class LibraryInfoOut(BaseModel):
@@ -27,6 +29,7 @@ class LibraryInfoOut(BaseModel):
     name: str
     root_path: str
     movie_count: int
+    media_type: str = "movie"
     created_at: Optional[datetime] = None
     last_scanned_at: Optional[datetime] = None
     # Taille totale et espace libre du filesystem du dossier racine, en octets
@@ -160,6 +163,7 @@ class MovieOut(BaseModel):
     genres: Optional[str] = None
     vote_average: Optional[float] = None
     rating_perso: float = 0.0
+    media_type: str = "movie"  # "movie" ou "tv" (type de la bibliotheque)
     video_files: List[VideoFileOut] = []
     subtitles: List[SubtitleOut] = []
 

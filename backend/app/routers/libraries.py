@@ -36,7 +36,8 @@ def create_library(payload: LibraryCreate, db: Session = Depends(get_db)):
     if existing:
         raise HTTPException(409, "Une bibliotheque pointe deja vers ce dossier racine.")
 
-    library = Library(name=payload.name.strip(), root_path=payload.root_path.strip())
+    library = Library(name=payload.name.strip(), root_path=payload.root_path.strip(),
+                      media_type=payload.media_type)
     refresh_library_fs_stats(library)
     db.add(library)
     db.commit()
@@ -176,6 +177,7 @@ def library_info(library_id: int, db: Session = Depends(get_db)):
         name=library.name,
         root_path=library.root_path,
         movie_count=movie_count or 0,
+        media_type=library.media_type or "movie",
         created_at=_as_utc(library.created_at),
         last_scanned_at=_as_utc(library.last_scanned_at),
         fs_total_size=library.fs_total_size,

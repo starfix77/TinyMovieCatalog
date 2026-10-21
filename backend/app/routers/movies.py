@@ -112,7 +112,7 @@ def search_tmdb_candidates(movie_id: int, db: Session = Depends(get_db)):
     if not movie:
         raise HTTPException(404, "Film introuvable.")
     try:
-        matches = tmdb.search_movies(movie.title, movie.year)
+        matches = tmdb.search_movies(movie.title, movie.year, movie.media_type)
     except tmdb.TmdbNotConfiguredError as exc:
         raise HTTPException(503, str(exc))
     except Exception as exc:
@@ -150,14 +150,14 @@ def update_movie_metadata(
         raise HTTPException(404, "Film introuvable.")
 
     try:
-        match = tmdb._fetch_movie_details(payload.tmdb_id)
+        match = tmdb._fetch_movie_details(payload.tmdb_id, movie.media_type)
     except tmdb.TmdbNotConfiguredError as exc:
         raise HTTPException(503, str(exc))
     except Exception as exc:
         raise HTTPException(502, f"Impossible de recuperer les informations TMDb : {exc}")
 
     old_poster = movie.poster_filename
-    new_poster = f"tmdb_{match.tmdb_id}.jpg" if match.poster_path else None
+    new_poster = tmdb.poster_filename(movie.media_type, match.tmdb_id) if match.poster_path else None
 
     # Telecharge l'affiche avant de modifier la DB : si le telechargement echoue,
     # aucune metadonnee n'est modifiee.
@@ -234,7 +234,7 @@ def list_tmdb_posters(
     if not movie.tmdb_id:
         raise HTTPException(400, "Ce film n'est pas associe a TheMovieDB.")
     try:
-        return tmdb.fetch_movie_posters(movie.tmdb_id, language)
+        return tmdb.fetch_movie_posters(movie.tmdb_id, language, movie.media_type)
     except tmdb.TmdbNotConfiguredError as exc:
         raise HTTPException(503, str(exc))
     except Exception as exc:
@@ -262,7 +262,7 @@ def change_movie_poster(
         raise HTTPException(400, "Ce film n'est pas associe a TheMovieDB.")
 
     old_poster = movie.poster_filename
-    new_poster = f"tmdb_{movie.tmdb_id}_{match.group(1)}.jpg"
+    new_poster = tmdb.poster_filename(movie.media_type, movie.tmdb_id, match.group(1))
     dest = settings.thumbnails_dir / new_poster
     downloaded = False
     if not dest.exists():

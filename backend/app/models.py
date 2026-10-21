@@ -52,6 +52,11 @@ class Library(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     last_scanned_at = Column(DateTime, nullable=True)
 
+    # Type de contenu de la bibliotheque : "movie" (films) ou "tv" (series TV).
+    # Dans une bibliotheque "tv", chaque entree de la table movies est une
+    # serie ; ses video_files sont les episodes.
+    media_type = Column(String, nullable=False, default="movie", server_default="movie")
+
     # Filesystem hebergeant le dossier racine, en octets (entiers 64 bits).
     # Rafraichi a la creation, a chaque scan et a l'ouverture de la page "Info".
     fs_total_size = Column(BigInteger, nullable=True)
@@ -94,6 +99,12 @@ class Movie(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     library = relationship("Library", back_populates="movies")
+
+    @property
+    def media_type(self) -> str:
+        """"movie" ou "tv", herite de la bibliotheque."""
+        return (self.library.media_type if self.library is not None else None) or "movie"
+
     video_files = relationship("VideoFile", back_populates="movie", cascade="all, delete-orphan")
     subtitles = relationship("Subtitle", back_populates="movie", cascade="all, delete-orphan")
     saga = relationship("Saga")

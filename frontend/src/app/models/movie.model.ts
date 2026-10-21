@@ -47,6 +47,7 @@ export interface Movie {
   cast: string | null; // JSON string, voir CastMember[]
   genres: string | null;
   vote_average: number | null; // note moyenne TMDB (0-10)
+  media_type?: 'movie' | 'tv'; // type de la bibliotheque (une serie TV est une entree "movie" cote base)
   rating_perso: number; // note personnelle (0-5, pas de 0.5)
   video_files: VideoFile[];
   subtitles: Subtitle[];

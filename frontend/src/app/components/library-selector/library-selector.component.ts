@@ -4,12 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import { LibraryService } from '../../services/library.service';
-import { Library, ScanCompareMode } from '../../models/library.model';
+import { Library, MediaType, ScanCompareMode } from '../../models/library.model';
+import { MediaTypeIconComponent } from '../media-type-icon/media-type-icon.component';
 
 @Component({
   selector: 'app-library-selector',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive, MediaTypeIconComponent],
   templateUrl: './library-selector.component.html',
   styleUrl: './library-selector.component.css',
 })
@@ -22,6 +23,7 @@ export class LibrarySelectorComponent implements OnInit {
   showAddForm = signal(false);
   newName = '';
   newPath = '';
+  newMediaType: MediaType = 'movie';
   formError = signal<string | null>(null);
 
   scanningId = signal<number | null>(null);
@@ -74,6 +76,12 @@ export class LibrarySelectorComponent implements OnInit {
     this.libraryService.loadLibraries().subscribe();
   }
 
+  /** Libelle du compteur : "12 films" ou "3 series". */
+  countLabel(lib: Library): string {
+    const n = lib.movie_count;
+    return lib.media_type === 'tv' ? `${n} série${n > 1 ? 's' : ''}` : `${n} film${n > 1 ? 's' : ''}`;
+  }
+
   select(lib: Library): void {
     this.libraryService.setActiveLibrary(lib.id);
   }
@@ -81,6 +89,7 @@ export class LibrarySelectorComponent implements OnInit {
   openAddForm(): void {
     this.newName = '';
     this.newPath = '';
+    this.newMediaType = 'movie';
     this.formError.set(null);
     this.showAddForm.set(true);
   }
@@ -96,7 +105,7 @@ export class LibrarySelectorComponent implements OnInit {
       this.formError.set('Le nom et le chemin du dossier sont obligatoires.');
       return;
     }
-    this.libraryService.createLibrary({ name, root_path: rootPath }).subscribe({
+    this.libraryService.createLibrary({ name, root_path: rootPath, media_type: this.newMediaType }).subscribe({
       next: (lib) => {
         this.showAddForm.set(false);
         this.refresh();
@@ -133,7 +142,8 @@ export class LibrarySelectorComponent implements OnInit {
 
     this.scanCompareMode = 'simple';
     this.scanStructureMode = 'mixed';
-    this.scanMaxDepth = 1;
+    // Series : dossier de la serie puis dossiers de saisons = 2 niveaux.
+    this.scanMaxDepth = lib.media_type === 'tv' ? 2 : 1;
     this.scanDialogLibrary.set(lib);
   }
 

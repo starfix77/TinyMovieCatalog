@@ -4,11 +4,12 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { LibrarySelectorComponent } from './components/library-selector/library-selector.component';
 import { LibraryService } from './services/library.service';
+import { MediaTypeIconComponent } from './components/media-type-icon/media-type-icon.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LibrarySelectorComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LibrarySelectorComponent, MediaTypeIconComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })

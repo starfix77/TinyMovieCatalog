@@ -2,8 +2,8 @@
   <div class="brand">
     <!-- <span class="brand-mark">MF</span> -->
     <div>
-      <h1>TinyMovieCatalog v0.9.7</h1>
-      <p class="tagline">Collection de films locales</p>
+      <h1>TinyMovieCatalog v0.9.8</h1>
+      <p class="tagline">Collection de Films / TV</p>
     </div>
   </div>
 
@@ -19,11 +19,14 @@
     @for (lib of libraries(); track lib.id) {
       <div class="library-item" [class.active]="lib.id === activeLibraryId()" (click)="select(lib)">
         <div class="library-item-main">
-          <span class="library-name">{{ lib.name }}</span>
+          <span class="library-name">
+            <app-media-type-icon class="library-type-icon" [type]="lib.media_type" [size]="15"></app-media-type-icon>
+            <span class="library-name-text">{{ lib.name }}</span>
+          </span>
           <span class="library-path">{{ lib.root_path }}</span>
         </div>
         <div class="library-item-meta">
-          <span class="movie-count">{{ lib.movie_count }} film{{ lib.movie_count > 1 ? 's' : '' }}</span>
+          <span class="movie-count">{{ countLabel(lib) }}</span>
           <div class="library-actions">
             <button class="icon-btn" title="Scanner cette bibliotheque" (click)="askScan(lib, $event)" [disabled]="scanningId() === lib.id">
               {{ scanningId() === lib.id ? '…' : '⟳' }}
@@ -73,13 +76,26 @@
     <button class="btn btn-add" (click)="openAddForm()">+ Nouvelle bibliotheque</button>
   } @else {
     <div class="add-form">
+      <fieldset class="media-type-choice">
+        <legend>Type de bibliothèque</legend>
+        <label class="media-type-option" [class.selected]="newMediaType === 'movie'">
+          <input type="radio" name="new-library-type" value="movie" [(ngModel)]="newMediaType" />
+          <app-media-type-icon type="movie" [size]="16"></app-media-type-icon>
+          <span>Films</span>
+        </label>
+        <label class="media-type-option" [class.selected]="newMediaType === 'tv'">
+          <input type="radio" name="new-library-type" value="tv" [(ngModel)]="newMediaType" />
+          <app-media-type-icon type="tv" [size]="16"></app-media-type-icon>
+          <span>Séries TV</span>
+        </label>
+      </fieldset>
       <label>
         Nom
-        <input type="text" [(ngModel)]="newName" placeholder="Ex : Films Action" />
+        <input type="text" [(ngModel)]="newName" [placeholder]="newMediaType === 'tv' ? 'Ex : Séries SF' : 'Ex : Films Action'" />
       </label>
       <label>
         Dossier racine
-        <input type="text" [(ngModel)]="newPath" placeholder="C:\MesFilms ou /home/user/Films" />
+        <input type="text" [(ngModel)]="newPath" [placeholder]="newMediaType === 'tv' ? 'C:\\MesSeries ou /home/user/Series' : 'C:\\MesFilms ou /home/user/Films'" />
       </label>
       @if (formError()) {
         <p class="form-error">{{ formError() }}</p>
@@ -116,6 +132,21 @@
         </label>
       </div>
 
+      @if (lib.media_type === 'tv') {
+      <div class="scan-dialog-modes">
+        <p class="scan-tv-hint">
+          <strong>Série TV</strong>
+          <small>Un dossier « Titre (Année) » par série ; les épisodes sont lus dans ce dossier et ses sous-dossiers de saisons.</small>
+        </p>
+        <label class="scan-mode-option">
+          <span>
+            <strong>Profondeur de parcours</strong>
+            <small>2 = série puis saisons (minimum appliqué pour les séries)</small>
+          </span>
+          <input type="number" min="2" max="20" [(ngModel)]="scanMaxDepth" />
+        </label>
+      </div>
+      } @else {
       <div class="scan-dialog-modes">
         <label class="scan-mode-option">
           <input type="radio" name="scan-structure-mode" value="simple" [(ngModel)]="scanStructureMode" />
@@ -139,6 +170,7 @@
           <input type="number" min="0" max="20" [(ngModel)]="scanMaxDepth" />
         </label>
       </div>
+      }
 
       <div class="scan-dialog-actions">
         <button type="button" class="btn btn-ghost" (click)="cancelScanDialog()">Annuler</button>

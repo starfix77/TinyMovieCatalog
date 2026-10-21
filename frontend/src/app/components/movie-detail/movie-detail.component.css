@@ -294,6 +294,7 @@
 
 .candidate-list { overflow-y: auto; padding: 14px; display: grid; gap: 8px; }
 .candidate {
+  user-select: none; /* evite la selection de texte lors d'un double-clic */
   position: relative;
   display: grid;
   grid-template-columns: 76px 1fr 24px;

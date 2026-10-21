@@ -178,7 +178,7 @@
         } @else if (candidates.length) {
           <div class="candidate-list">
             @for (candidate of candidates; track candidate.tmdb_id) {
-              <button class="candidate" [class.selected]="selectedCandidateId === candidate.tmdb_id" (click)="selectCandidate(candidate)">
+              <button class="candidate" [class.selected]="selectedCandidateId === candidate.tmdb_id" (click)="selectCandidate(candidate)" (dblclick)="chooseCandidate(candidate)" title="Double-clic pour choisir et enregistrer">
                 <div class="candidate-poster">
                   @if (candidatePosterUrl(candidate)) {
                     <img [src]="candidatePosterUrl(candidate)" [alt]="candidate.title" />

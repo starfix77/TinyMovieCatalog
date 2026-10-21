@@ -213,6 +213,13 @@ export class MovieDetailComponent {
     this.selectedCandidateId = candidate.tmdb_id;
   }
 
+  /** Double-clic : selectionne le resultat, enregistre en base puis ferme la boite de dialogue. */
+  chooseCandidate(candidate: TmdbCandidate): void {
+    if (this.saving) return;
+    this.selectedCandidateId = candidate.tmdb_id;
+    this.saveMetadata();
+  }
+
   candidatePosterUrl(candidate: TmdbCandidate): string | null {
     return this.movieService.tmdbPosterUrl(candidate.poster_path);
   }

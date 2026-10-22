@@ -1,0 +1,106 @@
+<div class="page">
+  <div class="page-header">
+    <a class="back-link" routerLink="/outils">← Outils des bibliothèques</a>
+    <h2>Importer une bibliothèque</h2>
+    <p class="subtitle">
+      Sélectionnez un fichier d'export (<code>.tmcatalog.json</code>) : la bibliothèque est ajoutée à la base
+      et les vignettes manquantes sont retéléchargées.
+    </p>
+  </div>
+
+  <section class="card" aria-label="Import d'une bibliothèque">
+    <input #fileInput type="file" class="file-input" accept=".json,.tmcatalog,application/json"
+           (change)="onFileSelected($event)" />
+
+    @if (phase() === 'idle') {
+      <div class="actions first">
+        <button type="button" class="btn btn-primary" (click)="openPicker()">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3v12"></path><path d="M7.5 10.5 12 15l4.5-4.5"></path>
+            <path d="M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"></path>
+          </svg>
+          Importer
+        </button>
+        @if (error()) { <p class="message error">{{ error() }}</p> }
+      </div>
+    }
+
+    @if (summary(); as info) {
+      <dl class="summary">
+        <div><dt>Fichier</dt><dd>{{ fileName() }}</dd></div>
+        <div><dt>Bibliothèque</dt><dd>{{ info.name }}</dd></div>
+        <div><dt>Type</dt><dd>{{ info.media_type === 'tv' ? 'Séries TV' : 'Films' }}</dd></div>
+        <div><dt>Contenu</dt><dd>{{ info.movie_count }} {{ info.media_type === 'tv' ? 'série' : 'film' }}{{ info.movie_count > 1 ? 's' : '' }}</dd></div>
+        <div><dt>Dossier racine</dt><dd class="mono">{{ info.root_path }}</dd></div>
+      </dl>
+    }
+
+    @if (phase() === 'conflict') {
+      <div class="conflict">
+        <p class="message error">{{ conflictMessage() }}</p>
+        <label class="field">
+          <span class="field-label">Nom de la bibliothèque</span>
+          <input type="text" [(ngModel)]="editName" name="import-name" />
+        </label>
+        <label class="field">
+          <span class="field-label">Dossier racine</span>
+          <input type="text" [(ngModel)]="editPath" name="import-path" />
+        </label>
+        <div class="actions">
+          <button type="button" class="btn" (click)="cancel()">Annuler</button>
+          <button type="button" class="btn btn-primary" (click)="confirmConflict()"
+                  [disabled]="!editName.trim() || !editPath.trim()">Importer</button>
+        </div>
+      </div>
+    }
+
+    @if (phase() === 'importing') {
+      <p class="message status">Import dans la base de données…</p>
+    }
+
+    @if (phase() === 'thumbnails') {
+      <div class="progress-block">
+        <div class="progress-head">
+          <span>Téléchargement des vignettes manquantes</span>
+          <strong>{{ progressPercent() }}%</strong>
+        </div>
+        <div class="progress-track"><div class="progress-bar" [style.width.%]="progressPercent()"></div></div>
+        <p class="message">
+          {{ job()?.done ?? 0 }} / {{ job()?.total ?? result()?.thumbnails_missing ?? 0 }} vignette(s)
+        </p>
+      </div>
+    }
+
+    @if (phase() === 'done' && result(); as res) {
+      <div class="done">
+        <p class="message success">
+          « {{ res.library.name }} » importée : {{ res.movies_imported }}
+          {{ res.library.media_type === 'tv' ? 'série' : 'film' }}{{ res.movies_imported > 1 ? 's' : '' }}
+          @if (res.sagas_imported > 0) { et {{ res.sagas_imported }} saga{{ res.sagas_imported > 1 ? 's' : '' }} }.
+        </p>
+        @if (res.thumbnails_missing > 0) {
+          <p class="message">
+            Vignettes : {{ job()?.downloaded ?? 0 }} téléchargée(s) sur {{ res.thumbnails_missing }} manquante(s)
+            @if ((job()?.failed ?? 0) > 0) { — <span class="warn">{{ job()?.failed }} en échec</span> }
+          </p>
+          @if (job()?.errors?.length) {
+            <details class="errors">
+              <summary>Détail des échecs</summary>
+              <ul>
+                @for (e of job()?.errors; track $index) { <li>{{ e }}</li> }
+              </ul>
+              <p class="message">Vous pouvez réimporter ou relancer un scan pour retenter ces vignettes.</p>
+            </details>
+          }
+        } @else {
+          <p class="message">Toutes les vignettes étaient déjà présentes.</p>
+        }
+        <div class="actions">
+          <button type="button" class="btn btn-primary" (click)="openLibrary()">Ouvrir la bibliothèque</button>
+          <button type="button" class="btn" (click)="cancel()">Importer un autre fichier</button>
+        </div>
+      </div>
+    }
+  </section>
+</div>

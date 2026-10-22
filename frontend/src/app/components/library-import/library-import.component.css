@@ -1,0 +1,107 @@
+.file-input {
+  display: none;
+}
+
+.actions.first {
+  margin-top: 0;
+}
+
+.summary {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0 0;
+}
+
+.summary > div {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+}
+
+.summary dt {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.summary dd {
+  margin: 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.summary dd.mono,
+code {
+  font-family: var(--font-mono);
+}
+
+.conflict,
+.done,
+.progress-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.status {
+  margin-top: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+input[type='text'] {
+  height: 36px;
+  padding: 0 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font: inherit;
+}
+
+.progress-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.progress-track {
+  height: 8px;
+  background: var(--border-soft);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.warn {
+  color: var(--danger);
+}
+
+.errors {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.errors ul {
+  margin: 8px 0;
+  padding-left: 18px;
+  max-height: 160px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}

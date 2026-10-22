@@ -166,3 +166,9 @@ Les onglets de la barre du haut gardent leurs libellés actuels (« Films », «
 
 **v0.9.11**
 - « Recherche manuelle » et « Modifier les informations » : un double-clic sur un film/une série proposé(e) le sélectionne, enregistre les informations en base SQLite et ferme la boîte de dialogue
+
+**v0.9.12**
+- Bouton « Outils » : ouvre la vue « Outil des bibliothèques » (3 gros boutons : Comparer, Exporter, Importer). La comparaison est désormais accessible via `/outils/comparaison` (l'ancienne URL `/comparaison` redirige)
+- Vue « Exporter une bibliothèque » : export complet d'une bibliothèque dans un fichier `.tmcatalog.json` (JSON versionné)
+- Vue « Importer une bibliothèque » : import d'un fichier d'export dans la base SQLite, téléchargement en arrière-plan des vignettes absentes de `data/thumbnails` (avec progression) et actualisation du bandeau de gauche
+- API : `GET /api/libraries/{id}/export`, `POST /api/libraries/import`, `GET /api/libraries/import/thumbnails/{job_id}`

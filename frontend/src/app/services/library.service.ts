@@ -5,7 +5,7 @@ import { Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
   Library, LibraryCreate, LibraryInfo, ScanResult, ScanProgress, ScanCompareMode,
-  CompareDepth, CompareMode, CompareResult,
+  CompareDepth, CompareMode, CompareResult, LibraryImportResult, ThumbnailJob,
 } from '../models/library.model';
 
 @Injectable({ providedIn: 'root' })
@@ -54,6 +54,22 @@ export class LibraryService {
       .set('depth', depth)
       .set('details', details);
     return this.http.get<CompareResult>(`${this.baseUrl}/compare`, { params });
+  }
+
+  /** Telecharge l'export complet (JSON) d'une bibliotheque. */
+  exportLibrary(id: number): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/${id}/export`, { responseType: 'blob' });
+  }
+
+  /** Importe le contenu d'un fichier d'export comme nouvelle bibliotheque. */
+  importLibrary(data: unknown, name?: string, rootPath?: string): Observable<LibraryImportResult> {
+    return this.http.post<LibraryImportResult>(`${this.baseUrl}/import`, {
+      data, name: name || null, root_path: rootPath || null,
+    });
+  }
+
+  getThumbnailJob(jobId: string): Observable<ThumbnailJob> {
+    return this.http.get<ThumbnailJob>(`${this.baseUrl}/import/thumbnails/${jobId}`);
   }
 
   createLibrary(payload: LibraryCreate): Observable<Library> {

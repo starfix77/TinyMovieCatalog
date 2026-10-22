@@ -1,6 +1,7 @@
 import { Component, ElementRef, HostListener, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 
 import { LibraryService } from '../../services/library.service';
 import { MovieService } from '../../services/movie.service';
@@ -17,7 +18,7 @@ interface ModeOption {
 @Component({
   selector: 'app-library-compare',
   standalone: true,
-  imports: [CommonModule, FormsModule, MovieDetailComponent],
+  imports: [CommonModule, FormsModule, RouterLink, MovieDetailComponent],
   templateUrl: './library-compare.component.html',
   styleUrl: './library-compare.component.css',
 })

@@ -254,7 +254,10 @@ Puis suivre les étapes ci-dessous:
    - **Detail technique** : tableau tri­able (nom du film, fichier, encodage,
      resolution, taille, pistes audio) avec recherche.
    - **Info** : page d'information de la bibliothèque (nom, Dossier Racine, Taille disque, Taille disponible gauge d'utilisation)
-   - **Comparaison** (bouton **Outils** du panneau de gauche) : compare deux bibliotheques (identique / manquant a droite / manquant a gauche), en comparaison simple (nom du dossier) ou approfondie (nom et taille du fichier video). La comparaison s'appuie sur le dernier scan de chaque bibliotheque.
+   - **Outils des bibliotheques** (bouton **Outils** du panneau de gauche) : ouvre une vue avec 3 gros boutons.
+     - **Comparer des bibliotheques** : compare deux bibliotheques (identique / manquant a droite / manquant a gauche), en comparaison simple (nom du dossier) ou approfondie (nom et taille du fichier video). La comparaison s'appuie sur le dernier scan de chaque bibliotheque.
+     - **Exporter bibliotheque** : choisir une bibliotheque dans la liste puis **Exporter** : toutes ses informations (films, fichiers video, pistes audio, sous-titres, sagas, notes personnelles) sont sauvegardees dans un fichier `<nom>.tmcatalog.json` (JSON UTF-8 versionne, lisible et portable entre Windows / Linux / macOS). Les vignettes ne sont pas incluses.
+     - **Importer bibliotheque** : **Importer** ouvre la selection d'un fichier d'export ; la bibliotheque est ajoutee a la base SQLite, les vignettes absentes de `data/thumbnails` sont retelechargees depuis TheMovieDB (cle API necessaire, progression affichee) et le panneau de gauche est actualise. Si le dossier racine existe deja, le nom et le dossier racine peuvent etre modifies avant l'import (les chemins enregistres sont alors recalcules).
      
 
 Relancer un scan met a jour les films existants et retire de la base ceux

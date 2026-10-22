@@ -6,6 +6,9 @@ import { SagaViewComponent } from './components/saga-view/saga-view.component';
 import { ActorViewComponent } from './components/actor-view/actor-view.component';
 import { LibraryInfoComponent } from './components/library-info/library-info.component';
 import { LibraryCompareComponent } from './components/library-compare/library-compare.component';
+import { LibraryToolsComponent } from './components/library-tools/library-tools.component';
+import { LibraryExportComponent } from './components/library-export/library-export.component';
+import { LibraryImportComponent } from './components/library-import/library-import.component';
 import { DuplicatesComponent } from './components/duplicates/duplicates.component';
 
 export const routes: Routes = [
@@ -16,6 +19,10 @@ export const routes: Routes = [
   { path: 'technique', component: MovieTableComponent, title: 'TinyMovieCatalog — Detail technique' },
   { path: 'doublons', component: DuplicatesComponent, title: 'TinyMovieCatalog — Doublons' },
   { path: 'info', component: LibraryInfoComponent, title: 'TinyMovieCatalog — Info' },
-  { path: 'comparaison', component: LibraryCompareComponent, title: 'TinyMovieCatalog — Comparaison' },
+  { path: 'outils', component: LibraryToolsComponent, title: 'TinyMovieCatalog — Outils des bibliothèques' },
+  { path: 'outils/comparaison', component: LibraryCompareComponent, title: 'TinyMovieCatalog — Comparaison' },
+  { path: 'outils/export', component: LibraryExportComponent, title: 'TinyMovieCatalog — Exporter une bibliothèque' },
+  { path: 'outils/import', component: LibraryImportComponent, title: 'TinyMovieCatalog — Importer une bibliothèque' },
+  { path: 'comparaison', redirectTo: 'outils/comparaison', pathMatch: 'full' },  // ancienne URL
   { path: '**', redirectTo: '' },
 ];

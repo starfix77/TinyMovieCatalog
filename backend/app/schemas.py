@@ -81,6 +81,33 @@ class CompareOut(BaseModel):
     rows: List[CompareRow]
 
 
+class LibraryImportRequest(BaseModel):
+    """Corps de la requete d'import : contenu du fichier d'export (JSON deja
+    parse par le navigateur) + surcharges optionnelles du nom / dossier racine."""
+    data: dict
+    name: Optional[str] = None
+    root_path: Optional[str] = None
+
+
+class LibraryImportOut(BaseModel):
+    library: LibraryOut
+    movies_imported: int
+    sagas_imported: int
+    thumbnails_missing: int = 0           # vignettes a retelecharger
+    thumbnail_job_id: Optional[str] = None
+
+
+class ThumbnailJobOut(BaseModel):
+    id: str
+    library_id: int
+    status: str            # running | completed
+    total: int
+    done: int
+    downloaded: int
+    failed: int
+    errors: List[str] = []
+
+
 class ScanRequest(BaseModel):
     # "simple" (defaut, mode historique) : identification des films par nom
     # de dossier uniquement.

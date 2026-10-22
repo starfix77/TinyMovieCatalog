@@ -107,3 +107,32 @@ export interface CompareResult {
   total: number;
   rows: CompareRow[];
 }
+
+
+/** Resume d'un fichier d'export (.tmcatalog.json), lu cote navigateur. */
+export interface LibraryExportSummary {
+  name: string;
+  root_path: string;
+  media_type: MediaType;
+  movie_count: number;
+}
+
+export interface LibraryImportResult {
+  library: Library;
+  movies_imported: number;
+  sagas_imported: number;
+  thumbnails_missing: number;
+  thumbnail_job_id: string | null;
+}
+
+/** Suivi du telechargement en arriere-plan des vignettes manquantes. */
+export interface ThumbnailJob {
+  id: string;
+  library_id: number;
+  status: 'running' | 'completed';
+  total: number;
+  done: number;
+  downloaded: number;
+  failed: number;
+  errors: string[];
+}

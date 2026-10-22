@@ -1,0 +1,57 @@
+<div class="page">
+  <div class="page-header">
+    <a class="back-link" routerLink="/outils">← Outils des bibliothèques</a>
+    <h2>Exporter une bibliothèque</h2>
+    <p class="subtitle">
+      Sauvegarde dans un fichier toutes les informations de la bibliothèque choisie
+      (films, fichiers vidéo, pistes audio, sous-titres, sagas, notes).
+    </p>
+  </div>
+
+  @if (libraries().length === 0) {
+    <div class="empty-state">
+      <p>Aucune bibliothèque à exporter pour le moment.</p>
+    </div>
+  } @else {
+    <section class="card" aria-label="Bibliothèque à exporter">
+      <div class="lib-list" role="radiogroup" aria-label="Bibliothèque à exporter">
+        @for (lib of libraries(); track lib.id) {
+          <button
+            type="button"
+            class="lib-row"
+            role="radio"
+            [class.selected]="lib.id === selectedId()"
+            [attr.aria-checked]="lib.id === selectedId()"
+            (click)="select(lib)"
+          >
+            <span class="radio" aria-hidden="true"></span>
+            <app-media-type-icon [type]="lib.media_type" [size]="18"></app-media-type-icon>
+            <span class="lib-text">
+              <strong>{{ lib.name }}</strong>
+              <span class="lib-path">{{ lib.root_path }}</span>
+            </span>
+            <span class="lib-count">{{ countLabel(lib) }}</span>
+          </button>
+        }
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn btn-primary" (click)="export()" [disabled]="selectedId() === null || exporting()">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 15V3"></path><path d="M7.5 7.5 12 3l4.5 4.5"></path>
+            <path d="M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"></path>
+          </svg>
+          {{ exporting() ? 'Export en cours…' : 'Exporter' }}
+        </button>
+        @if (error()) { <p class="message error">{{ error() }}</p> }
+        @if (success()) { <p class="message success">{{ success() }}</p> }
+      </div>
+    </section>
+
+    <p class="hint">
+      Les vignettes ne sont pas incluses dans le fichier : elles sont retéléchargées depuis TheMovieDB
+      lors de l'import si elles n'existent pas dans <code>data/thumbnails</code>.
+    </p>
+  }
+</div>

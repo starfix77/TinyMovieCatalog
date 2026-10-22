@@ -1,0 +1,82 @@
+.lib-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lib-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.lib-row:hover {
+  background: var(--surface-hover);
+}
+
+.lib-row.selected {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.radio {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--text-faint);
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.lib-row.selected .radio {
+  border-color: var(--accent);
+  background: radial-gradient(circle, var(--accent) 0 40%, transparent 45%);
+}
+
+.lib-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.lib-text strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.lib-path {
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lib-count {
+  flex: 0 0 auto;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.hint {
+  max-width: 760px;
+  margin: 14px 2px 0;
+  font-size: 12.5px;
+  color: var(--text-faint);
+}
+
+code {
+  font-family: var(--font-mono);
+}

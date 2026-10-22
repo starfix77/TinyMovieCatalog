@@ -2,13 +2,19 @@ from datetime import datetime, timezone
 
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
+import json
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, WebSocket, WebSocketDisconnect
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 
 from app.database import get_db
 from app.models import Library, Movie, VideoFile
-from app.schemas import CompareAudioTrack, CompareOut, CompareRow, CompareVideoDetail, LibraryCreate, LibraryInfoOut, LibraryOut, ScanRequest, ScanResult
+from app.schemas import (
+    CompareAudioTrack, CompareOut, CompareRow, CompareVideoDetail, LibraryCreate, LibraryImportOut,
+    LibraryImportRequest, LibraryInfoOut, LibraryOut, ScanRequest, ScanResult, ThumbnailJobOut,
+)
+from app import library_transfer
 from app.fs_utils import refresh_library_fs_stats
 from app.scan_manager import scan_manager
 from app.compare import IDENTICAL_DIFFERENT_FILE, build_library, compare_libraries, folder_key
@@ -156,6 +162,57 @@ def compare(
         total=len(rows),
         rows=[CompareRow(**row) for row in rows],
     )
+
+
+@router.get("/{library_id}/export")
+def export_library(library_id: int, db: Session = Depends(get_db)):
+    """Telecharge un fichier d'export (.tmcatalog.json) contenant toutes les
+    informations de la bibliotheque (films, fichiers video, pistes audio,
+    sous-titres, sagas). Les vignettes ne sont pas embarquees."""
+    library = db.get(Library, library_id)
+    if not library:
+        raise HTTPException(404, "Bibliotheque introuvable.")
+    payload = library_transfer.export_library(db, library)
+    filename = library_transfer.export_filename(library)
+    return Response(
+        content=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+        media_type="application/json",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.post("/import", response_model=LibraryImportOut, status_code=201)
+def import_library(payload: LibraryImportRequest, db: Session = Depends(get_db)):
+    """Importe un fichier d'export comme nouvelle bibliotheque, puis lance en
+    arriere-plan le telechargement des vignettes absentes de data/thumbnails
+    (suivi via GET /api/libraries/import/thumbnails/{job_id})."""
+    try:
+        library, stats = library_transfer.import_library(db, payload.data, payload.name, payload.root_path)
+    except library_transfer.ImportConflictError as exc:
+        raise HTTPException(409, str(exc))
+    except library_transfer.ImportFormatError as exc:
+        raise HTTPException(400, str(exc))
+
+    tasks = library_transfer.build_thumbnail_tasks(payload.data)
+    job = library_transfer.start_thumbnail_job(library.id, tasks)
+
+    out = LibraryOut.model_validate(library)
+    out.movie_count = stats["movies_imported"]
+    return LibraryImportOut(
+        library=out,
+        movies_imported=stats["movies_imported"],
+        sagas_imported=stats["sagas_imported"],
+        thumbnails_missing=len(tasks),
+        thumbnail_job_id=job.id if job else None,
+    )
+
+
+@router.get("/import/thumbnails/{job_id}", response_model=ThumbnailJobOut)
+def import_thumbnails_status(job_id: str):
+    job = library_transfer.get_job(job_id)
+    if not job:
+        raise HTTPException(404, "Tache de telechargement introuvable.")
+    return ThumbnailJobOut(**job.as_dict())
 
 
 @router.get("/{library_id}/info", response_model=LibraryInfoOut)

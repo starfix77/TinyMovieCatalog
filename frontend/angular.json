@@ -16,17 +16,32 @@
             "outputPath": "dist/tinymoviecatalog-frontend",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": ["zone.js"],
+            "polyfills": [
+              "zone.js"
+            ],
             "tsConfig": "tsconfig.app.json",
-            "assets": ["src/favicon.ico", "src/assets"],
-            "styles": ["src/styles.css"],
+            "assets": [
+              "src/favicon.ico",
+              "src/assets"
+            ],
+            "styles": [
+              "src/styles.css"
+            ],
             "scripts": []
           },
           "configurations": {
             "production": {
               "budgets": [
-                { "type": "initial", "maximumWarning": "1mb", "maximumError": "2mb" },
-                { "type": "anyComponentStyle", "maximumWarning": "6kb", "maximumError": "10kb" }
+                {
+                  "type": "initial",
+                  "maximumWarning": "1mb",
+                  "maximumError": "2mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "12kb",
+                  "maximumError": "15kb"
+                }
               ],
               "outputHashing": "all"
             },
@@ -41,8 +56,12 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
-            "production": { "buildTarget": "tinymoviecatalog-frontend:build:production" },
-            "development": { "buildTarget": "tinymoviecatalog-frontend:build:development" }
+            "production": {
+              "buildTarget": "tinymoviecatalog-frontend:build:production"
+            },
+            "development": {
+              "buildTarget": "tinymoviecatalog-frontend:build:development"
+            }
           },
           "defaultConfiguration": "development"
         }

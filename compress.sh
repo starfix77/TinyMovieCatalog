@@ -2,7 +2,8 @@
 
 zip -r ../TinyMovieCatalog.zip . \
     -x \
-    '*/.git/*' \
+    '.git/*' \
+    'docs/*.png' \
     'frontend/node_modules/*' \
     'frontend/dist/*' \
     'frontend/.angular/*' \

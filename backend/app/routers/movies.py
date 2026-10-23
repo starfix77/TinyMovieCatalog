@@ -344,7 +344,7 @@ def play_movie(movie_id: int, db: Session = Depends(get_db)):
         raise HTTPException(500, "ffplay est introuvable. Installez FFmpeg ou renseignez "
                                  "FFPLAY_PATH dans backend/.env.")
 
-    cmd = [ffplay, "-autoexit", "-window_title", movie.title, video.filepath]
+    cmd = [ffplay, "-fs", "-autoexit", "-window_title", movie.title, video.filepath]
     kwargs = {}
     if os.name == "nt":
         kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS

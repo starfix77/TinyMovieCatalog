@@ -172,3 +172,7 @@ Les onglets de la barre du haut gardent leurs libellés actuels (« Films », «
 - Vue « Exporter une bibliothèque » : export complet d'une bibliothèque dans un fichier `.tmcatalog.json` (JSON versionné)
 - Vue « Importer une bibliothèque » : import d'un fichier d'export dans la base SQLite, téléchargement en arrière-plan des vignettes absentes de `data/thumbnails` (avec progression) et actualisation du bandeau de gauche
 - API : `GET /api/libraries/{id}/export`, `POST /api/libraries/import`, `GET /api/libraries/import/thumbnails/{job_id}`
+
+**v0.9.13**
+- Fix minor favicon multi-resolution
+- Lance ffplay 'PLay' en fullscreen

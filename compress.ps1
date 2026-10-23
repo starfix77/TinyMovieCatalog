@@ -1,4 +1,7 @@
 # Create-TinyMovieCatalogZip.ps1
+
+# Compress only source code
+
 $ErrorActionPreference = 'Stop'
 
 Add-Type -AssemblyName System.IO.Compression
@@ -11,7 +14,9 @@ $zipPath = Join-Path (Split-Path $source -Parent) 'TinyMovieCatalog.zip'
 $excludePatterns = @(
     '(^|/)\.git/',
 	'^docs/.*.png$',
-    '^frontend/node_modules/',
+	'^frontend.log$',
+	'^backend.log$',
+	'^frontend/node_modules/',
     '^frontend/dist/',
     '^frontend/\.angular/',
     '^backend/\.env$',

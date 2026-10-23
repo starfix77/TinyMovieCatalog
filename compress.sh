@@ -1,8 +1,11 @@
 #!/bin/bash
 
+# Compress only source code
 zip -r ../TinyMovieCatalog.zip . \
     -x \
     '.git/*' \
+    'frontend.log' \
+    'backend.log' \
     'docs/*.png' \
     'frontend/node_modules/*' \
     'frontend/dist/*' \

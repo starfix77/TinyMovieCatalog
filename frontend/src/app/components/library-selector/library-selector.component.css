@@ -122,7 +122,7 @@
 
 .library-item.active {
   background: var(--accent-soft);
-  border-color: rgba(201, 162, 39, 0.35);
+  border-color: var(--accent);
 }
 
 .library-item-main {

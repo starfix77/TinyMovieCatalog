@@ -183,3 +183,7 @@ Les onglets de la barre du haut gardent leurs libellés actuels (« Films », «
 
 **v0.9.15**
 - Ajouté le bouton « Tout masquer / Tout afficher » dans la vue Doublons, sur le même modèle que la vue Genre
+
+**v0.9.16**
+- Fiche détail d'une bibliothèque « Séries TV » : le bouton « PLAY » sous la vignette et la section « Fichier vidéo » sont remplacés par une section « Épisodes » placée sous « Distribution » : résumé (ex. « 9 fichiers - 12.24Go ») puis tableau des fichiers triés par épisode (bouton ▶ lançant l'épisode avec ffplay, numéro, nom tronqué, durée « 1 h 12 min » / « 49 min »). La fiche des bibliothèques « Films » est inchangée.
+- API : `POST /api/movies/{id}/play` accepte le paramètre facultatif `video_id` (lecture d'un fichier précis)

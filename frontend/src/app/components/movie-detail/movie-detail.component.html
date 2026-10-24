@@ -20,10 +20,12 @@
           <div class="poster-placeholder"><span>{{ movie.title.charAt(0) }}</span></div>
         }
 
-        <button class="play-btn" (click)="playMovieFile()" [disabled]="playing" title="Lancer le film avec ffplay">
-          {{ playing ? 'Lancement…' : '▶ PLAY' }}
-        </button>
-        @if (playError) { <div class="play-error">{{ playError }}</div> }
+        @if (!isTv) {
+          <button class="play-btn" (click)="playMovieFile()" [disabled]="playing" title="Lancer le film avec ffplay">
+            {{ playing ? 'Lancement…' : '▶ PLAY' }}
+          </button>
+          @if (playError) { <div class="play-error">{{ playError }}</div> }
+        }
 
         <button class="change-poster-btn" (click)="openPosterDialog()" [disabled]="!movie.tmdb_id"
                 [title]="movie.tmdb_id ? 'Choisir une autre pochette sur TheMovieDB' : 'Film non associé à TheMovieDB'">
@@ -97,16 +99,47 @@
           </div>
         }
 
-        @if (mainVideoFile) {
+        @if (isTv) {
+          <div class="tech-block episodes-block">
+            <h3>Épisodes</h3>
+            <p class="episodes-summary">{{ episodesSummary }}</p>
+
+            @if (episodes.length) {
+              <table class="episodes-table">
+                <colgroup>
+                  <col class="col-play" />
+                  <col class="col-num" />
+                  <col class="col-name" />
+                  <col class="col-duration" />
+                </colgroup>
+                <tbody>
+                  @for (row of episodes; track row.file.id; let i = $index) {
+                    <tr>
+                      <td class="col-play">
+                        <button type="button" class="episode-play" (click)="playEpisode(row.file)"
+                                [disabled]="playingEpisodeId !== null"
+                                [attr.aria-label]="'Lire l’épisode ' + episodeLabel(row, i)"
+                                title="Lancer l’épisode avec ffplay">
+                          {{ playingEpisodeId === row.file.id ? '…' : '▶' }}
+                        </button>
+                      </td>
+                      <td class="col-num">{{ episodeLabel(row, i) }}</td>
+                      <td class="col-name" [title]="row.file.filename">{{ row.file.filename }}</td>
+                      <td class="col-duration">{{ formatEpisodeDuration(row.file.duration_sec) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+            @if (episodeError) { <div class="play-error">{{ episodeError }}</div> }
+          </div>
+        } @else if (mainVideoFile) {
           <div class="tech-block">
             <h3>Fichier video</h3>
             <div class="tech-grid">
               <div><span class="tech-label">Fichier</span><span class="tech-value">{{ mainVideoFile.filename }}</span></div>
               <div><span class="tech-label">Video</span><span class="tech-value">{{ mainVideoFile.video_codec || '—' }} · {{ mainVideoFile.width && mainVideoFile.height ? (mainVideoFile.width + 'x' + mainVideoFile.height) : '—' }}</span></div>
               <div><span class="tech-label">Taille</span><span class="tech-value">{{ formatSize(mainVideoFile.size_bytes) }}</span></div>
-              @if (movie.media_type === 'tv') {
-                <div><span class="tech-label">Épisodes</span><span class="tech-value">{{ movie.video_files.length }} fichier{{ movie.video_files.length > 1 ? 's' : '' }} · {{ formatSize(totalSize) }}</span></div>
-              }
               <div><span class="tech-label">Duree</span><span class="tech-value">{{ formatDuration(mainVideoFile.duration_sec) }}</span></div>
             </div>
 

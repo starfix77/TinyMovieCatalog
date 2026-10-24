@@ -43,8 +43,11 @@ export class MovieService {
     return this.http.put<Movie>(`${this.baseUrl}/${movieId}/metadata`, { tmdb_id: tmdbId });
   }
 
-  playMovie(movieId: number): Observable<{ status: string; file: string }> {
-    return this.http.post<{ status: string; file: string }>(`${this.baseUrl}/${movieId}/play`, {});
+  /** Sans `videoId` : fichier principal du film ; avec `videoId` : un episode precis d'une serie. */
+  playMovie(movieId: number, videoId?: number): Observable<{ status: string; file: string }> {
+    let params = new HttpParams();
+    if (videoId !== undefined) params = params.set('video_id', videoId);
+    return this.http.post<{ status: string; file: string }>(`${this.baseUrl}/${movieId}/play`, {}, { params });
   }
 
   getTmdbLanguages(): Observable<TmdbLanguages> {

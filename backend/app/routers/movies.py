@@ -323,8 +323,15 @@ def change_movie_poster(
 
 
 @router.post("/{movie_id}/play")
-def play_movie(movie_id: int, db: Session = Depends(get_db)):
-    """Lance la lecture du film avec ffplay (nouvelle fenetre, sur la machine du backend)."""
+def play_movie(
+    movie_id: int,
+    video_id: Optional[int] = Query(None, description="Fichier video precis a lire (episode d'une serie)"),
+    db: Session = Depends(get_db),
+):
+    """Lance la lecture du film avec ffplay (nouvelle fenetre, sur la machine du backend).
+
+    Sans `video_id` : premier fichier disponible du film. Avec `video_id` : ce fichier
+    precis (lecture d'un episode d'une serie TV)."""
     movie = (
         db.query(Movie)
         .options(joinedload(Movie.video_files))
@@ -334,7 +341,16 @@ def play_movie(movie_id: int, db: Session = Depends(get_db)):
     if not movie:
         raise HTTPException(404, "Film introuvable.")
 
-    video = next((v for v in movie.video_files if v.filepath and os.path.isfile(v.filepath)), None)
+    if video_id is not None:
+        selected = next((v for v in movie.video_files if v.id == video_id), None)
+        if selected is None:
+            raise HTTPException(404, "Épisode introuvable pour cette série.")
+        if not (selected.filepath and os.path.isfile(selected.filepath)):
+            raise HTTPException(404, "Épisode non disponible : le fichier vidéo est introuvable "
+                                     "(disque débranché, fichier déplacé ou supprimé).")
+        video = selected
+    else:
+        video = next((v for v in movie.video_files if v.filepath and os.path.isfile(v.filepath)), None)
     if video is None:
         raise HTTPException(404, "Film non disponible : le fichier vidéo est introuvable "
                                  "(disque débranché, fichier déplacé ou supprimé).")
@@ -344,7 +360,8 @@ def play_movie(movie_id: int, db: Session = Depends(get_db)):
         raise HTTPException(500, "ffplay est introuvable. Installez FFmpeg ou renseignez "
                                  "FFPLAY_PATH dans backend/.env.")
 
-    cmd = [ffplay, "-fs", "-autoexit", "-window_title", movie.title, video.filepath]
+    window_title = f"{movie.title} - {video.filename}" if video_id is not None else movie.title
+    cmd = [ffplay, "-fs", "-autoexit", "-window_title", window_title, video.filepath]
     kwargs = {}
     if os.name == "nt":
         kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS

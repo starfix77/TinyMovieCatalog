@@ -3,7 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { MovieService } from '../../services/movie.service';
-import { CastMember, Movie, MoviePoster, TmdbCandidate, TmdbLanguage } from '../../models/movie.model';
+import { CastMember, Movie, MoviePoster, TmdbCandidate, TmdbLanguage, VideoFile } from '../../models/movie.model';
+
+/** Ligne du tableau des episodes d'une serie. */
+export interface EpisodeRow {
+  file: VideoFile;
+  season: number | null;
+  episode: number | null;
+}
 
 @Component({
   selector: 'app-movie-detail',
@@ -105,6 +112,81 @@ export class MovieDetailComponent {
   /** Taille cumulee de tous les fichiers video (episodes d'une serie). */
   get totalSize(): number {
     return this.movie.video_files.reduce((sum, v) => sum + (v.size_bytes || 0), 0);
+  }
+
+  // ---------- Episodes (series TV) ----------
+  private static readonly RE_SXXEXX = /s(\d{1,2})[\s._-]?e(\d{1,4})/i; // S01E02
+  private static readonly RE_NXNN = /(?:^|[^\d])(\d{1,2})x(\d{2,3})(?!\d)/i; // 1x02
+  private static readonly RE_EPONLY = /(?:^|[\s._-])e(?:p(?:isode)?)?[\s._-]?(\d{1,4})(?!\d)/i; // E02, Ep02, Episode 02
+
+  private parseEpisode(filename: string): { season: number | null; episode: number | null } {
+    let m = MovieDetailComponent.RE_SXXEXX.exec(filename) ?? MovieDetailComponent.RE_NXNN.exec(filename);
+    if (m) return { season: Number(m[1]), episode: Number(m[2]) };
+    m = MovieDetailComponent.RE_EPONLY.exec(filename);
+    if (m) return { season: null, episode: Number(m[1]) };
+    return { season: null, episode: null };
+  }
+
+  /** Fichiers de la serie tries par ordre d'episode (saison puis episode, puis nom de fichier). */
+  get episodes(): EpisodeRow[] {
+    const rows = this.movie.video_files.map((file) => ({ file, ...this.parseEpisode(file.filename) }));
+    return rows.sort((a, b) => {
+      const sa = a.season ?? 0, sb = b.season ?? 0;
+      if (sa !== sb) return sa - sb;
+      if (a.episode !== null && b.episode !== null && a.episode !== b.episode) return a.episode - b.episode;
+      if ((a.episode === null) !== (b.episode === null)) return a.episode === null ? 1 : -1;
+      return a.file.filename.localeCompare(b.file.filename, undefined, { numeric: true, sensitivity: 'base' });
+    });
+  }
+
+  private get hasSeveralSeasons(): boolean {
+    return new Set(this.episodes.map((e) => e.season).filter((s) => s !== null)).size > 1;
+  }
+
+  /** Numero affiche : « 05 », ou « S02E05 » quand la serie compte plusieurs saisons. */
+  episodeLabel(row: EpisodeRow, index: number): string {
+    const num = row.episode ?? index + 1;
+    const ep = String(num).padStart(2, '0');
+    if (this.hasSeveralSeasons && row.season !== null) return `S${String(row.season).padStart(2, '0')}E${ep}`;
+    return ep;
+  }
+
+  /** « 9 fichiers - 12.24Go » */
+  get episodesSummary(): string {
+    const count = this.movie.video_files.length;
+    const gb = this.totalSize / 1024 / 1024 / 1024;
+    return `${count} fichier${count > 1 ? 's' : ''} - ${gb.toFixed(2)}Go`;
+  }
+
+  /** « 1 h 12 min » ou « 49 min ». */
+  formatEpisodeDuration(seconds: number | null): string {
+    if (!seconds) return '—';
+    const totalMin = Math.round(seconds / 60);
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    return h > 0 ? `${h} h ${m.toString().padStart(2, '0')} min` : `${m} min`;
+  }
+
+  playingEpisodeId: number | null = null;
+  episodeError = '';
+
+  playEpisode(file: VideoFile): void {
+    if (this.playingEpisodeId !== null) return;
+    this.playingEpisodeId = file.id;
+    this.episodeError = '';
+    this.movieService.playMovie(this.movie.id, file.id).subscribe({
+      next: () => {
+        this.playingEpisodeId = null;
+      },
+      error: (error) => {
+        this.playingEpisodeId = null;
+        this.episodeError = error?.error?.detail || 'Impossible de lancer la lecture de l’épisode.';
+      },
+    });
+  }
+
+  trackEpisode(_: number, row: EpisodeRow): number {
+    return row.file.id;
   }
 
   get mainVideoFile() {

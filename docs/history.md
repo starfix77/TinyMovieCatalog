@@ -185,7 +185,7 @@ Les onglets de la barre du haut gardent leurs libellés actuels (« Films », «
 - Ajouté le bouton « Tout masquer / Tout afficher » dans la vue Doublons, sur le même modèle que la vue Genre
 
 **v0.9.16**
-Pour les bibliothèques « Séries TV », la vue movie-detail change ainsi :
+- Pour les bibliothèques « Séries TV », la vue movie-detail change ainsi :
 Section « Fichier vidéo » : elle est remplacée par une section « Épisodes », placée sous « Distribution ». Les pistes audio et sous-titres de cette section disparaissent avec elle pour les séries.
 Résumé : il s’affiche au format de votre exemple, 9 fichiers - 12.24Go.
 Tableau : il est trié par ordre d’épisode.
@@ -194,9 +194,9 @@ Colonne 2 : le numéro d’épisode.
 Colonne 3 : le nom du fichier, tronqué avec « … » s’il est trop long, le nom complet apparaissant au survol.
 Colonne 4 : la durée, par exemple 1 h 12 min ou 49 min.
 
-Pour les bibliothèques « Films », la vue reste identique.
+- Pour les bibliothèques « Films », la vue reste identique.
 
 - API : `POST /api/movies/{id}/play` accepte le paramètre facultatif `video_id` (lecture d'un fichier précis)
 
-Quelques précisions choix par défaut :
+- Quelques précisions choix par défaut :
 Numéro d’épisode : il est lu dans le nom du fichier (S01E02, 1x02, E02, Episode 02). Sans motif reconnu, le fichier passe après les autres, classé par nom, et son numéro est sa position dans la liste. Quand la série compte plusieurs saisons, le numéro s’affiche sous la forme S02E05.

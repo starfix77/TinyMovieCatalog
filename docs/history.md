@@ -175,8 +175,11 @@ Les onglets de la barre du haut gardent leurs libellés actuels (« Films », «
 
 **v0.9.13**
 - Fix minor favicon multi-resolution
-- Lance ffplay 'PLay' en fullscreen
+- Lance ffplay 'Play' en fullscreen
 
 **v0.9.14**
 - Fix minor search icon modify to SVG icon
 - ignore frontend.log et backend.log, docs/*.png scripts 'compress'
+
+**v0.9.15**
+- Ajouté le bouton « Tout masquer / Tout afficher » dans la vue Doublons, sur le même modèle que la vue Genre

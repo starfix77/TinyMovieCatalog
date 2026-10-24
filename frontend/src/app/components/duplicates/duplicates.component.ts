@@ -99,6 +99,19 @@ export class DuplicatesComponent {
 
   isCollapsed(key: string): boolean { return this.collapsed().has(key); }
 
+  /** Vrai quand toutes les sections sont reduites. */
+  readonly allCollapsed = computed(() => {
+    const list = this.groups();
+    const collapsed = this.collapsed();
+    return list.length > 0 && list.every(g => collapsed.has(g.key));
+  });
+
+  /** Reduit toutes les sections, ou les developpe toutes si elles sont deja reduites. */
+  toggleAll(): void {
+    if (this.allCollapsed()) this.collapsed.set(new Set());
+    else this.collapsed.set(new Set(this.groups().map(g => g.key)));
+  }
+
   formatSize(bytes: number): string {
     if (!bytes) return '—';
     if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(2)} GB`;

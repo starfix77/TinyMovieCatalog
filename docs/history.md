@@ -206,3 +206,6 @@ Numéro d’épisode : il est lu dans le nom du fichier (S01E02, 1x02, E02, Epis
 - Détection des doublons d'épisodes : seuls les épisodes présents dans 2 fichiers ou plus sont listés, tous leurs fichiers sont affichés
 - Saison/épisode lus dans le nom du fichier (S01E01, 1x01, E01, Ep01, Episode 01) ; si la saison est absente du nom, elle est déduite du dossier (« Saison 1 », « Season 01 », « S01 »), sinon saison 1. Les fichiers sans numéro d'épisode sont ignorés
 - Bibliothèques « Films » : affichage et détection des doublons inchangés
+
+**v0.9.18**
+- movie-detail : les boutons « Play » (film et épisodes) utilisent une icône SVG « play » centrée verticalement (et horizontalement) à la place du caractère ▶

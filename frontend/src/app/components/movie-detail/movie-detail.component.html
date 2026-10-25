@@ -22,7 +22,7 @@
 
         @if (!isTv) {
           <button class="play-btn" (click)="playMovieFile()" [disabled]="playing" title="Lancer le film avec ffplay">
-            {{ playing ? 'Lancement…' : '▶ PLAY' }}
+            @if (playing) { Lancement… } @else { <svg class="play-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z" fill="currentColor"/></svg><span>PLAY</span> }
           </button>
           @if (playError) { <div class="play-error">{{ playError }}</div> }
         }
@@ -120,7 +120,7 @@
                                 [disabled]="playingEpisodeId !== null"
                                 [attr.aria-label]="'Lire l’épisode ' + episodeLabel(row, i)"
                                 title="Lancer l’épisode avec ffplay">
-                          {{ playingEpisodeId === row.file.id ? '…' : '▶' }}
+                          @if (playingEpisodeId === row.file.id) { … } @else { <svg class="play-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z" fill="currentColor"/></svg> }
                         </button>
                       </td>
                       <td class="col-num">{{ episodeLabel(row, i) }}</td>

@@ -423,7 +423,10 @@
 
 /* ---------- Bouton PLAY ---------- */
 .play-btn {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
   margin-top: 10px;
   padding: 9px 10px;
@@ -436,6 +439,8 @@
   letter-spacing: .06em;
   cursor: pointer;
 }
+.play-icon { width: 1em; height: 1em; flex: none; display: block; }
+.play-btn .play-icon { width: 14px; height: 14px; }
 .play-btn:hover:not(:disabled) { filter: brightness(1.1); }
 .play-btn:disabled { opacity: .6; cursor: wait; }
 .play-error {
@@ -594,6 +599,11 @@
   font-size: 10px;
   line-height: 1;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
 }
+.episode-play .play-icon { width: 12px; height: 12px; }
 .episode-play:hover:not(:disabled) { filter: brightness(1.1); }
 .episode-play:disabled { opacity: .5; cursor: wait; }

@@ -121,10 +121,10 @@ l'API `/tv`. La profondeur de parcours des séries est d'au moins 2 niveaux
 
 | Outil | Windows | Linux | macOS |
 |---|---|---|---|
-| Python 3.10+ | https://www.python.org/downloads/ | `sudo apt install python3 python3-pip python3-venv` | `brew install python` |
-| Node.js 18+ / npm | https://nodejs.org/ | `sudo apt install nodejs npm` (ou nvm) | `brew install node` (ou nvm) |
-| FFmpeg (fournit `ffprobe`) | https://www.gyan.dev/ffmpeg/builds/ (ajouter `bin\` au PATH) | `sudo apt install ffmpeg` | `brew install ffmpeg` |
-| Angular CLI | `npm install -g @angular/cli` | `npm install -g @angular/cli` | `npm install -g @angular/cli` |
+| **Python 3.10+** | https://www.python.org/downloads/ | `sudo apt install python3 python3-pip python3-venv` | `brew install python` |
+| **Node.js 18+** / npm | https://nodejs.org/ | `sudo apt install nodejs npm` (ou nvm) | `brew install node` (ou nvm) |
+| **FFmpeg**  | https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip<br>(extraire du zip les fichiers `ffprobe, ffplay et ffmpeg` du dossier `bin\`<br>ajout dans le PATH) | `sudo apt install ffmpeg` | `brew install ffmpeg` |
+
 
 *Note pour MacOS: Homebrew doit être installé au préalable (https://brew.sh). Sur macOS, brew install python installe la dernière version stable de Python 3, et python3 / pip3 sont alors disponibles dans le PATH.*
 

@@ -2,15 +2,19 @@
   <header class="page-heading">
     <div>
       <h2>Doublons</h2>
-      <p>Films possédant plusieurs fichiers vidéo dans la bibliothèque sélectionnée.</p>
+      @if (isTv()) {
+        <p>Épisodes présents dans plusieurs fichiers vidéo dans la bibliothèque sélectionnée.</p>
+      } @else {
+        <p>Films possédant plusieurs fichiers vidéo dans la bibliothèque sélectionnée.</p>
+      }
     </div>
     <div class="header-actions">
-      @if (groups().length > 0) {
+      @if (sectionCount() > 0) {
         <button type="button" class="toggle-all" (click)="toggleAll()">
           {{ allCollapsed() ? 'Tout afficher' : 'Tout masquer' }}
         </button>
       }
-      <span class="group-count">{{ groups().length }} section{{ groups().length > 1 ? 's' : '' }}</span>
+      <span class="group-count">{{ sectionCount() }} {{ isTv() ? 'épisode' : 'section' }}{{ sectionCount() > 1 ? 's' : '' }}</span>
     </div>
   </header>
 
@@ -18,11 +22,66 @@
     <div class="state-message">Recherche des doublons…</div>
   } @else if (error()) {
     <div class="state-message error">{{ error() }}</div>
-  } @else if (!groups().length) {
+  } @else if (!sectionCount()) {
     <div class="empty-state">
       <span class="empty-icon">✓</span>
       <h2>Aucun doublon détecté</h2>
-      <p>Les films ayant au moins deux fichiers vidéo sont affichés ici.</p>
+      @if (isTv()) {
+        <p>Les épisodes présents dans au moins deux fichiers vidéo sont affichés ici.</p>
+      } @else {
+        <p>Les films ayant au moins deux fichiers vidéo sont affichés ici.</p>
+      }
+    </div>
+  } @else if (isTv()) {
+    <div class="files-table-wrap tv-table-wrap">
+      <table class="files-table tv-table">
+        <thead>
+          <tr>
+            <th>Fichier</th>
+            <th>Encodage</th>
+            <th>Résolution</th>
+            <th>Taille</th>
+            <th>Pistes Audios</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (group of episodeGroups(); track trackEpisodeGroup($index, group)) {
+            <tr class="episode-heading-row">
+              <td colspan="5">
+                <button class="section-heading" type="button" (click)="toggle(group.key)" [attr.aria-expanded]="!isCollapsed(group.key)">
+                  <span class="disclosure">{{ isCollapsed(group.key) ? '▸' : '▾' }}</span>
+                  <span class="section-title">{{ group.seriesTitle }} <span class="year">— {{ group.episodeLabel }}</span></span>
+                  <span class="file-count">{{ group.files.length }} fichiers</span>
+                </button>
+              </td>
+            </tr>
+            @if (!isCollapsed(group.key)) {
+              @for (item of group.files; track trackFile($index, item)) {
+                <tr>
+                  <td class="filepath">{{ item.file.filepath || item.file.filename }}</td>
+                  <td>{{ item.file.video_codec || '—' }}</td>
+                  <td>{{ item.file.width && item.file.height ? item.file.width + 'x' + item.file.height : '—' }}</td>
+                  <td class="size-cell">{{ formatSize(item.file.size_bytes) }}</td>
+                  <td>
+                    @if (item.file.audio_tracks.length) {
+                      <div class="audio-tracks">
+                        @for (track of item.file.audio_tracks; track track.id) {
+                          <div class="audio-track">
+                            <span>{{ track.language || '?' }}</span>
+                            <span>{{ track.codec || '?' }}</span>
+                            <span>{{ formatBitrate(track.bitrate) }}</span>
+                            @if (track.title) { <small>{{ track.title }}</small> }
+                          </div>
+                        }
+                      </div>
+                    } @else { <span class="muted">Aucune piste audio</span> }
+                  </td>
+                </tr>
+              }
+            }
+          }
+        </tbody>
+      </table>
     </div>
   } @else {
     <div class="duplicate-groups">

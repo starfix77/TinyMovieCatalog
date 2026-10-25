@@ -200,3 +200,9 @@ Colonne 4 : la durée, par exemple 1 h 12 min ou 49 min.
 
 - Quelques précisions choix par défaut :
 Numéro d’épisode : il est lu dans le nom du fichier (S01E02, 1x02, E02, Episode 02). Sans motif reconnu, le fichier passe après les autres, classé par nom, et son numéro est sa position dans la liste. Quand la série compte plusieurs saisons, le numéro s’affiche sous la forme S02E05.
+
+**v0.9.17**
+- Vue « Doublons » pour les bibliothèques « Séries TV » : la liste devient un tableau unique (mêmes colonnes : Fichier, Encodage, Résolution, Taille, Pistes Audios), avec une ligne repliable par épisode en double (ex. « 1883 — S01E01 », 3 fichiers)
+- Détection des doublons d'épisodes : seuls les épisodes présents dans 2 fichiers ou plus sont listés, tous leurs fichiers sont affichés
+- Saison/épisode lus dans le nom du fichier (S01E01, 1x01, E01, Ep01, Episode 01) ; si la saison est absente du nom, elle est déduite du dossier (« Saison 1 », « Season 01 », « S01 »), sinon saison 1. Les fichiers sans numéro d'épisode sont ignorés
+- Bibliothèques « Films » : affichage et détection des doublons inchangés

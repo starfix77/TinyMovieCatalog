@@ -214,3 +214,8 @@ Numéro d’épisode : il est lu dans le nom du fichier (S01E02, 1x02, E02, Epis
 - Vue « Doublons » (bibliothèques « Films » uniquement) : deux films de même titre mais d'années de sortie différentes ne sont plus considérés comme des doublons (ex. Papillon (1973) et Papillon (2018))
 - Un film sans année est rattaché à l'unique année connue du même titre ; s'il existe plusieurs années, il reste dans un groupe à part
 - Bibliothèques « Séries TV » : détection inchangée
+
+**v0.9.20**
+- Bibliothèques « Séries TV » : nouvelle vue « Détail technique » (composant `movie-detail-tv`) : une section dépliable / repliable par série (vignette + nom + nombre d'épisodes et taille cumulée), boutons « Tout déplier / Tout replier » et recherche « Rechercher une série TV… »
+- Chaque section contient un tableau des épisodes (ordre alphabétique par défaut) : N° d'épisode (déduit du nom de fichier), fichier vidéo (tronqué si trop long), encodage, résolution, taille et pistes audio ; toutes les colonnes sont triables sauf « Pistes audio »
+- Bibliothèques « Films » : vue « Détail technique » inchangée (la route `/technique` choisit la vue selon le type de la bibliothèque active)

@@ -1,0 +1,123 @@
+<div class="page">
+  <div class="page-header">
+    <h2>Détail technique (encodage vidéo, pistes audios...)</h2>
+    <div class="header-actions">
+      @if (series().length) {
+        <button type="button" class="toggle-all" (click)="allExpanded ? collapseAll() : expandAll()">
+          {{ allExpanded ? 'Tout replier' : 'Tout déplier' }}
+        </button>
+      }
+      <div class="search-box">
+        <span class="search-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"
+               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="7"></circle>
+            <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
+          </svg>
+        </span>
+        <input
+          type="text"
+          placeholder="Rechercher une série TV…"
+          [(ngModel)]="search"
+          (ngModelChange)="onSearchInput()"
+        />
+      </div>
+    </div>
+  </div>
+
+  @if (!activeLibraryId()) {
+    <div class="empty-state"><p>Ajoutez une bibliotheque dans le panneau de gauche pour commencer.</p></div>
+  } @else if (loading()) {
+    <div class="empty-state"><p>Chargement…</p></div>
+  } @else if (series().length === 0) {
+    <div class="empty-state"><p>Aucune série trouvée. Lancez un scan de la bibliotheque depuis le panneau de gauche.</p></div>
+  } @else {
+    @for (movie of series(); track movie.id) {
+      <section class="series" [class.open]="isExpanded(movie)">
+        <div class="series-header">
+          <button type="button" class="series-toggle" (click)="toggle(movie)"
+                  [attr.aria-expanded]="isExpanded(movie)"
+                  [attr.aria-controls]="'series-' + movie.id">
+            <svg class="chevron" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"
+                 fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 6 15 12 9 18"></polyline>
+            </svg>
+            <span class="thumb">
+              @if (posterUrl(movie); as url) {
+                <img [src]="url" [alt]="movie.title" loading="lazy" />
+              } @else {
+                <span class="thumb-placeholder">{{ movie.title.charAt(0) }}</span>
+              }
+            </span>
+            <span class="series-name">{{ movie.folder_name }}</span>
+            <span class="series-meta">{{ episodeCountLabel(movie) }} · {{ totalSizeLabel(movie) }}</span>
+          </button>
+          <button type="button" class="detail-btn" (click)="openDetail(movie)" title="Ouvrir la fiche de la série">Fiche</button>
+        </div>
+
+        @if (isExpanded(movie)) {
+          <div class="series-body" [id]="'series-' + movie.id">
+            @if (rowsBySeries().get(movie.id); as rows) {
+              @if (rows.length === 0) {
+                <p class="no-episode">Aucun fichier vidéo pour cette série.</p>
+              } @else {
+                <div class="table-wrap">
+                  <table>
+                    <colgroup>
+                      <col class="c-num" />
+                      <col class="c-file" />
+                      <col class="c-codec" />
+                      <col class="c-res" />
+                      <col class="c-size" />
+                      <col class="c-audio" />
+                    </colgroup>
+                    <thead>
+                      <tr>
+                        @for (col of columns; track col.key) {
+                          <th (click)="toggleSort(col.key)" [class.sorted]="sortBy() === col.key">
+                            {{ col.label }} <span class="sort-icon">{{ sortIcon(col.key) }}</span>
+                          </th>
+                        }
+                        <th class="no-sort">Pistes audio</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (row of rows; track row.file.id) {
+                        <tr>
+                          <td class="mono num-cell">{{ row.label }}</td>
+                          <td class="mono file-cell" [attr.title]="row.file.filename">{{ row.file.filename }}</td>
+                          <td class="mono"><span class="codec-badge">{{ row.file.video_codec || '—' }}</span></td>
+                          <td class="mono">{{ resolutionLabel(row.file) }}</td>
+                          <td class="mono">{{ formatSize(row.file.size_bytes) }}</td>
+                          <td class="audio-cell">
+                            @if (row.file.audio_tracks.length) {
+                              <div class="audio-lines">
+                                @for (track of row.file.audio_tracks; track track.id) {
+                                  <div class="audio-line">
+                                    <span class="audio-lang">{{ track.language || 'und' }}</span>
+                                    <span class="audio-codec">{{ track.codec || '?' }}</span>
+                                    <span class="audio-bitrate">{{ formatBitrate(track.bitrate) }}</span>
+                                  </div>
+                                }
+                              </div>
+                            } @else {
+                              <span class="mono">—</span>
+                            }
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            }
+          </div>
+        }
+      </section>
+    }
+  }
+</div>
+
+@if (selectedMovie()) {
+  <app-movie-detail [movie]="selectedMovie()!" (close)="closeDetail()" (movieUpdated)="onMovieUpdated($event)"></app-movie-detail>
+}

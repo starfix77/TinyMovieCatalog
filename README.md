@@ -297,7 +297,6 @@ L’affiche précédente est supprimée automatiquement si elle n’est plus uti
 
 # Pistes d'evolution possibles
 - Passage en multi-langues / Angular i18n
-- Edition manuelle des metadonnees d'un film
 
 
 # Extraire le code source uniquement pour le soumettre à l'IA 

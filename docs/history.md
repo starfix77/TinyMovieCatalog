@@ -209,3 +209,8 @@ Numéro d’épisode : il est lu dans le nom du fichier (S01E02, 1x02, E02, Epis
 
 **v0.9.18**
 - movie-detail : les boutons « Play » (film et épisodes) utilisent une icône SVG « play » centrée verticalement (et horizontalement) à la place du caractère ▶
+
+**v0.9.19**
+- Vue « Doublons » (bibliothèques « Films » uniquement) : deux films de même titre mais d'années de sortie différentes ne sont plus considérés comme des doublons (ex. Papillon (1973) et Papillon (2018))
+- Un film sans année est rattaché à l'unique année connue du même titre ; s'il existe plusieurs années, il reste dans un groupe à part
+- Bibliothèques « Séries TV » : détection inchangée

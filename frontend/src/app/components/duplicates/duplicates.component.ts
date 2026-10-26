@@ -65,25 +65,36 @@ export class DuplicatesComponent {
           return;
         }
         this.episodeGroups.set([]);
-        const map = new Map<string, { movies: Movie[]; files: { movie: Movie; file: VideoFile }[] }>();
+        // Films : meme titre ET meme annee de sortie. Papillon (1973) et
+        // Papillon (2018) sont deux films differents, donc pas des doublons.
+        // Un film sans annee est rattache a l'unique annee connue du meme titre
+        // (s'il y en a plusieurs, il reste dans un groupe a part).
+        const byTitle = new Map<string, Movie[]>();
         for (const movie of page.items) {
-          const files = movie.video_files ?? [];
-          if (!files.length) continue;
-          const key = this.normalize(movie.title);
-          const group = map.get(key) ?? { movies: [], files: [] };
-          group.movies.push(movie);
-          for (const file of files) group.files.push({ movie, file });
-          map.set(key, group);
+          if (!(movie.video_files ?? []).length) continue;
+          const t = this.normalize(movie.title);
+          const list = byTitle.get(t) ?? [];
+          list.push(movie);
+          byTitle.set(t, list);
+        }
+        const map = new Map<string, { movies: Movie[]; files: { movie: Movie; file: VideoFile }[] }>();
+        for (const [title, movies] of byTitle) {
+          const knownYears = new Set(movies.filter(m => m.year != null).map(m => m.year as number));
+          const soleYear = knownYears.size === 1 ? [...knownYears][0] : null;
+          for (const movie of movies) {
+            const year = movie.year ?? soleYear;
+            const key = `${title}|${year ?? ''}`;
+            const group = map.get(key) ?? { movies: [], files: [] };
+            group.movies.push(movie);
+            for (const file of movie.video_files ?? []) group.files.push({ movie, file });
+            map.set(key, group);
+          }
         }
         const groups: DuplicateGroup[] = [];
         for (const [key, group] of map) {
           if (group.files.length < 2) continue;
-          const representative = group.movies[0];
-
-          if (!representative) {
-            continue;
-          }
-          
+          const representative = group.movies.find(m => m.year != null) ?? group.movies[0];
+          if (!representative) continue;
           groups.push({
             key,
             title: representative.title,
@@ -93,7 +104,7 @@ export class DuplicatesComponent {
             posterUrl: this.movieService.posterUrl(representative),
           });
         }
-        this.groups.set(groups.sort((a, b) => a.title.localeCompare(b.title, 'fr')));
+        this.groups.set(groups.sort((a, b) => a.title.localeCompare(b.title, 'fr') || (a.year ?? 0) - (b.year ?? 0)));
         this.loading.set(false);
       },
       error: () => {

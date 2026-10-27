@@ -11,149 +11,66 @@
 
 #>
 
+# install.ps1
+
 $ErrorActionPreference = "Stop"
 
 # Répertoire racine du projet
-$ProjectDir = $PSScriptRoot
-
-function Write-Title([string]$Text) {
-    Write-Host ""
-    Write-Host "=========================================="
-    Write-Host "   $Text"
-    Write-Host "=========================================="
-    Write-Host ""
-}
-
-# Exécute une commande native et s'arrête si elle échoue (équivalent de "set -e")
-function Invoke-Checked {
-    param([Parameter(Mandatory)][string]$Exe, [string[]]$Arguments = @())
-    & $Exe @Arguments
-    if ($LASTEXITCODE -ne 0) {
-        throw "La commande a échoué (code $LASTEXITCODE) : $Exe $($Arguments -join ' ')"
-    }
-}
+$ProjectRoot = $PSScriptRoot
 
 try {
-    Write-Title "TinyMovieCatalog - Installation"
+    # Installation du backend Python
+    Write-Host "`n=== Installation du backend Python Patience... ===" -ForegroundColor Cyan
 
-    # ------------------------------------------
-    # Vérification Node.js / npm
-    # ------------------------------------------
-    Write-Host ">> Vérification de Node.js et npm..."
-
-    if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
-        throw "Node.js n'est pas installé."
-    }
-    if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
-        throw "npm n'est pas installé."
-    }
-
-    Write-Host "Node.js : $(node --version)"
-    Write-Host "npm     : $(npm --version)"
-    Write-Host ""
-
-    # ------------------------------------------
-    # Installation backend
-    # ------------------------------------------
-    Write-Title "Installation du backend"
-
-    $BackendDir = Join-Path $ProjectDir "backend"
-    Set-Location $BackendDir
-
-    Write-Host "Répertoire : $(Get-Location)"
-    Write-Host ""
-
-    # Vérification de Python (py launcher, python ou python3)
-    $PythonCmd = $null
-    foreach ($candidate in @("py", "python", "python3")) {
-        if (Get-Command $candidate -ErrorAction SilentlyContinue) {
-            $PythonCmd = $candidate
-            break
-        }
-    }
-    if (-not $PythonCmd) {
-        throw "Python 3 n'est pas installé."
-    }
-
-    $PythonArgs = @()
-    if ($PythonCmd -eq "py") { $PythonArgs = @("-3") }
-
-    Write-Host "Python : $(& $PythonCmd @PythonArgs --version)"
-    Write-Host ""
+    Set-Location "$ProjectRoot\backend"
 
     # Création de l'environnement virtuel
-    if (-not (Test-Path ".venv")) {
-        Write-Host ">> Création de l'environnement virtuel Python..."
-        Invoke-Checked $PythonCmd ($PythonArgs + @("-m", "venv", ".venv"))
-    }
-    else {
-        Write-Host ">> Environnement virtuel .venv déjà présent."
-    }
-    Write-Host ""
-
-    # Python du venv (appelé directement : pas besoin d'activer, ce qui évite
-    # aussi les problèmes de politique d'exécution sur Activate.ps1)
-    $VenvPython = Join-Path $BackendDir ".venv\Scripts\python.exe"
-    if (-not (Test-Path $VenvPython)) {
-        throw "Python introuvable dans l'environnement virtuel : $VenvPython"
+    if (-not (Test-Path ".\venv\Scripts\python.exe")) {
+        python -m venv venv
     }
 
-    Write-Host ">> Environnement virtuel utilisé..."
-    Write-Host "Python utilisé : $VenvPython"
-    Write-Host ""
+    # Activation de l'environnement virtuel
+    . .\venv\Scripts\Activate.ps1
 
     # Mise à jour de pip
-    Write-Host ">> Mise à jour de pip..."
-    Invoke-Checked $VenvPython @("-m", "pip", "install", "--upgrade", "pip")
-    Write-Host ""
+    python -m pip install --upgrade pip
 
     # Installation des dépendances Python
-    Write-Host ">> Installation des dépendances Python..."
-    Invoke-Checked $VenvPython @("-m", "pip", "install", "-r", "requirements.txt")
-    Write-Host ""
+    if (Test-Path ".\requirements.txt") {
+        python -m pip install -r requirements.txt
+    }
+    else {
+        throw "Le fichier requirements.txt est introuvable dans le dossier backend."
+    }
 
-    Write-Host ">> Installation backend terminée."
-    Write-Host ""
+    Write-Host "`nBackend installe avec succes !" -ForegroundColor Green
 
-    # ------------------------------------------
-    # Installation frontend
-    # ------------------------------------------
-    Write-Title "Installation du frontend"
+    # Installation du frontend Node.js
+    Write-Host "`n=== Installation du frontend Patience ===" -ForegroundColor Cyan
 
-    $FrontendDir = Join-Path $ProjectDir "frontend"
-    Set-Location $FrontendDir
+    Set-Location "$ProjectRoot\frontend"
 
-    Write-Host "Répertoire : $(Get-Location)"
-    Write-Host ""
-    Write-Host ">> Installation des dépendances npm..."
-    Write-Host ""
+    if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
+        throw "npm est introuvable. Installe Node.js puis relance le script."
+    }
 
-    Invoke-Checked "npm" @("install")
-    Invoke-Checked "npm" @("run", "build")
+    if (-not (Test-Path ".\package.json")) {
+        throw "Le fichier package.json est introuvable dans le dossier frontend."
+    }
 
-    Write-Host ""
-    Write-Host ">> Installation frontend terminée."
-    Write-Host ""
+    # Installation des dépendances frontend
+    npm install
 
-    # ------------------------------------------
-    # Fin
-    # ------------------------------------------
-    Write-Title "Installation terminée avec succès"
+    if ($LASTEXITCODE -ne 0) {
+        throw "L'installation des dependances frontend a echoue."
+    }
 
-    Write-Host "Backend  : $BackendDir"
-    Write-Host "Frontend : $FrontendDir"
-    Write-Host "Python   : $VenvPython"
-    Write-Host ""
-    Write-Host "Pour démarrer le projet :"
-    Write-Host ""
-    Write-Host "    .\start.ps1"
-    Write-Host ""
+    Write-Host "`nInstallation de Patience terminee avec succes !" -ForegroundColor Green
 }
 catch {
-    Write-Host ""
-    Write-Host "ERREUR : $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "`nERREUR : $($_.Exception.Message)" -ForegroundColor Red
     exit 1
 }
 finally {
-    Set-Location $ProjectDir
+    Set-Location $ProjectRoot
 }

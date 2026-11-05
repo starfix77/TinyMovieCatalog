@@ -175,8 +175,8 @@ FFPLAY_PATH=ffplay     # utilise par le bouton PLAY (ou chemin complet si ffplay
 ```bash
 #  Linux / macOS
 cd backend
-python3 -m venv venv
-venv\Scripts\activate
+python3 -m venv .venv
+source .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
@@ -184,7 +184,7 @@ pip install -r requirements.txt
 #  Windows
 cd backend
 python -m venv venv
-source venv/bin/activate                 
+venv\Scripts\Activate.ps1             
 pip install -r requirements.txt
 ```
 

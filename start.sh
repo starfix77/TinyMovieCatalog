@@ -54,7 +54,7 @@ sleep 2
 echo "Démarrage du backend..."
 
 cd "$PROJECT_DIR/backend"
-
+python3 -m venv .venv
 source .venv/bin/activate
 python -m uvicorn app.main:app --reload --port 8000 \
     > "$PROJECT_DIR/backend.log" 2>&1 &

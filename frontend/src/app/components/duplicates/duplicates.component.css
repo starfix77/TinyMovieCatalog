@@ -1,6 +1,17 @@
-.duplicates-page { max-width: 1600px; margin: 0 auto; padding: 28px 32px 48px; }
-.page-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; margin-bottom: 24px; }
-.eyebrow { color:var(--accent); font-size:11px; letter-spacing:.16em; font-weight:700; }
+.duplicates-page {
+   padding: 28px 32px 48px;
+}
+
+.page-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.
+eyebrow { color:var(--accent); font-size:11px; letter-spacing:.16em; font-weight:700; }
 .page-heading h1 { font-size:32px; margin:4px 0 5px; }
 .page-heading p { margin:0; color:var(--text-muted); }
 .group-count, .file-count { white-space:nowrap; color:var(--text-muted); font-size:12px; border:1px solid var(--border); border-radius:20px; padding:5px 10px; }

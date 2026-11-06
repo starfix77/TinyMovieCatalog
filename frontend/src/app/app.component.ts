@@ -73,7 +73,13 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
-    if (this.menuOpen && !this.navSlot.nativeElement.contains(event.target as Node)) {
+    if (!this.menuOpen) {
+      return;
+    }
+    // composedPath() est calcule au moment du clic : il reste valide meme si le noeud clique
+    // (ex. le SVG du burger, remplace par la croix) a ete retire du DOM par le re-rendu.
+    const insideMenu = event.composedPath().includes(this.navSlot.nativeElement);
+    if (!insideMenu) {
       this.closeMenu();
     }
   }

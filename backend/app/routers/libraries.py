@@ -12,7 +12,7 @@ from app.database import get_db
 from app.models import Library, Movie, VideoFile
 from app.schemas import (
     CompareAudioTrack, CompareOut, CompareRow, CompareVideoDetail, LibraryCreate, LibraryImportOut,
-    LibraryImportRequest, LibraryInfoOut, LibraryOut, ScanRequest, ScanResult, ThumbnailJobOut,
+    LibraryImportRequest, LibraryInfoOut, LibraryOut, LibraryUpdate, ScanRequest, ScanResult, ThumbnailJobOut,
 )
 from app import library_transfer
 from app.fs_utils import refresh_library_fs_stats
@@ -51,6 +51,38 @@ def create_library(payload: LibraryCreate, db: Session = Depends(get_db)):
 
     out = LibraryOut.model_validate(library)
     out.movie_count = 0
+    return out
+
+
+@router.put("/{library_id}", response_model=LibraryOut)
+def update_library(library_id: int, payload: LibraryUpdate, db: Session = Depends(get_db)):
+    """Met a jour le nom, le type et le dossier racine d'une bibliotheque."""
+    library = db.get(Library, library_id)
+    if not library:
+        raise HTTPException(404, "Bibliotheque introuvable.")
+
+    name = payload.name.strip()
+    root_path = payload.root_path.strip()
+    if not name or not root_path:
+        raise HTTPException(400, "Le nom et le dossier racine sont obligatoires.")
+
+    duplicate = (
+        db.query(Library)
+        .filter(Library.root_path == root_path, Library.id != library_id)
+        .first()
+    )
+    if duplicate:
+        raise HTTPException(409, "Une bibliotheque pointe deja vers ce dossier racine.")
+
+    library.name = name
+    library.root_path = root_path
+    library.media_type = payload.media_type
+    refresh_library_fs_stats(library)  # le dossier racine a pu changer de filesystem
+    db.commit()
+    db.refresh(library)
+
+    out = LibraryOut.model_validate(library)
+    out.movie_count = db.query(func.count(Movie.id)).filter(Movie.library_id == library.id).scalar() or 0
     return out
 
 

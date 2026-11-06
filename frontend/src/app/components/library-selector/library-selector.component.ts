@@ -38,6 +38,14 @@ export class LibrarySelectorComponent implements OnInit {
   scanStructureMode: 'simple' | 'mixed' = 'mixed';
   scanMaxDepth = 1;
 
+  // ---------- Boite de dialogue de modification d'une bibliotheque ----------
+  editDialogLibrary = signal<Library | null>(null);
+  editName = '';
+  editPath = '';
+  editMediaType: MediaType = 'movie';
+  editError = signal<string | null>(null);
+  editSaving = signal(false);
+
   @ViewChild('scanYesBtn') private scanYesBtnRef?: ElementRef<HTMLButtonElement>;
 
   constructor() {
@@ -132,6 +140,46 @@ export class LibrarySelectorComponent implements OnInit {
     this.libraryService.deleteLibrary(lib.id).subscribe(() => {
       this.pendingDeleteId.set(null);
       this.refresh();
+    });
+  }
+
+  /** Ouvre la boite de dialogue de modification d'une bibliotheque. */
+  askEdit(lib: Library, event: Event): void {
+    event.stopPropagation();
+    this.editName = lib.name;
+    this.editPath = lib.root_path;
+    this.editMediaType = lib.media_type ?? 'movie';
+    this.editError.set(null);
+    this.editSaving.set(false);
+    this.editDialogLibrary.set(lib);
+  }
+
+  cancelEditDialog(): void {
+    this.editDialogLibrary.set(null);
+  }
+
+  confirmEditDialog(): void {
+    const lib = this.editDialogLibrary();
+    if (!lib || this.editSaving()) return;
+
+    const name = this.editName.trim();
+    const rootPath = this.editPath.trim();
+    if (!name || !rootPath) {
+      this.editError.set('Le nom et le dossier racine sont obligatoires.');
+      return;
+    }
+
+    this.editSaving.set(true);
+    this.editError.set(null);
+    this.libraryService.updateLibrary(lib.id, { name, root_path: rootPath, media_type: this.editMediaType }).subscribe({
+      next: () => {
+        this.editSaving.set(false);
+        this.editDialogLibrary.set(null);
+      },
+      error: (err) => {
+        this.editSaving.set(false);
+        this.editError.set(err?.error?.detail ?? 'Impossible de modifier la bibliotheque.');
+      },
     });
   }
 

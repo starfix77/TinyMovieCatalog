@@ -33,6 +33,12 @@ export interface LibraryCreate {
   media_type: MediaType;
 }
 
+export interface LibraryUpdate {
+  name: string;
+  root_path: string;
+  media_type: MediaType;
+}
+
 export interface ScanResult {
   library_id: number;
   folders_scanned: number;

@@ -12,6 +12,13 @@ class LibraryCreate(BaseModel):
     media_type: Literal["movie", "tv"] = "movie"
 
 
+class LibraryUpdate(BaseModel):
+    """Modification des proprietes d'une bibliotheque."""
+    name: str
+    root_path: str
+    media_type: Literal["movie", "tv"] = "movie"
+
+
 class LibraryOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int

@@ -26,6 +26,7 @@ TinyMovieCatalog est une application web **100 % locale** de gestion de biblioth
 ## 2. Gestion des bibliothèques
 
 - **Création** d'une bibliothèque via « + Nouvelle bibliothèque » : nom, dossier racine, et **type** (*Films* ou *Séries TV*).
+- **Modification** d'une bibliothèque via le bouton « éditer » (icône crayon, à gauche du bouton ⟳) : dialogue « Modifier la librairie » permettant de changer le nom, le type (*Films* / *Séries*) et le dossier racine (mise à jour de la table `libraries`, `PUT /api/libraries/{id}`, erreur 409 si le dossier racine est déjà utilisé par une autre bibliothèque).
 - **Plusieurs bibliothèques** simultanées, avec bascule en un clic depuis le panneau latéral gauche.
 - **Unicité du dossier racine** : une seule bibliothèque par dossier (erreur 409 sinon).
 - **Icône de type** (pellicule / téléviseur) dans le panneau latéral et dans l'en-tête.

@@ -2,7 +2,7 @@
   <div class="brand">
     <!-- <span class="brand-mark">MF</span> -->
     <div>
-      <h1>TinyMovieCatalog v0.9.21</h1>
+      <h1>TinyMovieCatalog v0.9.22</h1>
       <p class="tagline">Collection de Films / TV</p>
     </div>
   </div>
@@ -28,6 +28,13 @@
         <div class="library-item-meta">
           <span class="movie-count">{{ countLabel(lib) }}</span>
           <div class="library-actions">
+            <button class="icon-btn" title="Editer cette bibliotheque" aria-label="Editer cette bibliotheque" (click)="askEdit(lib, $event)">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+              </svg>
+            </button>
             <button class="icon-btn" title="Scanner cette bibliotheque" (click)="askScan(lib, $event)" [disabled]="scanningId() === lib.id">
               {{ scanningId() === lib.id ? '…' : '⟳' }}
             </button>
@@ -175,6 +182,50 @@
       <div class="scan-dialog-actions">
         <button type="button" class="btn btn-ghost" (click)="cancelScanDialog()">Annuler</button>
         <button #scanYesBtn type="button" class="btn btn-primary" (click)="confirmScanDialog()">Oui</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (editDialogLibrary()) {
+  <div class="scan-dialog-backdrop" (click)="cancelEditDialog()">
+    <div class="scan-dialog edit-dialog" role="dialog" aria-modal="true" aria-labelledby="edit-dialog-title"
+         (click)="$event.stopPropagation()" (keydown.escape)="cancelEditDialog()">
+      <h2 id="edit-dialog-title" class="edit-dialog-title">Modifier la librairie</h2>
+
+      <div class="edit-dialog-fields">
+        <label class="edit-field">
+          <span>Nom</span>
+          <input type="text" name="edit-name" [(ngModel)]="editName" (keydown.enter)="confirmEditDialog()" autofocus />
+        </label>
+
+        <fieldset class="media-type-choice edit-type">
+          <legend>Type</legend>
+          <label class="media-type-option" [class.selected]="editMediaType === 'movie'">
+            <input type="radio" name="edit-library-type" value="movie" [(ngModel)]="editMediaType" />
+            <app-media-type-icon type="movie" [size]="16"></app-media-type-icon>
+            <span>Films</span>
+          </label>
+          <label class="media-type-option" [class.selected]="editMediaType === 'tv'">
+            <input type="radio" name="edit-library-type" value="tv" [(ngModel)]="editMediaType" />
+            <app-media-type-icon type="tv" [size]="16"></app-media-type-icon>
+            <span>Séries</span>
+          </label>
+        </fieldset>
+
+        <label class="edit-field">
+          <span>Dossier racine</span>
+          <input type="text" name="edit-path" [(ngModel)]="editPath" (keydown.enter)="confirmEditDialog()" />
+        </label>
+
+        @if (editError()) {
+          <p class="form-error">{{ editError() }}</p>
+        }
+      </div>
+
+      <div class="scan-dialog-actions">
+        <button type="button" class="btn btn-ghost" (click)="cancelEditDialog()">Annuler</button>
+        <button type="button" class="btn btn-primary" [disabled]="editSaving()" (click)="confirmEditDialog()">Modifier</button>
       </div>
     </div>
   </div>

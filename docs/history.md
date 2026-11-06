@@ -232,3 +232,23 @@ Backend
   - Une nouvelle table notes stocke une note par film ou série. Elle se crée toute seule au démarrage, sans migration à lancer.
   - Enregistrer un texte vide supprime la note, et le film disparaît alors de la vue « Notes ».
   - Supprimer une bibliothèque supprime aussi ses notes.
+
+
+
+**v0.9.22** - Modification des propriétés d’une librairie
+
+Interface / Frontend
+
+  - Un bouton avec une icône SVG de crayon se trouve à gauche du bouton « Scanner cette bibliotheque » (⟳), avec le titre « Editer cette bibliotheque ».
+  - Le dialogue reprend le style de celui du scan : fond assombri, fermeture au clic extérieur.
+  -Il contient le titre Modifier la librairie, le champ Nom, le choix Type (Films ou Séries) et le champ Dossier racine. Les champs sont préremplis avec les valeurs actuelles.
+  - Annuler ferme le dialogue sans rien enregistrer. Modifier enregistre, puis la liste se rafraîchit toute seule, ainsi que la page Info.
+  Si le nom ou le dossier est vide, ou si le serveur refuse (dossier déjà utilisé), un message d’erreur s’affiche dans le dialogue.
+
+Backend
+
+  - Nouvelle route PUT /api/libraries/{id}.
+   Elle renvoie une erreur 409 si le dossier racine est déjà utilisé par une autre bibliothèque, 404 si la bibliothèque n’existe pas, et 400 si le nom ou le dossier est vide.
+  Elle relit aussi la taille du disque pour le nouveau dossier racine.
+
+*Avertissement: Changer le type ou le dossier racine ne relance pas de scan et ne modifie pas les films déjà en base. Après un changement de type ou de dossier, il faut donc relancer un scan pour que le contenu corresponde.*

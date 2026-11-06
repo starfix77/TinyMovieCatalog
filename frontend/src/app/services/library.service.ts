@@ -4,7 +4,7 @@ import { Observable, tap } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 import {
-  Library, LibraryCreate, LibraryInfo, ScanResult, ScanProgress, ScanCompareMode,
+  Library, LibraryCreate, LibraryUpdate, LibraryInfo, ScanResult, ScanProgress, ScanCompareMode,
   CompareDepth, CompareMode, CompareResult, LibraryImportResult, ThumbnailJob,
 } from '../models/library.model';
 
@@ -74,6 +74,17 @@ export class LibraryService {
 
   createLibrary(payload: LibraryCreate): Observable<Library> {
     return this.http.post<Library>(this.baseUrl, payload);
+  }
+
+  /** Met a jour le nom, le type et le dossier racine d'une bibliotheque,
+   *  puis rafraichit la liste partagee. */
+  updateLibrary(id: number, payload: LibraryUpdate): Observable<Library> {
+    return this.http.put<Library>(`${this.baseUrl}/${id}`, payload).pipe(
+      tap(() => {
+        this.loadLibraries().subscribe();
+        this.notifyMoviesChanged(); // la page Info / les vues se rechargent
+      })
+    );
   }
 
   deleteLibrary(id: number): Observable<void> {

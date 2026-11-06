@@ -252,3 +252,14 @@ Backend
   Elle relit aussi la taille du disque pour le nouveau dossier racine.
 
 *Avertissement: Changer le type ou le dossier racine ne relance pas de scan et ne modifie pas les films déjà en base. Après un changement de type ou de dossier, il faut donc relancer un scan pour que le contenu corresponde.*
+
+
+
+**v0.9.23** - Sidebar Toogle button - Menu Burger
+- *Icône du bouton sidebar-toggle*
+  Le caractère ☰ est remplacé par une icône SVG « panneau latéral » : un rectangle avec un séparateur vertical.
+  Le panneau de gauche est légèrement rempli quand le bandeau latéral est visible, et vide quand il est masqué.
+- *navbar menu burger*
+  Détection : le menu passe en burger quand les liens ne tiennent plus à l’horizontale, selon la place réellement disponible dans le bandeau (pas un seuil fixe en pixels). Cela prend en compte l’ouverture ou la fermeture de la sidebar, le nom de la bibliothèque active, le passage Films/Séries TV (le lien « Saga » disparaît) et le bouton de thème.
+  Menu : un clic sur l’icône burger ouvre un panneau sous le bouton, avec les liens en colonne. L’icône devient une croix quand le menu est ouvert.
+  Fermeture : le menu se ferme au clic sur un lien, au clic en dehors, avec la touche Échap, ou quand la largeur redevient suffisante.

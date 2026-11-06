@@ -256,6 +256,7 @@ Backend
 
 
 **v0.9.23** - Sidebar Toogle button - Menu Burger
+
 - *Icône du bouton sidebar-toggle*
   Le caractère ☰ est remplacé par une icône SVG « panneau latéral » : un rectangle avec un séparateur vertical.
   Le panneau de gauche est légèrement rempli quand le bandeau latéral est visible, et vide quand il est masqué.
@@ -263,3 +264,9 @@ Backend
   Détection : le menu passe en burger quand les liens ne tiennent plus à l’horizontale, selon la place réellement disponible dans le bandeau (pas un seuil fixe en pixels). Cela prend en compte l’ouverture ou la fermeture de la sidebar, le nom de la bibliothèque active, le passage Films/Séries TV (le lien « Saga » disparaît) et le bouton de thème.
   Menu : un clic sur l’icône burger ouvre un panneau sous le bouton, avec les liens en colonne. L’icône devient une croix quand le menu est ouvert.
   Fermeture : le menu se ferme au clic sur un lien, au clic en dehors, avec la touche Échap, ou quand la largeur redevient suffisante.
+
+
+**v0.9.24** - Fix clic sur l'icone du menu Burger
+
+Correction die bug du burger : le menu s’ouvre maintenant aussi quand on clique au centre de l’icône.
+Cause : en cliquant sur le SVG, le menu s’ouvrait, puis Angular remplaçait immédiatement l’icône burger par la croix. Le gestionnaire de clic « en dehors du menu » recevait alors un élément déjà retiré de la page, ne le trouvait plus dans le conteneur du menu et refermait aussitôt. Cliquer sur la marge du bouton marchait parce que le bouton lui-même n’est pas supprimé.

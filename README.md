@@ -171,6 +171,15 @@ TMDB_LANGUAGE=fr-FR
 FFPROBE_PATH=ffprobe   # ou chemin complet si ffprobe n'est pas dans le PATH
 FFPLAY_PATH=ffplay     # utilise par le bouton PLAY (ou chemin complet si ffplay n'est pas dans le PATH)
 ```
+Configuration `backend/.env`
+
+| Variable | Rôle | Valeur par défaut |
+|---|---|---|
+| `TMDB_API_KEY` | Obtenir une Clé API TheMovieDB  (gratuite):<br>https://www.themoviedb.org/settings/api | vide |
+| `TMDB_LANGUAGE` | Langue des métadonnées | `fr-FR` |
+| `FFPROBE_PATH` | Chemin de `ffprobe` | `ffprobe` |
+| `FFPLAY_PATH` | Chemin de `ffplay` (si `FFPROBE_PATH` est un chemin complet, `ffplay` est cherché dans le même dossier) | `ffplay` |
+
 
 ```bash
 #  Linux / macOS
@@ -219,21 +228,21 @@ uvicorn app.main:app --reload --port 8000
 
 
 
-L'application est disponible sur le lien 'http://localhost:4200'
+L'application est disponible sur le lien http://localhost:4200
 
 
 
 
 
 La documentation des API est disponible Swagger sur `http://localhost:8000/docs`.
-Les API backend sont accèssibles depuis l'URL: http://localhost:8000
+Les API backend sont accèssibles depuis l'URL: `http://localhost:8000`
 
-Pour information, l'URL de l'API est définie dans `src/environments/environment.ts`
-(apiUrl: 'http://localhost:8000/api'). Modifiez-la si votre backend tourne sur une autre machine/port.
+Pour information, l'URL de l'API est définie dans *src/environments/environment.ts*
+(apiUrl: `http://localhost:8000/api`). Modifiez-la si votre backend tourne sur une autre machine/port.
 
 
 Puis suivre les étapes ci-dessous:
-1. L'application est disponible sur `http://localhost:4200` en mode developement ou `http://localhost:3000` en mode build (npm build au préalable)
+1. L'application est disponible sur http://localhost:4200 en mode developement ou `http://localhost:3000` en mode build (npm build au préalable)
 
 2. Dans le panneau de gauche, cliquez sur **"+ Nouvelle bibliotheque"**, donnez-lui
    un nom et indiquez le chemin du dossier racine (ex. `C:\movies` ou
@@ -245,14 +254,16 @@ Puis suivre les étapes ci-dessous:
    - téléchargement de l'affiche dans `backend/data/thumbnails/` (dossier
      commun a toutes les bibliothèques).
 4. Basculez entre les bibliotheques via le panneau de gauche.
-5. Quatre vues sont disponibles en haut de la page :
+5. Plusieurs vues sont disponibles en haut de la page :
    - **Vignettes** : grille d'affiches avec recherche, clic pour voir le detail
      (synopsis, distribution, pistes audio, sous-titres).
    - **Genre** : Explorez tous vos films classés par genre 
    - **Saga** : Liste des collection Saga avec la liste des films disponibles dans la   bibliothèques sous forme de grille
    - **Acteur / filmographie** : filmographie d'un acteur/actrice
-   - **Detail technique** : tableau tri­able (nom du film, fichier, encodage,
+   - **Détail technique** : tableau tri­able (nom du film, fichier, encodage,
      resolution, taille, pistes audio) avec recherche.
+   - **Doublon** : détection de doublons dans une bibliothèque
+   - **Notes** : ajout de notes sur les films et séries
    - **Info** : page d'information de la bibliothèque (nom, Dossier Racine, Taille disque, Taille disponible gauge d'utilisation)
    - **Outils des bibliotheques** (bouton **Outils** du panneau de gauche) : ouvre une vue avec 3 gros boutons.
      - **Comparer des bibliotheques** : compare deux bibliotheques (identique / manquant a droite / manquant a gauche), en comparaison simple (nom du dossier) ou approfondie (nom et taille du fichier video). La comparaison s'appuie sur le dernier scan de chaque bibliotheque.

@@ -148,6 +148,11 @@ La barre d'onglets supérieure propose les vues suivantes.
 - Bouton **« Tout masquer / Tout afficher »**.
 - Saison et épisode lus dans le nom du fichier (`S01E01`, `1x01`, `E01`, `Ep01`, `Episode 01`), sinon saison déduite du dossier, sinon saison 1.
 
+### 6.6 bis Notes — `/notes`
+- Onglet **« Notes »** (icône SVG) dans l'en-tête, à droite de « Doublons ».
+- Tableau de tous les films / séries de la bibliothèque active ayant une note : **titre** (en-tête « Titre du film » ou « Titre de la série » selon le type de la bibliothèque), bouton **« Fiche »** (ouvre la fiche détaillée) et **texte de la note** (affiché sur plusieurs lignes, retours à la ligne conservés).
+- La liste se rafraîchit après modification ou suppression d'une note depuis la fiche.
+
 ### 6.7 Info — `/info`
 - Nom, **dossier racine**, type, nombre d'éléments, date de création et de dernier scan.
 - **Espace disque** : taille totale, espace disponible, **jauge d'utilisation** (relue à chaque ouverture de la page).
@@ -157,6 +162,8 @@ La barre d'onglets supérieure propose les vues suivantes.
 ## 7. Fiche détaillée d'un film / d'une série
 
 Fenêtre modale accessible depuis la plupart des vues.
+
+- Bouton **« Note »** (sous « Voir sur TMDB ») : ouvre la boîte de dialogue **Notes** (zone de texte libre multi-lignes, boutons « Annuler » / « Enregistrer »). La note est enregistrée en base (table `notes`, une note par film/série) ; enregistrer un texte vide supprime la note. Les notes sont incluses dans l'export / import de bibliothèque.
 
 **Informations affichées**
 - Affiche, titre, année, titre original, genres, synopsis.

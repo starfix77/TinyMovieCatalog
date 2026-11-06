@@ -42,6 +42,14 @@
           </a>
         }
 
+        <button type="button" class="note-btn" (click)="openNoteDialog()" title="Ajouter ou modifier la note">
+          <svg class="note-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M5 3h10l4 4v14H5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M8.5 11h7M8.5 14.5h7M8.5 18h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <span>Note</span>
+        </button>
+
         <div class="rating-perso" [title]="'Ma note : ' + ratingLabel(displayRating) + ' / 5'">
           <div class="stars" role="slider" tabindex="0" aria-label="Ma note"
                aria-valuemin="0" aria-valuemax="5" [attr.aria-valuenow]="movie.rating_perso"
@@ -240,6 +248,36 @@
           <button class="secondary-btn" (click)="cancelMetadataEdit()" [disabled]="saving">Annuler</button>
           <button class="primary-btn" (click)="saveMetadata()" [disabled]="!selectedCandidateId || saving">
             {{ saving ? 'Mise à jour…' : 'Remplacer les informations' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (noteDialogOpen) {
+    <div class="editor-backdrop" (click)="closeNoteDialog()">
+      <div class="editor-panel note-dialog" role="dialog" aria-modal="true" aria-labelledby="note-dialog-title" (click)="$event.stopPropagation()">
+        <div class="editor-header">
+          <div>
+            <h3 id="note-dialog-title">Notes</h3>
+            <p>{{ movie.title }}@if (movie.year) { ({{ movie.year }}) }</p>
+          </div>
+          <button class="editor-close" (click)="closeNoteDialog()" aria-label="Fermer">✕</button>
+        </div>
+
+        <div class="note-body">
+          <textarea class="note-textarea" rows="12" aria-label="Note"
+                    [(ngModel)]="noteText"
+                    [disabled]="noteLoading || noteSaving"
+                    [placeholder]="noteLoading ? 'Chargement…' : 'Saisissez votre note…'"></textarea>
+        </div>
+
+        @if (noteError) { <div class="editor-error">{{ noteError }}</div> }
+
+        <div class="editor-actions">
+          <button class="secondary-btn" (click)="closeNoteDialog()" [disabled]="noteSaving">Annuler</button>
+          <button class="primary-btn" (click)="saveNote()" [disabled]="noteLoading || noteSaving">
+            {{ noteSaving ? 'Enregistrement…' : 'Enregistrer' }}
           </button>
         </div>
       </div>

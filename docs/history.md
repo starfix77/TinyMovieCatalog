@@ -219,3 +219,16 @@ Numéro d’épisode : il est lu dans le nom du fichier (S01E02, 1x02, E02, Epis
 - Bibliothèques « Séries TV » : nouvelle vue « Détail technique » (composant `movie-detail-tv`) : une section dépliable / repliable par série (vignette + nom + nombre d'épisodes et taille cumulée), boutons « Tout déplier / Tout replier » et recherche « Rechercher une série TV… »
 - Chaque section contient un tableau des épisodes (ordre alphabétique par défaut) : N° d'épisode (déduit du nom de fichier), fichier vidéo (tronqué si trop long), encodage, résolution, taille et pistes audio ; toutes les colonnes sont triables sauf « Pistes audio »
 - Bibliothèques « Films » : vue « Détail technique » inchangée (la route `/technique` choisit la vue selon le type de la bibliothèque active)
+
+**v0.9.21** - Notes sur les films et séries
+
+- Fiche détaillée : bouton « Note » sous « Voir sur TMDB » ouvrant une boîte de dialogue « Notes » (texte libre multi-lignes, Annuler / Enregistrer) ; sauvegarde en base dans la table `notes`
+- En-tête : nouvel onglet « Notes » (icône SVG) à droite de « Doublons »
+- Nouvelle vue « Notes » : tableau des films / séries ayant une note (titre, bouton « Fiche », texte multi-lignes)
+- Les notes sont incluses dans l’export et l’import de bibliothèque, comme la note personnelle en étoiles. Les anciens exports restent lisibles.
+
+Backend
+  - API : `GET /api/notes?library_id=`, `GET|PUT /api/movies/{id}/note` ; les notes sont incluses dans l'export / import de bibliothèque
+  - Une nouvelle table notes stocke une note par film ou série. Elle se crée toute seule au démarrage, sans migration à lancer.
+  - Enregistrer un texte vide supprime la note, et le film disparaît alors de la vue « Notes ».
+  - Supprimer une bibliothèque supprime aussi ses notes.

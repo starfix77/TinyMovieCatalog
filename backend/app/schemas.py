@@ -207,6 +207,33 @@ class MovieRatingUpdate(BaseModel):
         return float(value)
 
 
+# ---------- Notes ----------
+
+class NoteOut(BaseModel):
+    """Note d'un film / d'une serie ('' si aucune note n'est enregistree)."""
+    movie_id: int
+    content: str = ""
+
+
+class NoteUpdate(BaseModel):
+    content: str
+
+
+class NoteListItem(BaseModel):
+    """Ligne de la vue 'Notes' : un film/une serie ayant une note."""
+    movie_id: int
+    title: str
+    year: Optional[int] = None
+    folder_name: str
+    media_type: str = "movie"
+    content: str
+
+
+class NoteListOut(BaseModel):
+    total: int
+    items: List[NoteListItem]
+
+
 class TmdbCandidateOut(BaseModel):
     tmdb_id: int
     title: str

@@ -108,6 +108,23 @@ class Movie(Base):
     video_files = relationship("VideoFile", back_populates="movie", cascade="all, delete-orphan")
     subtitles = relationship("Subtitle", back_populates="movie", cascade="all, delete-orphan")
     saga = relationship("Saga")
+    # Note libre (zone de texte) associee au film / a la serie : table "notes".
+    note_entry = relationship("Note", back_populates="movie", uselist=False,
+                              cascade="all, delete-orphan")
+
+
+class Note(Base):
+    """Note libre (texte multi-lignes) associee a un film ou a une serie.
+    Une seule note par film ; la ligne n'existe que si une note est saisie."""
+    __tablename__ = "notes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    movie_id = Column(Integer, ForeignKey("movies.id"), nullable=False, unique=True, index=True)
+    content = Column(Text, nullable=False, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    movie = relationship("Movie", back_populates="note_entry")
 
 
 class VideoFile(Base):

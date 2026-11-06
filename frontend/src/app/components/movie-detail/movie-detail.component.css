@@ -607,3 +607,45 @@
 .episode-play .play-icon { width: 12px; height: 12px; }
 .episode-play:hover:not(:disabled) { filter: brightness(1.1); }
 .episode-play:disabled { opacity: .5; cursor: wait; }
+
+/* ---------- Bouton et dialogue Note ---------- */
+.note-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.note-btn:hover { background: var(--surface-hover); color: var(--text); border-color: var(--border); }
+.note-icon { width: 16px; height: 16px; flex-shrink: 0; }
+
+.note-dialog { width: min(640px, 100%); }
+.note-body { padding: 16px 20px 6px; display: flex; flex-direction: column; min-height: 0; }
+.note-textarea {
+  width: 100%;
+  min-height: 220px;
+  max-height: 55vh;
+  box-sizing: border-box;
+  resize: vertical;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.note-textarea:focus { outline: none; border-color: var(--accent); }
+.note-textarea:disabled { opacity: .6; }
+.note-dialog .editor-error { margin-top: 10px; }

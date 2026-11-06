@@ -31,7 +31,7 @@ from sqlalchemy.orm import Session, joinedload
 from app import tmdb
 from app.config import settings
 from app.models import (
-    AudioTrack, Library, Movie, Saga, SagaMovie, Subtitle, VideoFile,
+    AudioTrack, Library, Movie, Note, Saga, SagaMovie, Subtitle, VideoFile,
 )
 
 FORMAT_NAME = "TinyMovieCatalog.library"
@@ -87,6 +87,7 @@ def export_library(db: Session, library: Library) -> dict:
         db.query(Movie)
         .options(joinedload(Movie.video_files).joinedload(VideoFile.audio_tracks),
                  joinedload(Movie.subtitles),
+                 joinedload(Movie.note_entry),
                  joinedload(Movie.saga).joinedload(Saga.entries))
         .filter(Movie.library_id == library.id)
         .order_by(Movie.id)
@@ -108,6 +109,8 @@ def export_library(db: Session, library: Library) -> dict:
             ]
             item["video_files"].append(v)
         item["subtitles"] = [_dump(s, SUBTITLE_FIELDS) for s in movie.subtitles]
+        # Cle optionnelle (absente des anciens exports) : format toujours v1.
+        item["note"] = movie.note_entry.content if movie.note_entry else None
         movies_out.append(item)
 
     sagas_out = []
@@ -290,6 +293,10 @@ def import_library(db: Session, data: dict, name: Optional[str] = None,
                     t = _values(rt, AUDIO_FIELDS)
                     t["track_index"] = t.get("track_index") or 0
                     db.add(AudioTrack(video_file_id=video.id, **t))
+
+            note_text = raw.get("note")
+            if isinstance(note_text, str) and note_text.strip():
+                db.add(Note(movie_id=movie.id, content=note_text))
 
             for rs in raw.get("subtitles", []):
                 s = _values(rs, SUBTITLE_FIELDS)

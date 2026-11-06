@@ -1,0 +1,53 @@
+<section class="notes-page">
+  <header class="page-heading">
+    <div>
+      <h2>Notes</h2>
+      <p>{{ isTv() ? 'Séries' : 'Films' }} de la bibliothèque sélectionnée ayant une note.</p>
+    </div>
+    <span class="group-count">{{ notes().length }} note{{ notes().length > 1 ? 's' : '' }}</span>
+  </header>
+
+  @if (loading() && !notes().length) {
+    <div class="state-message">Chargement des notes…</div>
+  } @else if (error() && !notes().length) {
+    <div class="state-message error">{{ error() }}</div>
+  } @else if (!notes().length) {
+    <div class="empty-state">
+      <h3>Aucune note</h3>
+      <p>Utilisez le bouton « Note » de la fiche d’{{ isTv() ? 'une série' : 'un film' }} pour en ajouter une.</p>
+    </div>
+  } @else {
+    @if (error()) { <div class="state-message error inline-error">{{ error() }}</div> }
+    <div class="notes-table-wrap">
+      <table class="notes-table">
+        <thead>
+          <tr>
+            <th class="col-title">{{ isTv() ? 'Titre de la série' : 'Titre du film' }}</th>
+            <th class="col-sheet">Fiche</th>
+            <th class="col-note">Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of notes(); track trackNote($index, item)) {
+            <tr>
+              <td class="col-title">
+                {{ item.title }}@if (item.year) { <span class="year">({{ item.year }})</span> }
+              </td>
+              <td class="col-sheet">
+                <button type="button" class="sheet-btn" (click)="openDetail(item)" [disabled]="openingId() !== null"
+                        [attr.aria-label]="'Ouvrir la fiche de ' + item.title">
+                  {{ openingId() === item.movie_id ? '…' : 'Fiche' }}
+                </button>
+              </td>
+              <td class="col-note"><div class="note-text">{{ item.content }}</div></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+@if (selectedMovie()) {
+  <app-movie-detail [movie]="selectedMovie()!" (close)="closeDetail()" (movieUpdated)="onMovieUpdated($event)" (noteSaved)="onNoteSaved()"></app-movie-detail>
+}

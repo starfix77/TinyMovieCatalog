@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { MovieService } from '../../services/movie.service';
+import { NoteService } from '../../services/note.service';
 import { CastMember, Movie, MoviePoster, TmdbCandidate, TmdbLanguage, VideoFile } from '../../models/movie.model';
 
 /** Ligne du tableau des episodes d'une serie. */
@@ -21,10 +22,13 @@ export interface EpisodeRow {
 })
 export class MovieDetailComponent {
   private readonly movieService = inject(MovieService);
+  private readonly noteService = inject(NoteService);
 
   @Input({ required: true }) movie!: Movie;
   @Output() close = new EventEmitter<void>();
   @Output() movieUpdated = new EventEmitter<Movie>();
+  /** Emis apres l'enregistrement (ou la suppression) de la note du film. */
+  @Output() noteSaved = new EventEmitter<number>();
 
   editing = false;
   loadingCandidates = false;
@@ -352,6 +356,52 @@ export class MovieDetailComponent {
       error: (error) => {
         this.playing = false;
         this.playError = error?.error?.detail || 'Impossible de lancer la lecture du film.';
+      },
+    });
+  }
+
+  // ---------- Note libre (table "notes") ----------
+  noteDialogOpen = false;
+  noteText = '';
+  noteLoading = false;
+  noteSaving = false;
+  noteError = '';
+
+  openNoteDialog(): void {
+    this.noteDialogOpen = true;
+    this.noteText = '';
+    this.noteError = '';
+    this.noteLoading = true;
+    this.noteService.getNote(this.movie.id).subscribe({
+      next: (note) => {
+        this.noteText = note.content ?? '';
+        this.noteLoading = false;
+        setTimeout(() => document.querySelector<HTMLTextAreaElement>('.note-textarea')?.focus(), 50);
+      },
+      error: (error) => {
+        this.noteLoading = false;
+        this.noteError = error?.error?.detail || 'Impossible de charger la note.';
+      },
+    });
+  }
+
+  closeNoteDialog(): void {
+    if (!this.noteSaving) this.noteDialogOpen = false;
+  }
+
+  saveNote(): void {
+    if (this.noteSaving || this.noteLoading) return;
+    this.noteSaving = true;
+    this.noteError = '';
+    this.noteService.saveNote(this.movie.id, this.noteText).subscribe({
+      next: () => {
+        this.noteSaving = false;
+        this.noteDialogOpen = false;
+        this.noteSaved.emit(this.movie.id);
+      },
+      error: (error) => {
+        this.noteSaving = false;
+        this.noteError = error?.error?.detail || 'Impossible d’enregistrer la note.';
       },
     });
   }

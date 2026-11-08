@@ -134,6 +134,53 @@ class ScanResult(BaseModel):
     errors: List[str] = []
 
 
+# ---------- Journal ----------
+
+class JournalEntryOut(BaseModel):
+    """Une ligne du journal de la bibliotheque (niveau bibliotheque)."""
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    action: str                      # create | update | scan
+    details: Optional[str] = None
+    compare_mode: Optional[str] = None
+    structure_mode: Optional[str] = None
+    max_depth: Optional[int] = None
+    files_added: int = 0
+    files_modified: int = 0
+    files_deleted: int = 0
+    created_at: datetime
+
+
+class JournalFileAudio(BaseModel):
+    language: Optional[str] = None
+    codec: Optional[str] = None
+    bitrate: Optional[int] = None
+    channels: Optional[int] = None
+
+
+class JournalFileOut(BaseModel):
+    """Detail d'un fichier film / episode concerne par un evenement de scan."""
+    id: int
+    status: str                      # created | modified | deleted
+    movie_id: Optional[int] = None
+    movie_title: Optional[str] = None
+    movie_year: Optional[int] = None
+    poster_filename: Optional[str] = None
+    filename: str
+    size_bytes: Optional[int] = None
+    video_codec: Optional[str] = None
+    width: Optional[int] = None
+    height: Optional[int] = None
+    audio_tracks: List[JournalFileAudio] = []
+    subtitles: List[str] = []
+    created_at: datetime
+
+
+class JournalOut(BaseModel):
+    total: int
+    items: List[JournalEntryOut]
+
+
 # ---------- Audio tracks ----------
 
 class AudioTrackOut(BaseModel):

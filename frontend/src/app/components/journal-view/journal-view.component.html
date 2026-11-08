@@ -1,0 +1,134 @@
+<section class="journal-page">
+  <header class="page-heading">
+    <div>
+      <h2>Journal de la bibliothèque</h2>
+      <p>Historique des créations, modifications et scans de la bibliothèque sélectionnée.</p>
+    </div>
+    <span class="group-count">{{ entries().length }} évènement{{ entries().length > 1 ? 's' : '' }}</span>
+  </header>
+
+  @if (loading() && !entries().length) {
+    <div class="state-message">Chargement du journal…</div>
+  } @else if (error() && !entries().length) {
+    <div class="state-message error">{{ error() }}</div>
+  } @else if (!entries().length) {
+    <div class="empty-state">
+      <h3>Journal vide</h3>
+      <p>Les créations, modifications et scans de la bibliothèque apparaîtront ici.</p>
+    </div>
+  } @else {
+    <div class="journal-table-wrap">
+      <table class="journal-table">
+        <thead>
+          <tr>
+            <th class="col-toggle"><span class="sr-only">Masquer / Afficher les détails</span></th>
+            <th class="col-date">Date / heure</th>
+            <th class="col-status">Statut</th>
+            <th class="col-num">{{ isTv() ? 'Épisodes ajoutés' : 'Fichiers ajoutés' }}</th>
+            <th class="col-num">{{ isTv() ? 'Épisodes modifiés' : 'Fichiers modifiés' }}</th>
+            <th class="col-num">{{ isTv() ? 'Épisodes supprimés' : 'Fichiers supprimés' }}</th>
+          </tr>
+        </thead>
+        @for (entry of entries(); track entry.id) {
+          <tbody>
+            <tr class="entry-row" [class.open]="isExpanded(entry.id)">
+              <td class="col-toggle">
+                <button type="button" class="toggle-btn" [disabled]="!hasDetails(entry)"
+                        (click)="toggle(entry)"
+                        [attr.aria-expanded]="isExpanded(entry.id)"
+                        [attr.aria-label]="isExpanded(entry.id) ? 'Masquer les détails' : 'Afficher les détails'"
+                        [attr.title]="hasDetails(entry) ? (isExpanded(entry.id) ? 'Masquer les détails' : 'Afficher les détails') : 'Aucun détail'">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                       stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"
+                       [class.rotated]="isExpanded(entry.id)">
+                    <path d="M9 6l6 6-6 6" />
+                  </svg>
+                </button>
+              </td>
+              <td class="col-date">{{ entry.created_at | date: 'dd/MM/yyyy HH:mm:ss' }}</td>
+              <td class="col-status">
+                <span class="badge" [ngClass]="'badge-' + entry.action">{{ actionLabel(entry) }}</span>
+                @if (scanOptions(entry)) { <small class="entry-note">{{ scanOptions(entry) }}</small> }
+                @if (entry.details) { <small class="entry-note">{{ entry.details }}</small> }
+              </td>
+              <td class="col-num"><span class="count added" [class.zero]="!entry.files_added">{{ entry.action === 'scan' ? entry.files_added : '—' }}</span></td>
+              <td class="col-num"><span class="count modified" [class.zero]="!entry.files_modified">{{ entry.action === 'scan' ? entry.files_modified : '—' }}</span></td>
+              <td class="col-num"><span class="count deleted" [class.zero]="!entry.files_deleted">{{ entry.action === 'scan' ? entry.files_deleted : '—' }}</span></td>
+            </tr>
+
+            @if (isExpanded(entry.id)) {
+              <tr class="detail-row">
+                <td colspan="6">
+                  @if (loadingDetail().has(entry.id)) {
+                    <div class="detail-state">Chargement du détail…</div>
+                  } @else if (detailError()[entry.id]) {
+                    <div class="detail-state error">{{ detailError()[entry.id] }}</div>
+                  } @else {
+                    <div class="detail-list">
+                      @for (group of groups()[entry.id]; track group.key) {
+                        <article class="movie-block">
+                          <div class="movie-side">
+                            @if (poster(group); as src) {
+                              <img class="movie-thumb" [src]="src" [alt]="'Affiche de ' + group.title" loading="lazy" />
+                            } @else {
+                              <div class="movie-thumb placeholder" aria-hidden="true">🎬</div>
+                            }
+                            <div class="movie-title">{{ group.title }}</div>
+                            @if (group.year) { <div class="movie-year">{{ group.year }}</div> }
+                          </div>
+
+                          <div class="files-wrap">
+                            <table class="files-table">
+                              <thead>
+                                <tr>
+                                  <th>Statut</th>
+                                  <th>Nom du fichier</th>
+                                  <th>Encodage</th>
+                                  <th>Résolution</th>
+                                  <th>Taille</th>
+                                  <th>Pistes audio</th>
+                                  <th>Sous-titres</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                @for (file of group.files; track file.id) {
+                                  <tr>
+                                    <td><span class="badge" [ngClass]="'file-' + file.status">{{ statusLabel(file.status) }}</span></td>
+                                    <td class="file-name" [attr.title]="file.filename">{{ file.filename }}</td>
+                                    <td class="mono">{{ file.video_codec || '—' }}</td>
+                                    <td class="mono">{{ resolution(file) }}</td>
+                                    <td class="mono">{{ formatSize(file.size_bytes) }}</td>
+                                    <td>
+                                      @if (file.audio_tracks.length) {
+                                        <div class="lines">
+                                          @for (track of file.audio_tracks; track $index) {
+                                            <div>{{ trackLabel(track) }}</div>
+                                          }
+                                        </div>
+                                      } @else { — }
+                                    </td>
+                                    <td>
+                                      @if (file.subtitles.length) {
+                                        <div class="lines">
+                                          @for (sub of file.subtitles; track $index) { <div>{{ sub }}</div> }
+                                        </div>
+                                      } @else { — }
+                                    </td>
+                                  </tr>
+                                }
+                              </tbody>
+                            </table>
+                          </div>
+                        </article>
+                      }
+                    </div>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        }
+      </table>
+    </div>
+  }
+</section>

@@ -14,7 +14,7 @@ from app.schemas import (
     CompareAudioTrack, CompareOut, CompareRow, CompareVideoDetail, LibraryCreate, LibraryImportOut,
     LibraryImportRequest, LibraryInfoOut, LibraryOut, LibraryUpdate, ScanRequest, ScanResult, ThumbnailJobOut,
 )
-from app import library_transfer
+from app import library_transfer, journal
 from app.fs_utils import refresh_library_fs_stats
 from app.scan_manager import scan_manager
 from app.compare import IDENTICAL_DIFFERENT_FILE, build_library, compare_libraries, folder_key
@@ -48,6 +48,10 @@ def create_library(payload: LibraryCreate, db: Session = Depends(get_db)):
     db.add(library)
     db.commit()
     db.refresh(library)
+    journal.log_library_event(
+        db, library, "create",
+        details=f"Nom : {library.name} ; Type : {'Séries' if library.media_type == 'tv' else 'Films'} ; Dossier racine : {library.root_path}",
+    )
 
     out = LibraryOut.model_validate(library)
     out.movie_count = 0
@@ -74,10 +78,16 @@ def update_library(library_id: int, payload: LibraryUpdate, db: Session = Depend
     if duplicate:
         raise HTTPException(409, "Une bibliotheque pointe deja vers ce dossier racine.")
 
+    changes = journal.describe_library_changes(
+        {"name": library.name, "root_path": library.root_path, "media_type": library.media_type},
+        {"name": name, "root_path": root_path, "media_type": payload.media_type},
+    )
     library.name = name
     library.root_path = root_path
     library.media_type = payload.media_type
     refresh_library_fs_stats(library)  # le dossier racine a pu changer de filesystem
+    if changes:  # journal : uniquement si une propriete a reellement change
+        journal.log_library_event(db, library, "update", details=changes, commit=False)
     db.commit()
     db.refresh(library)
 
@@ -224,6 +234,11 @@ def import_library(payload: LibraryImportRequest, db: Session = Depends(get_db))
         raise HTTPException(409, str(exc))
     except library_transfer.ImportFormatError as exc:
         raise HTTPException(400, str(exc))
+
+    journal.log_library_event(
+        db, library, "create",
+        details=f"Importée depuis un fichier d'export ({stats['movies_imported']} entrée(s))",
+    )
 
     tasks = library_transfer.build_thumbnail_tasks(payload.data)
     job = library_transfer.start_thumbnail_job(library.id, tasks)

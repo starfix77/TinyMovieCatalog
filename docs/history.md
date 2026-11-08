@@ -270,3 +270,30 @@ Backend
 
 Correction die bug du burger : le menu s’ouvre maintenant aussi quand on clique au centre de l’icône.
 Cause : en cliquant sur le SVG, le menu s’ouvrait, puis Angular remplaçait immédiatement l’icône burger par la croix. Le gestionnaire de clic « en dehors du menu » recevait alors un élément déjà retiré de la page, ne le trouvait plus dans le conteneur du menu et refermait aussitôt. Cliquer sur la marge du bouton marchait parce que le bouton lui-même n’est pas supprimé.
+
+
+**v0.9.25** - Journal des modifications d'une bibliothèque
+
+Interface / Frontend
+
+- Nouvel onglet « Journal » (icône horloge) dans le menu, placé juste avant « Info » (route `/journal`, composant `journal-view`).
+- Vue « Journal de la bibliothèque » : liste des évènements, du plus récent au plus ancien, avec pour chaque ligne : icône Masquer / Afficher les détails, date et heure, statut, total de fichiers films/séries ajoutés, modifiés et supprimés.
+- Statuts : Création, Modification de la bibliothèque (nom, type, dossier racine, avec l'ancienne et la nouvelle valeur) et Scan (avec ses options : « Comparaison simple / approfondie », « Structure simple / mixte » ou profondeur pour les séries).
+- Un clic sur l'icône Masquer / Afficher déplie le détail au niveau fichier (chargé à la demande). Pour chaque film / série : bloc de gauche avec la vignette, le titre et l'année ; bloc de droite avec un tableau : Statut, Nom du fichier, Encodage (hevc / h264…), Résolution (1920x800…), Taille (ex. 2.96GB), Pistes audio (langue, encodage, bitrate) et Sous-titres (langue).
+- Pour une bibliothèque « Séries TV », les épisodes d'une même série sont regroupés sous la même vignette.
+- La vue se recharge toute seule à la fin d'un scan, après une modification de la bibliothèque ou un changement de bibliothèque active.
+
+Backend
+
+- Nouvelles tables `library_logs` (journal bibliothèque) et `library_log_files` (journal fichier : instantané du nom, de la taille, de l'encodage, de la résolution, des pistes audio et des sous-titres au moment de l'évènement). Elles se créent toutes seules au démarrage, sans migration à lancer.
+- API : `GET /api/journal?library_id=` (journal bibliothèque) et `GET /api/journal/{id}/files` (détail des fichiers d'un évènement).
+- Nouveau module `app/journal.py`.
+- Règles de journalisation d'un scan :
+  - Fichier **créé** : nouveau fichier vidéo en base (ou fichier signalé supprimé qui réapparaît).
+  - Fichier **modifié** : taille, encodage, résolution, pistes audio ou sous-titres différents de ceux déjà en base. Un fichier inchangé n'est pas journalisé, même en comparaison simple (qui ré-analyse pourtant le fichier).
+  - Fichier **supprimé** : fichier présent en base mais disparu du disque. Il est signalé une seule fois (l'entrée reste en base, comme avant : un disque réseau débranché ne vide pas la bibliothèque).
+  - Un scan impossible (dossier racine introuvable) est tout de même tracé, avec son message.
+- Création d'une bibliothèque (y compris par import) et modification de ses propriétés (uniquement si une valeur a réellement changé) sont journalisées. Supprimer une bibliothèque supprime aussi son journal.
+- Le scan valide maintenant chaque fichier au fur et à mesure : un fichier en erreur n'annule plus les fichiers déjà traités (ni leur journal).
+
+*Remarque : le journal commence à partir de cette version. Le premier scan d'une bibliothèque déjà peuplée peut signaler quelques fichiers « modifiés » (informations techniques complétées par rapport à d'anciennes versions) ; les suivants ne signalent que les vrais changements.*

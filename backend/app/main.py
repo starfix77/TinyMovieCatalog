@@ -7,7 +7,7 @@ import threading
 from app.database import init_db, SessionLocal
 from app.scanner import backfill_vote_averages
 from app.config import settings
-from app.routers import libraries, movies, sagas, actors, tmdb_info, notes
+from app.routers import libraries, movies, sagas, actors, tmdb_info, notes, journal
 
 app = FastAPI(
     title="TinyMovieCatalog Library Manager API",
@@ -31,6 +31,7 @@ app.include_router(sagas.router)
 app.include_router(actors.router)
 app.include_router(tmdb_info.router)
 app.include_router(notes.router)
+app.include_router(journal.router)
 
 # Sert directement les vignettes en statique (alternative a /api/movies/{id}/poster)
 app.mount("/data/thumbnails", StaticFiles(directory=str(settings.thumbnails_dir)), name="thumbnails")

@@ -63,6 +63,9 @@ class Library(Base):
     fs_free_size = Column(BigInteger, nullable=True)
 
     movies = relationship("Movie", back_populates="library", cascade="all, delete-orphan")
+    # Journal des evenements de la bibliotheque (creation, modification, scans).
+    logs = relationship("LibraryLog", back_populates="library", cascade="all, delete-orphan",
+                        order_by="LibraryLog.id.desc()")
 
 
 class Movie(Base):
@@ -192,3 +195,64 @@ class Subtitle(Base):
     language_guess = Column(String, nullable=True)  # devine depuis le nom de fichier
 
     movie = relationship("Movie", back_populates="subtitles")
+
+
+class LibraryLog(Base):
+    """Journal au niveau bibliotheque : un evenement = une ligne.
+
+    action : "create" (creation), "update" (modification des proprietes :
+    nom, type, dossier racine) ou "scan" (scan, avec ses options et ses totaux
+    de fichiers ajoutes / modifies / supprimes)."""
+    __tablename__ = "library_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    library_id = Column(Integer, ForeignKey("libraries.id"), nullable=False, index=True)
+
+    action = Column(String, nullable=False)             # create | update | scan
+    details = Column(Text, nullable=True)                # ex. "Nom : A -> B" ou message d'erreur de scan
+
+    # Options de scan (uniquement pour action == "scan")
+    compare_mode = Column(String, nullable=True)         # simple | deep
+    structure_mode = Column(String, nullable=True)       # simple | mixed
+    max_depth = Column(Integer, nullable=True)
+
+    files_added = Column(Integer, nullable=False, default=0, server_default="0")
+    files_modified = Column(Integer, nullable=False, default=0, server_default="0")
+    files_deleted = Column(Integer, nullable=False, default=0, server_default="0")
+
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    library = relationship("Library", back_populates="logs")
+    files = relationship("LibraryLogFile", back_populates="log", cascade="all, delete-orphan",
+                         order_by="LibraryLogFile.id")
+
+
+class LibraryLogFile(Base):
+    """Journal au niveau fichier (film / episode) rattache a un evenement de
+    scan. Les informations sont copiees (instantane) pour rester lisibles
+    meme si le fichier ou le film change ou disparait ensuite."""
+    __tablename__ = "library_log_files"
+
+    id = Column(Integer, primary_key=True, index=True)
+    log_id = Column(Integer, ForeignKey("library_logs.id"), nullable=False, index=True)
+    library_id = Column(Integer, nullable=False, index=True)
+
+    status = Column(String, nullable=False)              # created | modified | deleted
+
+    movie_id = Column(Integer, nullable=True)
+    movie_title = Column(String, nullable=True)
+    movie_year = Column(Integer, nullable=True)
+    poster_filename = Column(String, nullable=True)
+
+    filename = Column(String, nullable=False)
+    filepath = Column(String, nullable=False, index=True)
+    size_bytes = Column(BigInteger, nullable=True)
+    video_codec = Column(String, nullable=True)
+    width = Column(Integer, nullable=True)
+    height = Column(Integer, nullable=True)
+    audio_json = Column(Text, nullable=True)             # [{language, codec, bitrate, channels}]
+    subtitles_json = Column(Text, nullable=True)         # [langue, ...]
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    log = relationship("LibraryLog", back_populates="files")

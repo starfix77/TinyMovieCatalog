@@ -15,6 +15,9 @@ from app.fs_utils import refresh_library_fs_stats
 from app.config import settings
 from app.models import Library, Movie, VideoFile, AudioTrack, Subtitle, Saga, SagaMovie
 from app.schemas import ScanResult
+from app.journal import (
+    ScanJournal, video_signature, log_library_event, STATUS_CREATED, STATUS_MODIFIED,
+)
 
 # "Le Titre du Film (2010)" -> groupes: titre / annee
 FOLDER_PATTERN = re.compile(r"^(?P<title>.+?)\s*\((?P<year>\d{4})\)\s*$")
@@ -310,7 +313,8 @@ def _movie_for_candidate(db: Session, library: Library, title: str, year: int | 
 
 def _sync_candidate(db: Session, library: Library, video_path: Path, folder: Path,
                     parsed_title: str, parsed_year: int | None, errors: list[str],
-                    compare_mode: str = "simple") -> tuple[Movie, bool]:
+                    compare_mode: str = "simple",
+                    journal: ScanJournal | None = None) -> tuple[Movie, bool]:
     title = parsed_title.strip() or video_path.stem
     movie, created = _movie_for_candidate(db, library, title, parsed_year, folder, video_path)
     existing = db.query(VideoFile).filter(VideoFile.movie_id == movie.id,
@@ -327,6 +331,9 @@ def _sync_candidate(db: Session, library: Library, video_path: Path, folder: Pat
                 return movie, created
         except (OSError, TypeError):
             pass
+    # Etat avant scan (journal) : signature technique + fichier deja signale supprime ?
+    before_signature = video_signature(existing)
+    was_deleted = journal.was_deleted(str(video_path)) if journal is not None else False
     video_file = existing or VideoFile(filename=video_path.name, filepath=str(video_path), size_bytes=stat.st_size)
     if existing is None:
         movie.video_files.append(video_file)
@@ -363,18 +370,26 @@ def _sync_candidate(db: Session, library: Library, video_path: Path, folder: Pat
     subtitles = [f for f in sub_dir.iterdir() if f.is_file() and f.suffix.lower() in settings.subtitle_extensions] if sub_dir.exists() else []
     video_base = video_path.stem.casefold()
     title_base = re.sub(r"[^a-z0-9]+", "", title.casefold())
-    known = {sub.filepath for sub in movie.subtitles}
-    for sub_path in subtitles:
+
+    def _subtitle_matches(sub_path: Path) -> bool:
         sub_base = sub_path.stem.casefold()
         # Accept exact basename or language-tagged variants such as Film.fr.srt.
         normalized_sub = re.sub(r"[._ -](fr|fre|en|eng|vf|vff|vfq|vostfr|multi)$", "", sub_base)
         normalized_video = re.sub(r"[._ -]+", "", video_base)
         normalized_sub_compact = re.sub(r"[._ -]+", "", normalized_sub)
-        if normalized_sub_compact not in (normalized_video, title_base):
+        return normalized_sub_compact in (normalized_video, title_base)
+
+    known = {sub.filepath for sub in movie.subtitles}
+    known_for_video = {path for path in known if _subtitle_matches(Path(path))}
+    matched_subtitles: list[Path] = []
+    for sub_path in subtitles:
+        if not _subtitle_matches(sub_path):
             continue
+        matched_subtitles.append(sub_path)
         if str(sub_path) not in known:
             movie.subtitles.append(Subtitle(filename=sub_path.name, filepath=str(sub_path),
                                             language_guess=_guess_subtitle_language(sub_path.name)))
+    new_subtitles = {str(p) for p in matched_subtitles} - known_for_video
     db.flush()
 
     if movie.tmdb_id is None and settings.tmdb_api_key:
@@ -401,6 +416,18 @@ def _sync_candidate(db: Session, library: Library, video_path: Path, folder: Pat
                     movie.poster_filename = poster_filename
         except Exception as exc:
             errors.append(f"TMDb: {title}: {exc}")
+
+    # --- Journal : fichier cree / modifie (rien si aucun changement) ---
+    if journal is not None:
+        if existing is None or was_deleted:
+            file_status = STATUS_CREATED
+        elif before_signature != video_signature(video_file) or new_subtitles:
+            file_status = STATUS_MODIFIED
+        else:
+            file_status = None
+        if file_status:
+            journal.add(file_status, movie, video_file,
+                        [_guess_subtitle_language(p.name) or "?" for p in matched_subtitles])
     return movie, created
 
 
@@ -431,7 +458,12 @@ def scan_library(db: Session, library: Library, progress_callback=None,
     les caractéristiques techniques proviennent uniquement de FFprobe."""
     root = Path(library.root_path)
     errors: list[str] = []
+    journal = ScanJournal(db, library)
     if not root.exists() or not root.is_dir():
+        # Le scan impossible est tout de meme trace dans le journal.
+        journal.write(compare_mode, structure_mode, max_depth,
+                      details=f"Dossier racine introuvable : {library.root_path}")
+        db.commit()
         return ScanResult(library_id=library.id, folders_scanned=0, movies_added=0,
                           movies_updated=0, movies_removed=0,
                           errors=[f"Dossier racine introuvable: {library.root_path}"])
@@ -547,11 +579,15 @@ def scan_library(db: Session, library: Library, progress_callback=None,
     added, updated = 0, 0
     for index, (video_path, folder, title, year) in enumerate(candidates, start=1):
         try:
-            movie, created = _sync_candidate(db, library, video_path, folder, title, year, errors, compare_mode)
+            events_before = len(journal.events)
+            movie, created = _sync_candidate(db, library, video_path, folder, title, year, errors,
+                                             compare_mode, journal)
+            db.commit()  # un fichier en erreur ne doit pas annuler les precedents (ni leur journal)
             added += int(created)
             updated += int(not created)
         except Exception as exc:
             db.rollback()
+            del journal.events[events_before:]
             errors.append(f"Erreur de scan '{video_path}': {exc}")
         if progress_callback:
             progress_callback(index, len(candidates), str(video_path))
@@ -561,8 +597,12 @@ def scan_library(db: Session, library: Library, progress_callback=None,
     for video in (db.query(VideoFile).join(Movie).filter(Movie.library_id == library.id).all()):
         if video.filepath not in discovered_paths and not Path(video.filepath).exists():
             errors.append(f"Fichier vidéo devenu indisponible: {video.filepath}")
+            # Journal : signale une seule fois la disparition (l'entree reste en base).
+            if not journal.was_deleted(video.filepath):
+                journal.add_deleted(video)
     library.last_scanned_at = datetime.utcnow()
     refresh_library_fs_stats(library)
+    journal.write(compare_mode, structure_mode, max_depth)
     db.commit()
     errors.extend(backfill_vote_averages(db, library.id))
     return ScanResult(library_id=library.id, folders_scanned=folders_scanned,

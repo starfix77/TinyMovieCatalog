@@ -13,6 +13,7 @@ TinyMovieCatalog est une application web de catalogue cinématographique organis
 - **Recherche et navigation** : accès rapide aux films et aux différentes catégories de la bibliothèque.
 - **Fiches détaillées** : sélection d’un film pour consulter ses informations et son contenu.
 - **Gestion des collections** : organisation de la bibliothèque autour des films et de leurs sagas.
+- **Journal de la bibliothèque** : historique des créations, modifications et scans (fichiers ajoutés, modifiés, supprimés) avec le détail technique de chaque fichier (encodage, résolution, taille, pistes audio, sous-titres).
 - **Interface orientée médiathèque** : priorité donnée aux visuels, aux affiches et à une navigation simple et intuitive.
 
 

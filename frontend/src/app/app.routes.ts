@@ -11,6 +11,7 @@ import { LibraryExportComponent } from './components/library-export/library-expo
 import { LibraryImportComponent } from './components/library-import/library-import.component';
 import { DuplicatesComponent } from './components/duplicates/duplicates.component';
 import { NotesViewComponent } from './components/notes-view/notes-view.component';
+import { JournalViewComponent } from './components/journal-view/journal-view.component';
 
 export const routes: Routes = [
   { path: '', component: MovieGridComponent, title: 'TinyMovieCatalog — Vignettes' },
@@ -20,6 +21,7 @@ export const routes: Routes = [
   { path: 'technique', component: TechnicalViewComponent, title: 'TinyMovieCatalog — Detail technique' },
   { path: 'doublons', component: DuplicatesComponent, title: 'TinyMovieCatalog — Doublons' },
   { path: 'notes', component: NotesViewComponent, title: 'TinyMovieCatalog — Notes' },
+  { path: 'journal', component: JournalViewComponent, title: 'TinyMovieCatalog — Journal' },
   { path: 'info', component: LibraryInfoComponent, title: 'TinyMovieCatalog — Info' },
   { path: 'outils', component: LibraryToolsComponent, title: 'TinyMovieCatalog — Outils des bibliothèques' },
   { path: 'outils/comparaison', component: LibraryCompareComponent, title: 'TinyMovieCatalog — Comparaison' },

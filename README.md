@@ -5,6 +5,11 @@
 Application locale de gestion de bibliotheques de **Films** ou **Séries TV** (MKV/MP4/Dvix).
 TinyMovieCatalog est une application web de catalogue cinématographique organisée autour d'un Frontend JavaScript et d'un Backend Python. Elle propose plusieurs modes de consultation d'une bibliothèque de films, dont un affichage visuel par vignettes, une vue technique et un regroupement par sagas avec navigation horizontale.
 
+Systemes d'exploitation:
+- Windows 10 / Windows 11
+- Linux
+- macOS
+
 ## Fonctionnalités principales:
 - **Bibliothèque de films** : centralisation de l’ensemble des films ou Séries TV de la collection.
 - **Affichage par Vignettes** : présentation visuelle des films sous forme d’affiches.
@@ -17,62 +22,18 @@ TinyMovieCatalog est une application web de catalogue cinématographique organis
 - **Interface orientée médiathèque** : priorité donnée aux visuels, aux affiches et à une navigation simple et intuitive.
 
 
-## Architecture / Langages: 
+## Guide d'installation et de démarrage
 
-TinyMovieCatalog est une application web destinée à gérer, organiser et consulter une bibliothèque personnelle de films à travers une interface graphique de type médiathèque.
-L'application repose sur une architecture séparant le Frontend, chargé de l'interface utilisateur, et le Backend, responsable du traitement des données et de la logique applicative.
-
-- **Frontend** : Angular 19 (standalone components)
-- **Backend** : Python (FastAPI) — scan des dossiers, analyse video via FFmpeg/ffprobe, enrichissement TheMovieDB, base SQLite locale
-- **Usage 100% local**, aucune authentification
-
-
-![TinyMovieCatalog](docs/schema.png) 
-
-
-**Frontend**
-Le dossier frontend/ contient l'application destinée à l'utilisateur.
-Ses responsabilités sont notamment :
-- Afficher les films sous forme de vignettes avec leurs affiches.
-- Présenter les informations techniques des films.
-- Proposer les différents modes d'affichage.
-- Organiser les films par saga.
-- Gérer la navigation, les interactions et le défilement horizontal des collections.
-- Communiquer avec le Backend pour récupérer les données nécessaires.
-L'installation des dépendances JavaScript est réalisée avec npm install. Le lancement de l'application de développement est prévu avec npm start, selon la configuration du projet.
-
-**Backend**
-
-Le dossier backend/ contient les services Python chargés de la logique applicative.
-Ses responsabilités fonctionnelles peuvent comprendre :
-- Fournir les données du catalogue au Frontend.
-- Lire et traiter les informations des films.
-- Regrouper les films appartenant à une même saga.
-- Transmettre les métadonnées et les chemins des affiches.
-- Centraliser les traitements nécessaires à la consultation du catalogue.
-L'environnement Python est préparé avec un environnement virtuel .venv, puis les dépendances sont installées à partir de requirements.txt.
-
-
-## Organisation des dossiers projets:
-
-```
-project/
-├── backend/          API Python (FastAPI)
-│   ├── app/
-│   ├── data/          <- base SQLite + vignettes (partage entre bibliotheques)
-│   ├── requirements.txt
-│   └── .env.example
-└── frontend/         Application Angular
-    └── src/
-```
-
-## Systemes d'exploitation:
-
-- Windows 10 / Windows 11
-- Linux
+Conulter le guide qui explique comment installer et lancer TinyMovieCatalog sur :
+- Windows
+- Linux — distributions compatibles Debian (Debian, Ubuntu, Linux Mint…)
+- Linux — distributions compatibles Red Hat (RHEL, Fedora, Rocky, AlmaLinux, CentOS Stream…)
 - macOS
 
+[Installation et de démarrage](INSTALL.md)
 
+
+L'application est disponible sur le lien http://localhost:4200
 
 
 
@@ -118,28 +79,8 @@ l'API `/tv`. La profondeur de parcours des séries est d'au moins 2 niveaux
 (série puis saison).
 
 
-## Guide d'installation et de démarrage
-
-Conulter le guide qui explique comment installer et lancer TinyMovieCatalog sur :
-- Windows
-- Linux — distributions compatibles Debian (Debian, Ubuntu, Linux Mint…)
-- Linux — distributions compatibles Red Hat (RHEL, Fedora, Rocky, AlmaLinux, CentOS Stream…)
-- macOS
-
-[Installation et de démarrage](INSTALL.md)
 
 
-L'application est disponible sur le lien http://localhost:4200
-
-
-
-
-
-La documentation des API est disponible Swagger sur `http://localhost:8000/docs`.
-Les API backend sont accèssibles depuis l'URL: `http://localhost:8000`
-
-Pour information, l'URL de l'API est définie dans *src/environments/environment.ts*
-(apiUrl: `http://localhost:8000/api`). Modifiez-la si votre backend tourne sur une autre machine/port.
 
 
 Puis suivre les étapes ci-dessous:
@@ -178,7 +119,61 @@ jamais modifies ni supprimes par l'application).
 
 
 
-# Notes techniques
+## Notes techniques
+
+
+### Architecture / Langages: 
+
+TinyMovieCatalog est une application web destinée à gérer, organiser et consulter une bibliothèque personnelle de films à travers une interface graphique de type médiathèque.
+L'application repose sur une architecture séparant le Frontend, chargé de l'interface utilisateur, et le Backend, responsable du traitement des données et de la logique applicative.
+
+- **Frontend** : Angular 19 (standalone components)
+- **Backend** : Python (FastAPI) — scan des dossiers, analyse video via FFmpeg/ffprobe, enrichissement TheMovieDB, base SQLite locale
+- **Usage 100% local**, aucune authentification
+
+
+![TinyMovieCatalog](docs/schema.png) 
+
+
+### Organisation des dossiers code source:
+
+```
+project/
+├── backend/          API Python (FastAPI)
+│   ├── app/
+│   ├── data/          <- base SQLite + vignettes (partage entre bibliotheques)
+│   ├── requirements.txt
+│   └── .env.example
+└── frontend/         Application Angular
+    └── src/
+```
+**Frontend**
+
+Le dossier frontend/ contient l'application destinée à l'utilisateur en WEB.
+Ses responsabilités sont notamment :
+- Afficher les films sous forme de vignettes avec leurs affiches.
+- Présenter les informations techniques des films.
+- Proposer les différents modes d'affichage.
+- Organiser les films par saga.
+- Gérer la navigation, les interactions et le défilement horizontal des collections.
+- Communiquer avec le Backend pour récupérer les données nécessaires.
+L'installation des dépendances JavaScript est réalisée avec npm install. Le lancement de l'application de développement est prévu avec npm start, selon la configuration du projet.
+
+**Backend**
+
+Le dossier backend/ contient les services Python chargés de la logique applicative.
+Ses responsabilités fonctionnelles peuvent comprendre :
+- Fournir les données du catalogue au Frontend.
+- Lire et traiter les informations des films.
+- Regrouper les films appartenant à une même saga.
+- Transmettre les métadonnées et les chemins des affiches.
+- Centraliser les traitements nécessaires à la consultation du catalogue.
+L'environnement Python est préparé avec un environnement virtuel .venv, puis les dépendances sont installées à partir de requirements.txt.
+
+
+
+
+
 
 - La base **SQLite** est stockée dans `backend/data/db/library.db`.
 - Les affiches sont stockées dans `backend/data/thumbnails/` et nommées
@@ -194,8 +189,14 @@ jamais modifies ni supprimes par l'application).
   affiche/metadonnée (acteurs, synopsis...) n'est récuperée.
 
 
+La documentation des API est disponible Swagger sur `http://localhost:8000/docs`.
+Les API backend sont accèssibles depuis l'URL: `http://localhost:8000`
 
-# Fonctionalités techniques
+Pour information, l'URL de l'API est définie dans *src/environments/environment.ts*
+(apiUrl: `http://localhost:8000/api`). Modifiez-la si votre backend tourne sur une autre machine/port.
+
+
+### Fonctionalités techniques
 - Les scans de bibliotheques sont lancés en tâche de fond et ne bloquent pas la requete HTTP.
 - La progression du scan est poussée au frontend via WebSocket avec une barre de progression et le dossier en cours.
 - Le bandeau supérieur affiche le nom de la bibliotheque active en gras et son nombre total de films.
@@ -207,23 +208,8 @@ L’affiche précédente est supprimée automatiquement si elle n’est plus uti
 - Comparaison simple ou approfondie entre 2 bibliothèques.
 
 
-# Pistes d'evolution possibles
-- Passage en multi-langues / Angular i18n
 
-
-# Extraire le code source uniquement pour le soumettre à l'IA 
-Compresser le projet au format ZIP et exclure tous les fichiers/dossiers inutiles (et régénérés après), ceci permet d'éviter de consommer trop de tokens et d'alourdir inutilement le ZIP.
-
-```bash
-# BASH
-./compress.sh
-
-# WINDOWS POWERSHELL
-./compress.ps1
-```
-
-
-# Scan des bibliothèques (parsing et FFprobe)
+### Scan des bibliothèques (parsing et FFprobe)
 
 Le dialogue de scan permet de choisir la structure :
 - **Simple** : dossiers de films nommés `Titre (Année)`.
@@ -241,6 +227,23 @@ la création de l'entrée de catalogue. Les champs techniques supplémentaires (
 de couleur, informations HDR et résumé des flux) sont exposés par l'API lorsqu'ils sont disponibles.
 
 Les tests du parseur se lancent depuis `backend/` avec `python -m unittest discover -s tests`.
+
+### Extraire le code source uniquement pour le soumettre à l'IA 
+Compresser le projet au format ZIP et exclure tous les fichiers/dossiers inutiles (et régénérés après), ceci permet d'éviter de consommer trop de tokens et d'alourdir inutilement le ZIP.
+
+```bash
+# BASH
+./compress.sh
+
+# WINDOWS POWERSHELL
+./compress.ps1
+```
+
+
+## Pistes d'evolution possibles
+- Passage en multi-langues / Angular i18n
+
+
 
 
 

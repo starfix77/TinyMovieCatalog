@@ -47,7 +47,7 @@ try {
     # --------------------------------------
     Write-Host "Demarrage du backend..."
 
-    $activateScript = Join-Path $ProjectDir "backend\.venv\Scripts\Activate.ps1"
+    $activateScript = Join-Path $ProjectDir "backend\venv\Scripts\Activate.ps1"
     $backendErrLog = Join-Path $ProjectDir "backend.error.log"
 
     $BackendProcess = Start-Process -FilePath "powershell" `

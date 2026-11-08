@@ -118,115 +118,15 @@ l'API `/tv`. La profondeur de parcours des séries est d'au moins 2 niveaux
 (série puis saison).
 
 
-## 1. Prérequis
+## Guide d'installation et de démarrage
 
-| Outil | Windows | Linux | macOS |
-|---|---|---|---|
-| **Python 3.10+** | https://www.python.org/downloads/ | `sudo apt install python3 python3-pip python3-venv` | `brew install python` |
-| **Node.js 18+** / npm | https://nodejs.org/ | `sudo apt install nodejs npm` (ou nvm) | `brew install node` (ou nvm) |
-| **FFmpeg**  | https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip<br>(extraire du zip les fichiers `ffprobe.exe, ffplay.exe et ffmpeg.exe` du dossier `bin\`<br>ajout dans le PATH) | `sudo apt install ffmpeg` | `brew install ffmpeg` |
+Conulter le guide qui explique comment installer et lancer TinyMovieCatalog sur :
+- Windows
+- Linux — distributions compatibles Debian (Debian, Ubuntu, Linux Mint…)
+- Linux — distributions compatibles Red Hat (RHEL, Fedora, Rocky, AlmaLinux, CentOS Stream…)
+- macOS
 
-
-*Note pour MacOS: Homebrew doit être installé au préalable (https://brew.sh). Sur macOS, brew install python installe la dernière version stable de Python 3, et python3 / pip3 sont alors disponibles dans le PATH.*
-
-Vous aurez également besoin d'une **clé API TheMovieDB** (gratuite) :
-https://www.themoviedb.org/settings/api
-
----
-
-<span style="color:darkgreen">**Astuce installation et lancement RAPIDE pour LINUX**</span>
-
-```bash
-chmod +x *.sh
-./install.sh
-./start.sh
-```
-
-<span style="color:darkgreen">**Astuce installation et lancement RAPIDE pour WINDOWS**</span>
-```powershell
-./install.ps1
-./start.ps1
-```
-
-sinon suivre les étapes suivantes voir chapitre Installation et lancement (backend + frontend) 
-
-
-## 2. Installation et démarrage
-Le projet utilise deux environnements de dépendances distincts.
-
-
-**Étape 1 — Installer le Frontend**
-```bash
-# Linux / macOS / Windows
-cd frontend
-npm install
-```
-
-**Étape 2 — Installer le Backend**
-
-Copiez le fichier exemple `.env.example` en `.env`, puis edtiez le fichier de configuration `backend/.env` :
-
-```ini
-TMDB_API_KEY=votre_cle_ici
-TMDB_LANGUAGE=fr-FR
-FFPROBE_PATH=ffprobe   # ou chemin complet si ffprobe n'est pas dans le PATH
-FFPLAY_PATH=ffplay     # utilise par le bouton PLAY (ou chemin complet si ffplay n'est pas dans le PATH)
-```
-Configuration `backend/.env`
-
-| Variable | Rôle | Valeur par défaut |
-|---|---|---|
-| `TMDB_API_KEY` | Obtenir une Clé API TheMovieDB  (gratuite):<br>https://www.themoviedb.org/settings/api | vide |
-| `TMDB_LANGUAGE` | Langue des métadonnées | `fr-FR` |
-| `FFPROBE_PATH` | Chemin de `ffprobe` | `ffprobe` |
-| `FFPLAY_PATH` | Chemin de `ffplay` (si `FFPROBE_PATH` est un chemin complet, `ffplay` est cherché dans le même dossier) | `ffplay` |
-
-
-```bash
-#  Linux / macOS
-cd backend
-python3 -m venv .venv
-source .venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-```bash
-#  Windows
-cd backend
-python -m venv venv
-venv\Scripts\Activate.ps1             
-pip install -r requirements.txt
-```
-
-**Étape 3 — Démarrer les services**
-
-Le Frontend et le Backend doivent être lancés selon leurs scripts et points d'entrée respectifs. Il faut éviter qu'un processus interactif comme npm start bloque l'exécution des commandes suivantes dans un script d'installation.
-
-Pour automatiser le démarrage, il est préférable de séparer l'installation des dépendances du lancement des services, puis d'utiliser deux processus distincts ou un mécanisme d'orchestration adapté.
-
-
-
-**lancement frontend**
-```bash
-cd frontend
-npm run start
-```
-
-**lancement backend**
-```bash
-# Linux / macOS
-cd backend
-source venv/bin/activate                 
-uvicorn app.main:app --reload --port 8000
-```
-
-```powerwhell
-#  Windows
-cd backend
- .venv\Scripts\Activate.ps1               
-uvicorn app.main:app --reload --port 8000
-```
-
+[Installation et de démarrage](INSTALL.md)
 
 
 L'application est disponible sur le lien http://localhost:4200
@@ -346,6 +246,10 @@ Les tests du parseur se lancent depuis `backend/` avec `python -m unittest disco
 
 # Documentations
 
+- [Guide d'installation et de démarrage](INSTALL.md)
+
 - [Historique du projet](docs/history.md)
+
 - [Exigences parsing organisation dossiers / fichiers](docs/parsing_ffprobe.md##1.-Principe-général)
+
 - [Exigences ffprobe](docs/parsing_ffprobe.md##3.-Exigences-analyseur-FFprobe)

@@ -33,6 +33,15 @@ export class JournalViewComponent {
   readonly loading = signal(false);
   readonly error = signal('');
 
+  /** Evenements dont le detail est depliable. */
+  readonly detailable = computed(() => this.entries().filter((e) => this.hasDetails(e)));
+
+  /** Vrai quand aucun detail n'est affiche (libelle « Tout afficher »). */
+  readonly allCollapsed = computed(() => {
+    const open = this.expanded();
+    return this.detailable().every((e) => !open.has(e.id));
+  });
+
   /** Evenements dont le detail est affiche, et detail deja charge (par id). */
   readonly expanded = signal<Set<number>>(new Set());
   readonly groups = signal<Record<number, JournalMovieGroup[]>>({});
@@ -142,6 +151,24 @@ export class JournalViewComponent {
     next.add(entry.id);
     this.expanded.set(next);
     if (!this.groups()[entry.id]) this.loadDetail(entry.id);
+  }
+
+  /** Masque tous les details, ou les affiche tous s'ils sont deja tous masques. */
+  toggleAll(): void {
+    if (this.allCollapsed()) {
+      const items = this.detailable();
+      this.expanded.set(new Set(items.map((e) => e.id)));
+      for (const entry of items) {
+        if (!this.groups()[entry.id] && !this.loadingDetail().has(entry.id)) this.loadDetail(entry.id);
+      }
+    } else {
+      this.expanded.set(new Set());
+    }
+  }
+
+  /** Film / serie supprime : tous ses fichiers du bloc ont le statut « supprime ». */
+  isDeleted(group: JournalMovieGroup): boolean {
+    return group.files.length > 0 && group.files.every((f) => f.status === 'deleted');
   }
 
   private loadDetail(logId: number): void {

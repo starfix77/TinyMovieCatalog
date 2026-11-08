@@ -4,7 +4,14 @@
       <h2>Journal de la bibliothèque</h2>
       <p>Historique des créations, modifications et scans de la bibliothèque sélectionnée.</p>
     </div>
-    <span class="group-count">{{ entries().length }} évènement{{ entries().length > 1 ? 's' : '' }}</span>
+    <div class="header-actions">
+      @if (detailable().length > 0) {
+        <button type="button" class="toggle-all" (click)="toggleAll()">
+          {{ allCollapsed() ? 'Tout afficher' : 'Tout masquer' }}
+        </button>
+      }
+      <span class="group-count">{{ entries().length }} évènement{{ entries().length > 1 ? 's' : '' }}</span>
+    </div>
   </header>
 
   @if (loading() && !entries().length) {
@@ -70,8 +77,10 @@
                           <div class="movie-side">
                             @if (poster(group); as src) {
                               <img class="movie-thumb" [src]="src" [alt]="'Affiche de ' + group.title" loading="lazy" />
-                            } @else {
-                              <div class="movie-thumb placeholder" aria-hidden="true">🎬</div>
+                            } @else if (isDeleted(group)) {
+                              <div class="movie-thumb placeholder" role="img"
+                                   [attr.aria-label]="(isTv() ? 'Série' : 'Film') + ' supprimé'"
+                                   [attr.title]="(isTv() ? 'Série' : 'Film') + ' supprimé'">🗑️</div>
                             }
                             <div class="movie-title">{{ group.title }}</div>
                             @if (group.year) { <div class="movie-year">{{ group.year }}</div> }

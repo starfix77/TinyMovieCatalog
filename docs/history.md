@@ -297,3 +297,10 @@ Backend
 - Le scan valide maintenant chaque fichier au fur et à mesure : un fichier en erreur n'annule plus les fichiers déjà traités (ni leur journal).
 
 *Remarque : le journal commence à partir de cette version. Le premier scan d'une bibliothèque déjà peuplée peut signaler quelques fichiers « modifiés » (informations techniques complétées par rapport à d'anciennes versions) ; les suivants ne signalent que les vrais changements.*
+
+
+**v0.9.26** - Vue « Journal » : bouton Tout masquer / Tout afficher et vignettes
+
+- Bouton « Tout afficher / Tout masquer » en haut de la vue, à gauche du compteur d'évènements, identique à celui de la vue « Doublons » : il déplie (ou replie) le détail de tous les évènements ayant des fichiers. Le libellé est « Tout afficher » tant que tous les détails sont masqués.
+- Détail : la vignette du film / de la série s'affiche dès qu'elle existe. Backend : `GET /api/journal/{id}/files` renvoie maintenant l'affiche courante du film (et non plus seulement celle connue au moment du scan), ce qui corrige les vignettes absentes quand l'affiche TMDb arrivait après l'évènement.
+- L'icône de remplacement n'apparaît plus que lorsque le film / la série est supprimé (tous ses fichiers du bloc ont le statut « Supprimé ») et qu'il n'y a pas de vignette. Sinon, sans vignette, seuls le titre et l'année sont affichés.

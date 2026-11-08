@@ -5,6 +5,10 @@
 .page-heading p { margin: 0; color: var(--text-muted); }
 .group-count { white-space: nowrap; color: var(--text-muted); font-size: 12px; border: 1px solid var(--border); border-radius: 20px; padding: 5px 10px; }
 
+.header-actions { display: flex; align-items: center; gap: 10px; }
+.toggle-all { white-space: nowrap; font: inherit; font-size: 12px; color: var(--text); background: var(--surface-raised); border: 1px solid var(--border); border-radius: 20px; padding: 5px 12px; cursor: pointer; transition: background .12s ease, color .12s ease; }
+.toggle-all:hover, .toggle-all:focus-visible { background: var(--surface-hover); color: var(--accent-strong); outline: none; }
+
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 .journal-table-wrap { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow-card); overflow-x: auto; }

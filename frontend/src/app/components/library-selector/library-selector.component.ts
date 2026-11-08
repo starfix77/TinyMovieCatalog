@@ -7,6 +7,9 @@ import { LibraryService } from '../../services/library.service';
 import { Library, MediaType, ScanCompareMode } from '../../models/library.model';
 import { MediaTypeIconComponent } from '../media-type-icon/media-type-icon.component';
 
+/** Version affichee dans la fenetre "A propos" (a garder alignee avec le <h1> du template). */
+export const APP_VERSION = '0.9.27';
+
 @Component({
   selector: 'app-library-selector',
   standalone: true,
@@ -46,13 +49,25 @@ export class LibrarySelectorComponent implements OnInit {
   editError = signal<string | null>(null);
   editSaving = signal(false);
 
+  // ---------- Boite de dialogue "A propos" ----------
+  aboutOpen = signal(false);
+  readonly appVersion = APP_VERSION;
+
   @ViewChild('scanYesBtn') private scanYesBtnRef?: ElementRef<HTMLButtonElement>;
+  @ViewChild('aboutOkBtn') private aboutOkBtnRef?: ElementRef<HTMLButtonElement>;
 
   constructor() {
     effect(() => {
       // Place le focus par defaut sur le bouton "Oui" a l'ouverture de la boite.
       if (this.scanDialogLibrary()) {
         setTimeout(() => this.scanYesBtnRef?.nativeElement.focus());
+      }
+    });
+
+    effect(() => {
+      // Place le focus sur le bouton "OK" a l'ouverture de la fenetre "A propos".
+      if (this.aboutOpen()) {
+        setTimeout(() => this.aboutOkBtnRef?.nativeElement.focus());
       }
     });
 
@@ -141,6 +156,15 @@ export class LibrarySelectorComponent implements OnInit {
       this.pendingDeleteId.set(null);
       this.refresh();
     });
+  }
+
+  /** Ouvre la fenetre "A propos" (double-clic sur le titre <h1>). */
+  openAbout(): void {
+    this.aboutOpen.set(true);
+  }
+
+  closeAbout(): void {
+    this.aboutOpen.set(false);
   }
 
   /** Ouvre la boite de dialogue de modification d'une bibliotheque. */

@@ -560,3 +560,103 @@
   opacity: 0.6;
   cursor: default;
 }
+
+
+/* ---------- Fenetre "A propos" ---------- */
+
+.brand-title {
+  cursor: default;
+  user-select: none;
+}
+
+.about-dialog {
+  max-width: 520px;
+  max-height: calc(100vh - 48px);
+  gap: 14px;
+}
+
+.about-window-title {
+  margin: 0;
+  padding-bottom: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.about-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.about-icon {
+  flex: 0 0 auto;
+  width: 72px;
+  height: 72px;
+  border-radius: 14px;
+  object-fit: contain;
+}
+
+.about-header-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.about-app-name {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text);
+}
+
+.about-separator {
+  margin: 6px 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+.about-version {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.about-main {
+  display: block;
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.about-main p {
+  margin: 0 0 10px;
+}
+
+.about-main h3 {
+  margin: 12px 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.about-main ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.about-main li {
+  margin: 2px 0;
+}
+
+.about-link {
+  margin: 36px 0 0 !important;
+  word-break: break-all;
+}
+
+.about-link a {
+  color: var(--accent-strong);
+}

@@ -304,3 +304,14 @@ Backend
 - Bouton « Tout afficher / Tout masquer » en haut de la vue, à gauche du compteur d'évènements, identique à celui de la vue « Doublons » : il déplie (ou replie) le détail de tous les évènements ayant des fichiers. Le libellé est « Tout afficher » tant que tous les détails sont masqués.
 - Détail : la vignette du film / de la série s'affiche dès qu'elle existe. Backend : `GET /api/journal/{id}/files` renvoie maintenant l'affiche courante du film (et non plus seulement celle connue au moment du scan), ce qui corrige les vignettes absentes quand l'affiche TMDb arrivait après l'évènement.
 - L'icône de remplacement n'apparaît plus que lorsque le film / la série est supprimé (tous ses fichiers du bloc ont le statut « Supprimé ») et qu'il n'y a pas de vignette. Sinon, sans vignette, seuls le titre et l'année sont affichés.
+
+
+**v0.9.27** - Fenêtre « À propos » (double-clic sur le titre)
+
+- Un double-clic sur le titre `<h1>` « TinyMovieCatalog v0.9.27 » du bandeau de gauche ouvre la fenêtre de dialogue « À propos ».
+- Titre de la fenêtre : « À propos ».
+- Section en-tête : bloc de gauche avec l'icône `favicon-128x128.png` ; bloc de droite avec « TinyMovieCatalog » en gros titre gras, une ligne de séparation, puis la version (v0.9.27).
+- Section principale : description de l'application, liste des fonctionnalités, langages et technologies utilisés (Angular 19 / TypeScript, Python / FastAPI, SQLite, FFmpeg), systèmes d'exploitation supportés (Windows, Linux, macOS), et lien vers le dépôt GitHub `https://github.com/starfix77/TinyMovieCatalog/` qui s'ouvre dans un nouvel onglet du navigateur.
+- Bouton « OK » pour fermer la fenêtre (il a le focus à l'ouverture ; la touche Échap ou un clic en dehors de la fenêtre la ferment aussi).
+- Fichiers touchés : `components/library-selector/` (html, ts, css) et nouvelle image `frontend/src/assets/favicon-128x128.png` (copiée aussi dans `docs/`).
+- Rappel : à chaque nouvelle version, mettre à jour la version dans le `<h1>` du template et la constante `APP_VERSION` de `library-selector.component.ts`.

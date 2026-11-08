@@ -19,6 +19,7 @@ Systemes d'exploitation:
 - **Fiches détaillées** : sélection d’un film pour consulter ses informations et son contenu.
 - **Gestion des collections** : organisation de la bibliothèque autour des films et de leurs sagas.
 - **Journal de la bibliothèque** : historique des créations, modifications et scans (fichiers ajoutés, modifiés, supprimés) avec le détail technique de chaque fichier (encodage, résolution, taille, pistes audio, sous-titres).
+- **Fenêtre « À propos »** : un double-clic sur le titre « TinyMovieCatalog » du bandeau de gauche affiche la version, la description, les fonctionnalités, les technologies, les systèmes supportés et le lien vers le dépôt GitHub.
 - **Interface orientée médiathèque** : priorité donnée aux visuels, aux affiches et à une navigation simple et intuitive.
 
 

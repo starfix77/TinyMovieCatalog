@@ -20,7 +20,7 @@
   --accent: #00e6f7;
   --accent-soft: rgba(21, 101, 105, 0.16);
   --accent-soft-grandien-50: rgba(21, 101, 105, 0.3);
-  --accent-soft-grandien-100: rgba(9, 44, 46, 0.6);
+  --accent-soft-grandien-100: rgba(21, 101, 105, 0.3);
   
   --accent-strong: #00e6f7;
 
@@ -80,9 +80,8 @@ html[data-theme="light"] {
   --accent: #c49b22;
   --accent-soft: rgba(162, 125, 11, 0.14);
   --accent-soft-grandien-50: rgba(162, 125, 11, 0.26);
-  --accent-soft-grandien-100:  rgba(162, 125, 11, 0.48);
+  --accent-soft-grandien-100:  rgba(162, 125, 11, 0.26);
   
-
 
   --accent-strong: #8c6b08;
 

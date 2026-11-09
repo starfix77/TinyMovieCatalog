@@ -121,7 +121,7 @@
 }
 
 .library-item.active {
-  background: var(--accent-soft);
+  background: linear-gradient(147deg, var(--accent-soft) 0%, var(--accent-soft-grandien-50) 50%, var(--accent-soft-grandien-100) 100%);
   border-color: var(--accent);
 }
 

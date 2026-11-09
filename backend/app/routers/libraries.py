@@ -9,10 +9,10 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 
 from app.database import get_db
-from app.models import Library, Movie, VideoFile
+from app.models import Library, LibraryNote, Movie, VideoFile
 from app.schemas import (
     CompareAudioTrack, CompareOut, CompareRow, CompareVideoDetail, LibraryCreate, LibraryImportOut,
-    LibraryImportRequest, LibraryInfoOut, LibraryOut, LibraryUpdate, ScanRequest, ScanResult, ThumbnailJobOut,
+    LibraryImportRequest, LibraryInfoOut, LibraryNoteOut, LibraryOut, LibraryUpdate, NoteUpdate, ScanRequest, ScanResult, ThumbnailJobOut,
 )
 from app import library_transfer, journal
 from app.fs_utils import refresh_library_fs_stats
@@ -288,6 +288,39 @@ def library_info(library_id: int, db: Session = Depends(get_db)):
         fs_free_size=library.fs_free_size,
         fs_available=fs_available,
     )
+
+
+@router.get("/{library_id}/note", response_model=LibraryNoteOut)
+def get_library_note(library_id: int, db: Session = Depends(get_db)):
+    """Note libre de la bibliotheque ('' si aucune note n'est enregistree)."""
+    if not db.get(Library, library_id):
+        raise HTTPException(404, "Bibliotheque introuvable.")
+    note = db.query(LibraryNote).filter(LibraryNote.library_id == library_id).first()
+    return LibraryNoteOut(library_id=library_id, content=note.content if note else "")
+
+
+@router.put("/{library_id}/note", response_model=LibraryNoteOut)
+def save_library_note(library_id: int, payload: NoteUpdate, db: Session = Depends(get_db)):
+    """Enregistre la note de la bibliotheque (table 'librairies_notes').
+    Un texte vide supprime la note."""
+    if not db.get(Library, library_id):
+        raise HTTPException(404, "Bibliotheque introuvable.")
+    note = db.query(LibraryNote).filter(LibraryNote.library_id == library_id).first()
+    content = payload.content.replace("\r\n", "\n")
+
+    if not content.strip():
+        if note:
+            db.delete(note)
+            db.commit()
+        return LibraryNoteOut(library_id=library_id, content="")
+
+    if note:
+        note.content = content
+        note.updated_at = datetime.utcnow()
+    else:
+        db.add(LibraryNote(library_id=library_id, content=content))
+    db.commit()
+    return LibraryNoteOut(library_id=library_id, content=content)
 
 
 @router.delete("/{library_id}", status_code=204)

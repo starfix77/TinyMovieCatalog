@@ -31,7 +31,7 @@ from sqlalchemy.orm import Session, joinedload
 from app import tmdb
 from app.config import settings
 from app.models import (
-    AudioTrack, Library, Movie, Note, Saga, SagaMovie, Subtitle, VideoFile,
+    AudioTrack, Library, LibraryNote, Movie, Note, Saga, SagaMovie, Subtitle, VideoFile,
 )
 
 FORMAT_NAME = "TinyMovieCatalog.library"
@@ -122,11 +122,15 @@ def export_library(db: Session, library: Library) -> dict:
         ]
         sagas_out.append(s)
 
+    library_out = _dump(library, LIBRARY_FIELDS)
+    # Cle optionnelle (absente des anciens exports) : format toujours v1.
+    library_out["note"] = library.note_entry.content if library.note_entry else None
+
     return {
         "format": FORMAT_NAME,
         "version": FORMAT_VERSION,
         "exported_at": datetime.utcnow().isoformat(),
-        "library": _dump(library, LIBRARY_FIELDS),
+        "library": library_out,
         "sagas": sagas_out,
         "movies": movies_out,
     }
@@ -232,6 +236,11 @@ def import_library(db: Session, data: dict, name: Optional[str] = None,
         })
         db.add(library)
         db.flush()
+
+        # Note de la bibliotheque (absente des anciens exports : ignoree).
+        library_note = src.get("note")
+        if isinstance(library_note, str) and library_note.strip():
+            db.add(LibraryNote(library_id=library.id, content=library_note))
 
         # Sagas : reutilise celles deja connues (cle = collection TMDb).
         saga_ids: dict[int, int] = {}

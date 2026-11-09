@@ -8,7 +8,7 @@ import { Library, MediaType, ScanCompareMode } from '../../models/library.model'
 import { MediaTypeIconComponent } from '../media-type-icon/media-type-icon.component';
 
 /** Version affichee dans la fenetre "A propos" (a garder alignee avec le <h1> du template). */
-export const APP_VERSION = '0.9.29';
+export const APP_VERSION = '0.9.30';
 
 @Component({
   selector: 'app-library-selector',

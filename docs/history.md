@@ -346,3 +346,14 @@ RESTART_CMD="systemctl restart tinymoviecatalog" ./update_tinymoviecatalog.sh
 
 Valable pour toutes les distributions Linux utilisant systemd (Debian, Ubuntu, Linux Mint, Fedora, RHEL, Rocky, AlmaLinux…). 
 Cette section est *facultative* : elle permet de lancer TinyMovieCatalog automatiquement au démarrage de la machine, et de le mettre à jour en une seule commande.
+
+
+
+**v0.9.30** - Notes au niveau de la bibliothèque
+
+- Vue « Info » : nouveau bouton **« Notes »** (en haut à droite de l'en-tête) qui ouvre la boîte de dialogue **« Notes »** : zone de texte libre multi-lignes, boutons « Annuler » / « Enregistrer ». Enregistrer un texte vide supprime la note.
+- Base de données : nouvelle table spécifique **`librairies_notes`** (une note par bibliothèque : `library_id` unique, `content`, `created_at`, `updated_at`). Elle est créée automatiquement au démarrage (pas de migration manuelle) et supprimée avec la bibliothèque.
+- API : `GET /api/libraries/{id}/note` et `PUT /api/libraries/{id}/note` (corps `{ "content": "..." }`).
+- Export / import de bibliothèque : la note est incluse dans l'export (clé optionnelle `library.note`), comme la note personnelle en étoiles, et restaurée à l'import. Le format reste en version 1 : les **anciens exports** (sans cette clé) restent lisibles et s'importent sans note.
+- Tests : `backend/tests/test_library_transfer.py` complété (aller-retour avec note, export sans note, ancien export).
+- Fichiers touchés : `backend/app/models.py`, `schemas.py`, `routers/libraries.py`, `library_transfer.py`, `components/library-info/` (html, ts, css), `services/library.service.ts`, `models/library.model.ts`.

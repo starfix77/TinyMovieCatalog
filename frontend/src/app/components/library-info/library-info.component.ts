@@ -1,5 +1,6 @@
 import { Component, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 import { LibraryService } from '../../services/library.service';
 import { LibraryInfo } from '../../models/library.model';
@@ -7,7 +8,7 @@ import { LibraryInfo } from '../../models/library.model';
 @Component({
   selector: 'app-library-info',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './library-info.component.html',
   styleUrl: './library-info.component.css',
 })
@@ -50,6 +51,54 @@ export class LibraryInfoComponent {
       error: () => {
         this.error.set(true);
         this.loading.set(false);
+      },
+    });
+  }
+
+  // ---------- Note de la bibliotheque (table "librairies_notes") ----------
+  noteDialogOpen = signal(false);
+  noteText = '';
+  noteLoading = signal(false);
+  noteSaving = signal(false);
+  noteError = signal('');
+
+  openNoteDialog(): void {
+    const libId = this.activeLibraryId();
+    if (!libId) return;
+    this.noteDialogOpen.set(true);
+    this.noteText = '';
+    this.noteError.set('');
+    this.noteLoading.set(true);
+    this.libraryService.getLibraryNote(libId).subscribe({
+      next: (note) => {
+        this.noteText = note.content ?? '';
+        this.noteLoading.set(false);
+        setTimeout(() => document.querySelector<HTMLTextAreaElement>('.note-textarea')?.focus(), 50);
+      },
+      error: (error) => {
+        this.noteLoading.set(false);
+        this.noteError.set(error?.error?.detail || 'Impossible de charger la note.');
+      },
+    });
+  }
+
+  closeNoteDialog(): void {
+    if (!this.noteSaving()) this.noteDialogOpen.set(false);
+  }
+
+  saveNote(): void {
+    const libId = this.activeLibraryId();
+    if (!libId || this.noteSaving() || this.noteLoading()) return;
+    this.noteSaving.set(true);
+    this.noteError.set('');
+    this.libraryService.saveLibraryNote(libId, this.noteText).subscribe({
+      next: () => {
+        this.noteSaving.set(false);
+        this.noteDialogOpen.set(false);
+      },
+      error: (error) => {
+        this.noteSaving.set(false);
+        this.noteError.set(error?.error?.detail || 'Impossible d’enregistrer la note.');
       },
     });
   }

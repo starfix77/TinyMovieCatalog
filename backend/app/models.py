@@ -66,6 +66,9 @@ class Library(Base):
     # Journal des evenements de la bibliotheque (creation, modification, scans).
     logs = relationship("LibraryLog", back_populates="library", cascade="all, delete-orphan",
                         order_by="LibraryLog.id.desc()")
+    # Note libre (zone de texte) de la bibliotheque : table "librairies_notes".
+    note_entry = relationship("LibraryNote", back_populates="library", uselist=False,
+                              cascade="all, delete-orphan")
 
 
 class Movie(Base):
@@ -128,6 +131,20 @@ class Note(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     movie = relationship("Movie", back_populates="note_entry")
+
+
+class LibraryNote(Base):
+    """Note libre (texte multi-lignes) associee a une bibliotheque.
+    Une seule note par bibliotheque ; la ligne n'existe que si une note est saisie."""
+    __tablename__ = "librairies_notes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    library_id = Column(Integer, ForeignKey("libraries.id"), nullable=False, unique=True, index=True)
+    content = Column(Text, nullable=False, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    library = relationship("Library", back_populates="note_entry")
 
 
 class VideoFile(Base):

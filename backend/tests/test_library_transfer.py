@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.database import Base
 from app import library_transfer as lt
-from app.models import AudioTrack, Library, Movie, Saga, SagaMovie, Subtitle, VideoFile
+from app.models import AudioTrack, Library, LibraryNote, Movie, Saga, SagaMovie, Subtitle, VideoFile
 
 
 @pytest.fixture()
@@ -81,3 +81,30 @@ def test_unsafe_poster_name_is_dropped(db):
     new_lib, _ = lt.import_library(db, exported, root_path="/autre")
     movie = db.query(Movie).filter(Movie.library_id == new_lib.id).one()
     assert movie.poster_filename is None
+
+
+def test_library_note_round_trip(db):
+    lib = _populate(db)
+    db.add(LibraryNote(library_id=lib.id, content="Ligne 1\nLigne 2"))
+    db.commit()
+    db.refresh(lib)
+    exported = json.loads(json.dumps(lt.export_library(db, lib)))
+    assert exported["library"]["note"] == "Ligne 1\nLigne 2"
+
+    new_lib, _ = lt.import_library(db, exported, root_path="/copie")
+    assert new_lib.note_entry is not None
+    assert new_lib.note_entry.content == "Ligne 1\nLigne 2"
+    # La note de la bibliotheque d'origine reste intacte.
+    assert db.query(LibraryNote).count() == 2
+
+
+def test_library_without_note_and_legacy_export(db):
+    lib = _populate(db)
+    exported = json.loads(json.dumps(lt.export_library(db, lib)))
+    assert exported["library"]["note"] is None
+
+    # Ancien export : pas de cle "note" du tout -> import sans erreur, sans note.
+    del exported["library"]["note"]
+    new_lib, _ = lt.import_library(db, exported, root_path="/ancien")
+    assert new_lib.note_entry is None
+    assert db.query(LibraryNote).count() == 0

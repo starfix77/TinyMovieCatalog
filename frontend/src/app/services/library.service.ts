@@ -5,7 +5,7 @@ import { Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
   Library, LibraryCreate, LibraryUpdate, LibraryInfo, ScanResult, ScanProgress, ScanCompareMode,
-  CompareDepth, CompareMode, CompareResult, LibraryImportResult, ThumbnailJob,
+  CompareDepth, CompareMode, CompareResult, LibraryImportResult, ThumbnailJob, LibraryNote,
 } from '../models/library.model';
 
 @Injectable({ providedIn: 'root' })
@@ -44,6 +44,16 @@ export class LibraryService {
 
   getLibraryInfo(id: number): Observable<LibraryInfo> {
     return this.http.get<LibraryInfo>(`${this.baseUrl}/${id}/info`);
+  }
+
+  /** Note libre de la bibliotheque (contenu vide si aucune note). */
+  getLibraryNote(id: number): Observable<LibraryNote> {
+    return this.http.get<LibraryNote>(`${this.baseUrl}/${id}/note`);
+  }
+
+  /** Enregistre la note de la bibliotheque (un texte vide supprime la note). */
+  saveLibraryNote(id: number, content: string): Observable<LibraryNote> {
+    return this.http.put<LibraryNote>(`${this.baseUrl}/${id}/note`, { content });
   }
 
   compareLibraries(leftId: number, rightId: number, mode: CompareMode, depth: CompareDepth, details = false): Observable<CompareResult> {

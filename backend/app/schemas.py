@@ -273,6 +273,12 @@ class NoteUpdate(BaseModel):
     content: str
 
 
+class LibraryNoteOut(BaseModel):
+    """Note d'une bibliotheque ('' si aucune note n'est enregistree)."""
+    library_id: int
+    content: str = ""
+
+
 class NoteListItem(BaseModel):
     """Ligne de la vue 'Notes' : un film/une serie ayant une note."""
     movie_id: int

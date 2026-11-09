@@ -27,6 +27,12 @@ export interface LibraryInfo {
   fs_available: boolean;
 }
 
+/** Note libre d'une bibliotheque (table « librairies_notes »). */
+export interface LibraryNote {
+  library_id: number;
+  content: string; // '' si aucune note
+}
+
 export interface LibraryCreate {
   name: string;
   root_path: string;

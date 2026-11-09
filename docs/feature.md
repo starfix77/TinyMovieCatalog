@@ -157,6 +157,7 @@ La barre d'onglets supérieure propose les vues suivantes.
 ### 6.7 Info — `/info`
 - Nom, **dossier racine**, type, nombre d'éléments, date de création et de dernier scan.
 - **Espace disque** : taille totale, espace disponible, **jauge d'utilisation** (relue à chaque ouverture de la page).
+- Bouton **« Notes »** (en-tête de la page) : ouvre la boîte de dialogue **Notes** de la bibliothèque (zone de texte libre multi-lignes, boutons « Annuler » / « Enregistrer »). La note est enregistrée en base dans la table `librairies_notes` (une note par bibliothèque) ; enregistrer un texte vide supprime la note. Elle est incluse dans l'export / import de bibliothèque.
 
 ---
 
@@ -223,7 +224,7 @@ Page avec trois gros boutons, accessible depuis le bouton **Outils** (icône de 
 ### 8.2 Exporter une bibliothèque — `/outils/export`
 - Choix d'une bibliothèque puis export vers un fichier **`<nom>.tmcatalog.json`**.
 - JSON UTF-8 **versionné** (`TinyMovieCatalog.library`, version 1), lisible et portable entre Windows, Linux et macOS.
-- Contenu : films, fichiers vidéo, pistes audio, sous-titres, sagas, **notes personnelles**.
+- Contenu : films, fichiers vidéo, pistes audio, sous-titres, sagas, **notes personnelles** (étoiles et notes libres des films, **note de la bibliothèque**). Les anciens exports sans note de bibliothèque restent importables.
 - Les vignettes ne sont **pas incluses** (seuls leurs noms de fichier le sont).
 
 ### 8.3 Importer une bibliothèque — `/outils/import`
@@ -242,7 +243,7 @@ Documentation Swagger sur `http://localhost:8000/docs`.
 | Domaine | Endpoints principaux |
 |---|---|
 | Santé | `GET /api/health` |
-| Bibliothèques | `GET/POST /api/libraries`, `DELETE /api/libraries/{id}`, `GET /api/libraries/{id}/info` |
+| Bibliothèques | `GET/POST /api/libraries`, `DELETE /api/libraries/{id}`, `GET /api/libraries/{id}/info`, `GET/PUT /api/libraries/{id}/note` |
 | Scan | `POST /api/libraries/{id}/scan`, `WS /api/libraries/{id}/scan/ws` |
 | Comparaison | `GET /api/libraries/compare` |
 | Export / import | `GET /api/libraries/{id}/export`, `POST /api/libraries/import`, `GET /api/libraries/import/thumbnails/{job_id}` |

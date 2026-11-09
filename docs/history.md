@@ -315,3 +315,27 @@ Backend
 - Bouton « OK » pour fermer la fenêtre (il a le focus à l'ouverture ; la touche Échap ou un clic en dehors de la fenêtre la ferment aussi).
 - Fichiers touchés : `components/library-selector/` (html, ts, css) et nouvelle image `frontend/src/assets/favicon-128x128.png` (copiée aussi dans `docs/`).
 - Rappel : à chaque nouvelle version, mettre à jour la version dans le `<h1>` du template et la constante `APP_VERSION` de `library-selector.component.ts`.
+
+
+
+**v0.9.28** - Mise à jour vers une nouvelle version (script BASH)
+
+Le script bash **update_tinymoviecatalog.sh**  permet de mettre à jour une nouvelle version depuis GitHub et Il suit vos 5 étapes :
+
+1. **Sauvegarde** : une archive .tar.gz horodatée de `backend/data/` et `backend/.env`, créée dans ../TinyMovieCatalog_backups/, plus une copie temporaire pour la restauration.
+2. **Git pull** : depuis `https://github.com/starfix77/TinyMovieCatalog.git`, avec --ff-only pour éviter les merges automatiques. S’il n’y a pas encore de dépôt git, il en initialise un.
+3. **Décompression** (option --zip) : vous pouvez fournir une archive, par exemple TinyMovieCatalog_0.9.28.zip, au lieu du git pull. Le script gère un dossier racine unique dans le zip et exclut data, .env, .venv et node_modules. Dans les deux modes, backend/data et backend/.env sont ensuite restaurés.
+4. **Dépendances** : npm install dans frontend, puis activation de .venv (Linux/macOS bin/ et Windows Git Bash Scripts/) et pip install -r requirements.txt. Le .venv est créé s’il manque.
+5. **Redémarrage** : le script exécute la commande définie dans RESTART_CMD, sinon il vous invite à redémarrer manuellement. Les nouvelles tables de la base sont créées automatiquement au démarrage. À la fin, il affiche la version lue dans APP_VERSION de library-selector.component.ts.
+
+```bash
+# Exemples d’utilisation :
+./update_tinymoviecatalog.sh
+
+./update_tinymoviecatalog.sh --zip TinyMovieCatalog_0.9.28.zip
+
+RESTART_CMD="systemctl restart tinymoviecatalog" ./update_tinymoviecatalog.sh
+
+./update_tinymoviecatalog.sh --no-restart
+
+```

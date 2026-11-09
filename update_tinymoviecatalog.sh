@@ -8,8 +8,12 @@
 #   ./update_tinymoviecatalog.sh --no-restart             # sans redémarrage
 #
 # Variables optionnelles :
-#   RESTART_CMD="systemctl restart tinymoviecatalog"   # commande de redémarrage
-#   BACKUP_DIR="/chemin/backups"                       # dossier des sauvegardes
+#   SERVICE_NAME="tinymoviecatalog"      # service systemd (défaut : tinymoviecatalog)
+#   RESTART_CMD="..."                    # commande personnalisée (remplace le service)
+#   BACKUP_DIR="/chemin/backups"         # dossier des sauvegardes
+#
+# Si le service systemd existe, il est arrêté avant la sauvegarde puis relancé
+# à la fin (sudo requis si le script n'est pas lancé en root).
 # =============================================================================
 set -euo pipefail
 
@@ -19,23 +23,54 @@ BACKUP_DIR="${BACKUP_DIR:-$PROJECT_DIR/../TinyMovieCatalog_backups}"
 STAMP="$(date +%Y%m%d_%H%M%S)"
 ZIP_FILE=""
 DO_RESTART=1
+SERVICE_NAME="${SERVICE_NAME:-tinymoviecatalog}"
+SERVICE_STOPPED=0
 
 log()  { printf '\033[1;34m[INFO]\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m[WARN]\033[0m %s\n' "$*"; }
 err()  { printf '\033[1;31m[ERR ]\033[0m %s\n' "$*" >&2; exit 1; }
+
+# systemctl avec sudo si nécessaire
+svc() { if [[ $EUID -eq 0 ]]; then systemctl "$@"; else sudo systemctl "$@"; fi; }
+service_exists() {
+  command -v systemctl >/dev/null 2>&1 && systemctl cat "${SERVICE_NAME}.service" >/dev/null 2>&1
+}
+
+cleanup() {
+  local rc=$?
+  rm -rf "${TMP_KEEP:-}" "${TMP_UNZIP:-}"
+  if [[ $SERVICE_STOPPED -eq 1 && $rc -ne 0 ]]; then
+    warn "Erreur : le service ${SERVICE_NAME} est resté ARRÊTÉ."
+    warn "Après correction : sudo systemctl start ${SERVICE_NAME}"
+  fi
+}
+trap cleanup EXIT
 
 # --- Arguments ---------------------------------------------------------------
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --zip)        ZIP_FILE="${2:-}"; [[ -f "$ZIP_FILE" ]] || err "Archive introuvable : $ZIP_FILE"; shift 2 ;;
     --no-restart) DO_RESTART=0; shift ;;
-    -h|--help)    sed -n '2,13p' "$0"; exit 0 ;;
+    -h|--help)    sed -n '2,17p' "$0"; exit 0 ;;
     *)            err "Option inconnue : $1" ;;
   esac
 done
 
 cd "$PROJECT_DIR"
 [[ -d backend && -d frontend ]] || err "Lancez ce script à la racine du projet (dossiers backend/ et frontend/ introuvables)."
+
+# --- 0. Arrêt du service (base de données cohérente pour la sauvegarde) ------
+USE_SERVICE=0
+if [[ $DO_RESTART -eq 1 && -z "${RESTART_CMD:-}" ]] && service_exists; then
+  USE_SERVICE=1
+  if systemctl is-active --quiet "${SERVICE_NAME}.service"; then
+    log "Étape 0/5 : arrêt du service ${SERVICE_NAME}"
+    svc stop "${SERVICE_NAME}.service"
+    SERVICE_STOPPED=1
+  else
+    log "Étape 0/5 : le service ${SERVICE_NAME} est déjà arrêté"
+  fi
+fi
 
 # --- 1. Sauvegarde de backend/data et backend/.env ---------------------------
 log "Étape 1/5 : sauvegarde de backend/data et backend/.env"
@@ -53,7 +88,6 @@ fi
 
 # Copie de sécurité temporaire pour restauration en fin de mise à jour
 TMP_KEEP="$(mktemp -d)"
-trap 'rm -rf "$TMP_KEEP" "${TMP_UNZIP:-}"' EXIT
 [[ -d backend/data ]] && cp -a backend/data "$TMP_KEEP/data"
 [[ -f backend/.env ]] && cp -a backend/.env "$TMP_KEEP/.env"
 
@@ -120,11 +154,27 @@ log "Étape 4/5 : installation des dépendances"
 
 # --- 5. Redémarrage ----------------------------------------------------------
 if [[ $DO_RESTART -eq 1 ]]; then
-  log "Étape 5/5 : redémarrage de l'application"
   if [[ -n "${RESTART_CMD:-}" ]]; then
-    eval "$RESTART_CMD"
+    log "Étape 5/5 : redémarrage via RESTART_CMD"
+    if ! eval "$RESTART_CMD"; then
+      warn "La commande de redémarrage a échoué : $RESTART_CMD"
+      warn "La mise à jour est terminée, redémarrez l'application manuellement."
+    fi
+  elif [[ $USE_SERVICE -eq 1 ]]; then
+    log "Étape 5/5 : redémarrage du service ${SERVICE_NAME}"
+    if svc restart "${SERVICE_NAME}.service"; then
+      SERVICE_STOPPED=0
+      sleep 3
+      if systemctl is-active --quiet "${SERVICE_NAME}.service"; then
+        log "Service ${SERVICE_NAME} actif."
+      else
+        warn "Le service ne reste pas actif : journalctl -u ${SERVICE_NAME} -n 50"
+      fi
+    else
+      warn "Échec du redémarrage du service ${SERVICE_NAME}."
+    fi
   else
-    warn "RESTART_CMD non défini : redémarrez l'application manuellement."
+    warn "Service ${SERVICE_NAME} introuvable et RESTART_CMD non défini : redémarrez l'application manuellement."
     warn "Les nouvelles tables de la base sont créées automatiquement au démarrage."
   fi
 else
@@ -135,3 +185,4 @@ VERSION="$(grep -oE "TinyMovieCatalog v[0-9]+\.[0-9]+\.[0-9]+" \
   "$(find frontend -name 'library-selector.component.ts' -not -path '*/node_modules/*' | head -n1)" 2>/dev/null | head -n1 || true)"
 log "Mise à jour terminée ${VERSION:+($VERSION)}."
 log "Sauvegarde conservée dans : $BACKUP_DIR"
+log "Lancer l'application  http://localhost:4200/"

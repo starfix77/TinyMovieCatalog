@@ -1,0 +1,19 @@
+[Unit]
+Description=TinyMovieCatalog (backend Python + frontend JavaScript)
+After=network.target
+
+[Service]
+Type=simple
+User=__USER__
+WorkingDirectory=__DIR__
+ExecStart=/bin/bash __DIR__/start.sh
+Restart=on-failure
+RestartSec=5
+# Arrête proprement backend + frontend (tous les processus du service)
+KillMode=control-group
+TimeoutStopSec=30
+# Si node/npm sont installés via nvm, ajoutez leur chemin ici, par exemple :
+# Environment=PATH=/home/__USER__/.nvm/versions/node/v20.0.0/bin:/usr/local/bin:/usr/bin:/bin
+
+[Install]
+WantedBy=multi-user.target

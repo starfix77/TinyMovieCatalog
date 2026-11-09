@@ -5,9 +5,11 @@ Ce guide explique comment installer et lancer **TinyMovieCatalog** sur :
 - [Windows](#windows)
 - [Linux — distributions compatibles Debian (Debian, Ubuntu, Linux Mint…)](#linux--distributions-compatibles-debian)
 - [Linux — distributions compatibles Red Hat (RHEL, Fedora, Rocky, AlmaLinux, CentOS Stream…)](#linux--distributions-compatibles-red-hat)
+- [Linux — service systemd et mise à jour automatisée (toutes distributions)](#linux--service-systemd-et-mise-à-jour-automatisée)
 - [macOS](#macos)
 
 Chaque section est autonome : lisez uniquement celle de votre système.
+Sous Linux, une section supplémentaire (facultative) explique comment installer TinyMovieCatalog comme **service systemd** et le **mettre à jour avec un script**.
 Les parties communes à tous les systèmes (configuration, première utilisation, dépannage) sont en fin de document.
 
 ---
@@ -23,7 +25,7 @@ TinyMovieCatalog se compose de deux services qui tournent **en local** sur votre
 
 Documentation interactive de l'API : http://localhost:8000/docs
 
-Les données (base SQLite et affiches) sont stockées dans `backend/data/`.
+Les données (base SQLite et affiches) sont stockées dans `backend/data/`.v
 
 ### Prérequis (tous systèmes)
 
@@ -261,6 +263,10 @@ Ouvrez http://localhost:4200, puis passez à la [première utilisation](#premiè
 
 > **Serveur sans interface graphique** : le bouton PLAY (`ffplay`) nécessite un affichage sur la machine qui exécute le backend. Le reste de l'application fonctionne depuis un navigateur.
 
+### 5. (Facultatif) Service systemd et mise à jour automatisée
+
+Pour lancer TinyMovieCatalog automatiquement au démarrage de la machine et le mettre à jour en une commande, voir la section [Linux — service systemd et mise à jour automatisée](#linux--service-systemd-et-mise-à-jour-automatisée).
+
 ---
 
 ## Linux — distributions compatibles Red Hat
@@ -414,6 +420,110 @@ npm start
 > **Accès depuis un autre poste du réseau** : le pare-feu (`firewalld`) bloque par défaut les ports. Pour un usage uniquement local (`localhost`), rien à faire. SELinux n'a pas d'impact pour un usage local.
 
 Ouvrez http://localhost:4200, puis passez à la [première utilisation](#première-utilisation).
+
+### 5. (Facultatif) Service systemd et mise à jour automatisée
+
+Pour lancer TinyMovieCatalog automatiquement au démarrage de la machine et le mettre à jour en une commande, voir la section [Linux — service systemd et mise à jour automatisée](#linux--service-systemd-et-mise-à-jour-automatisée). Lisez en particulier les remarques sur **SELinux** et sur le **Python parallèle** (RHEL / Rocky / AlmaLinux).
+
+---
+
+## Linux — service systemd et mise à jour automatisée
+
+Valable pour **toutes les distributions Linux utilisant systemd** (Debian, Ubuntu, Linux Mint, Fedora, RHEL, Rocky, AlmaLinux…). Cette section est **facultative** : elle permet de lancer TinyMovieCatalog automatiquement au démarrage de la machine, et de le mettre à jour en une seule commande.
+
+Trois fichiers sont utilisés ; ils doivent se trouver **à la racine du projet** (à côté de `start.sh`) :
+
+| Fichier | Rôle |
+|---|---|
+| `tinymoviecatalog.service` | Modèle du service systemd |
+| `install_service.sh` | Installe le service systemd (détecte automatiquement l'utilisateur et le dossier du projet) |
+| `update_tinymoviecatalog.sh` | Met à jour l'application vers une nouvelle version (sauvegarde, récupération, dépendances, redémarrage) |
+
+### Prérequis
+
+- L'installation est terminée (étapes 1 à 3 de la section de votre distribution) et `backend/.env` est configuré.
+- `./start.sh` fonctionne en lancement manuel : testez-le une fois, puis arrêtez-le avec **Ctrl+C**.
+- Vous disposez des droits `sudo`.
+
+```bash
+cd TinyMovieCatalog
+chmod +x install_service.sh update_tinymoviecatalog.sh
+```
+
+### 1. Installer le service systemd
+
+```bash
+sudo ./install_service.sh
+sudo systemctl start tinymoviecatalog
+```
+
+`install_service.sh` :
+
+- génère `/etc/systemd/system/tinymoviecatalog.service` à partir du modèle, avec votre nom d'utilisateur et le dossier du projet ;
+- exécute `systemctl daemon-reload` ;
+- active le service (`systemctl enable`) : il démarrera donc **automatiquement au démarrage de la machine**.
+
+Le service lance `start.sh` (backend + frontend) avec votre compte utilisateur, et le redémarre automatiquement en cas d'arrêt anormal.
+
+Commandes utiles :
+
+| Action | Commande |
+|---|---|
+| Démarrer | `sudo systemctl start tinymoviecatalog` |
+| Arrêter | `sudo systemctl stop tinymoviecatalog` |
+| Redémarrer | `sudo systemctl restart tinymoviecatalog` |
+| Voir l'état | `sudo systemctl status tinymoviecatalog` |
+| Suivre les journaux en direct | `journalctl -u tinymoviecatalog -f` |
+| Ne plus démarrer au boot | `sudo systemctl disable tinymoviecatalog` |
+
+Les journaux applicatifs `backend.log` et `frontend.log` restent disponibles à la racine du projet.
+
+> ⚠️ **Ne lancez pas `./start.sh` à la main pendant que le service tourne** : les ports 4200 et 8000 seraient déjà occupés. Arrêtez d'abord le service avec `sudo systemctl stop tinymoviecatalog`.
+
+**Points d'attention**
+
+- **`start.sh` doit rester au premier plan.** Si `start.sh` lance les deux processus en arrière-plan (`&`), il doit se terminer par `wait` ; sinon systemd considère que le service s'est arrêté et tue le backend et le frontend.
+- **Node.js installé via nvm** : systemd ne connaît pas le `PATH` de votre terminal. Éditez `/etc/systemd/system/tinymoviecatalog.service`, ajoutez une ligne `Environment=PATH=/home/VOTRE_USER/.nvm/versions/node/vXX.X.X/bin:/usr/local/bin:/usr/bin:/bin` dans la section `[Service]`, puis exécutez `sudo systemctl daemon-reload && sudo systemctl restart tinymoviecatalog`.
+- **RHEL / Rocky / AlmaLinux avec Python installé en parallèle** : `start.sh` utilise `python3` (voir la section Red Hat). Vérifiez que votre lancement fonctionne bien avec le `.venv` existant avant d'installer le service.
+- **RHEL / Rocky / AlmaLinux / Fedora (SELinux)** : SELinux peut empêcher un service systemd d'exécuter des programmes situés dans `/home`. Si le service échoue avec « Permission denied » alors que `./start.sh` fonctionne en manuel, consultez `sudo ausearch -m avc -ts recent`, ou installez le projet en dehors de `/home` (par exemple dans `/opt`) et adaptez le contexte SELinux.
+- **Changement d'emplacement du projet** : relancez `sudo ./install_service.sh` depuis le nouveau dossier pour régénérer le service.
+
+### 2. Mettre à jour avec `update_tinymoviecatalog.sh`
+
+Depuis la racine du projet :
+
+```bash
+./update_tinymoviecatalog.sh                                      # mise à jour via git pull
+./update_tinymoviecatalog.sh --zip TinyMovieCatalog_0.9.25.zip    # mise à jour depuis une archive
+./update_tinymoviecatalog.sh --no-restart                         # sans arrêt ni redémarrage
+```
+
+Le script exécute les étapes suivantes :
+
+| Étape | Action |
+|---|---|
+| 0 | Arrête le service `tinymoviecatalog` s'il existe et s'il est actif (base de données cohérente pour la sauvegarde) |
+| 1 | Sauvegarde `backend/data/` (base et affiches) et `backend/.env` dans une archive horodatée |
+| 2 | **Mode git** : `git pull` depuis https://github.com/starfix77/TinyMovieCatalog.git |
+| 3 | **Mode `--zip`** : décompresse l'archive en conservant votre `backend/data/` et votre `backend/.env` |
+| 4 | Relance l'installation des dépendances : `npm install` (frontend) et `pip install -r requirements.txt` (backend, dans `.venv`) |
+| 5 | Redémarre le service et vérifie qu'il est actif. Les nouvelles tables de la base sont créées automatiquement au démarrage |
+
+Remarques :
+
+- Les sauvegardes sont créées dans `../TinyMovieCatalog_backups/` (dossier parent du projet). Pour choisir un autre dossier : `BACKUP_DIR=/chemin/backups ./update_tinymoviecatalog.sh`.
+- Si le script n'est pas lancé en `root`, il utilise `sudo` pour piloter le service et peut demander votre mot de passe.
+- Le **mode git** nécessite que le projet soit un dépôt git cloné et sans modification locale conflictuelle. Si vous avez installé le projet depuis une archive `.zip`, utilisez plutôt le mode `--zip`.
+- Si le service porte un autre nom : `SERVICE_NAME=monservice ./update_tinymoviecatalog.sh`. Pour utiliser votre propre commande de redémarrage à la place du service : `RESTART_CMD="..." ./update_tinymoviecatalog.sh`.
+- En cas d'erreur pendant la mise à jour, le script vous indique que le service est resté arrêté et la commande pour le relancer (`sudo systemctl start tinymoviecatalog`).
+
+**Restaurer une sauvegarde** (depuis la racine du projet) :
+
+```bash
+sudo systemctl stop tinymoviecatalog
+tar -xzf ../TinyMovieCatalog_backups/TinyMovieCatalog_backup_AAAAMMJJ_HHMMSS.tar.gz
+sudo systemctl start tinymoviecatalog
+```
 
 ---
 
@@ -589,11 +699,14 @@ L'application est alors disponible sur http://localhost:3000 (le backend reste s
 
 - Avec `start.sh` / `start.ps1` : **Ctrl+C** dans la console.
 - En mode manuel : **Ctrl+C** dans chacune des deux fenêtres.
+- Avec le service systemd (Linux) : `sudo systemctl stop tinymoviecatalog`.
 - Si un processus reste actif :
   - Linux / macOS : `pkill -f uvicorn` puis `pkill -f "ng serve"`
   - Windows : `Get-Process python, node | Stop-Process`
 
 ## Mettre à jour vers une nouvelle version
+
+> **Linux** : le script `update_tinymoviecatalog.sh` automatise toutes les étapes ci-dessous (arrêt du service, sauvegarde, mise à jour, dépendances, redémarrage). Voir [Mettre à jour avec `update_tinymoviecatalog.sh`](#2-mettre-à-jour-avec-update_tinymoviecatalogsh). Windows et macOS : suivez la procédure manuelle ci-dessous.
 
 1. Arrêtez l'application.
 2. **Sauvegardez** `backend/data/` (base et affiches) et `backend/.env`.
@@ -618,5 +731,10 @@ L'application est alors disponible sur http://localhost:3000 (le backend reste s
 | Windows : « l'exécution de scripts est désactivée » | Politique d'exécution PowerShell | `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` |
 | Le scan ne trouve aucun film | Mauvaise structure de dossiers ou mauvais chemin | Vérifiez le dossier racine et le nommage `Titre (Année)` ; choisissez « Structure mixte » dans le dialogue de scan si nécessaire |
 | Linux / macOS : `Permission denied` sur `./install.sh` | Scripts non exécutables | `chmod +x *.sh` |
+| Linux : `Unit tinymoviecatalog.service not found` | Service systemd non installé | `sudo ./install_service.sh` (voir [service systemd](#linux--service-systemd-et-mise-à-jour-automatisée)) |
+| Linux : le service s'arrête juste après `start` | `start.sh` rend la main immédiatement, ou `node` / `npm` introuvable (nvm) | Consultez `journalctl -u tinymoviecatalog -n 50` ; vérifiez que `start.sh` reste au premier plan ; ajoutez `Environment=PATH=...` au service |
+| Linux (RHEL / Fedora…) : le service échoue avec `Permission denied` alors que `./start.sh` fonctionne | SELinux bloque l'exécution depuis `/home` | `sudo ausearch -m avc -ts recent` ; installez le projet hors de `/home` (ex. `/opt`) |
+| Linux : `Address already in use` au démarrage du service | `./start.sh` lancé à la main ou autre instance active | `sudo systemctl stop tinymoviecatalog`, puis `pkill -f uvicorn` et `pkill -f "ng serve"` si nécessaire |
+| Linux : mise à jour interrompue, application arrêtée | Erreur pendant `update_tinymoviecatalog.sh` | Corrigez l'erreur, relancez le script ou `sudo systemctl start tinymoviecatalog` ; sauvegarde dans `../TinyMovieCatalog_backups/` |
 
 Les journaux sont dans `frontend.log` / `backend.log` (Linux, macOS) ou `frontend.error.log` / `backend.error.log` (Windows), à la racine du projet.

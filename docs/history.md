@@ -339,3 +339,10 @@ RESTART_CMD="systemctl restart tinymoviecatalog" ./update_tinymoviecatalog.sh
 ./update_tinymoviecatalog.sh --no-restart
 
 ```
+
+
+
+**v0.9.29** - Linux — service systemd et mise à jour automatisée (toutes distributions Linux)
+
+Valable pour toutes les distributions Linux utilisant systemd (Debian, Ubuntu, Linux Mint, Fedora, RHEL, Rocky, AlmaLinux…). 
+Cette section est *facultative* : elle permet de lancer TinyMovieCatalog automatiquement au démarrage de la machine, et de le mettre à jour en une seule commande.

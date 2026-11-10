@@ -3,12 +3,12 @@
     <h2>Informations de la bibliotheque</h2>
     @if (activeLibraryId()) {
       <button type="button" class="note-btn" (click)="openNoteDialog()"
-              title="Ajouter ou modifier la note de la bibliotheque">
+              title="Ajouter ou modifier un mémo à la bibliotheque">
         <svg class="note-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path d="M5 3h10l4 4v14H5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
           <path d="M8.5 11h7M8.5 14.5h7M8.5 18h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
         </svg>
-        <span>Notes</span>
+        <span>Mémo</span>
       </button>
     }
   </div>
@@ -25,6 +25,19 @@
         <div class="info-row">
           <dt>Nom de la bibliotheque</dt>
           <dd>{{ lib.name }}</dd>
+        </div>
+        <div class="info-row">
+          <dt></dt>
+          <dd>
+            <button type="button" class="note-btn" (click)="openNoteDialog()"
+              title="Ajouter ou modifier un mémo à la bibliotheque">
+              <svg class="note-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M5 3h10l4 4v14H5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                <path d="M8.5 11h7M8.5 14.5h7M8.5 18h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+              <span>Mémo</span>
+            </button>
+          </dd>
         </div>
         <div class="info-row">
           <dt>Dossier racine</dt>

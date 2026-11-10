@@ -357,3 +357,17 @@ Cette section est *facultative* : elle permet de lancer TinyMovieCatalog automat
 - Export / import de bibliothèque : la note est incluse dans l'export (clé optionnelle `library.note`), comme la note personnelle en étoiles, et restaurée à l'import. Le format reste en version 1 : les **anciens exports** (sans cette clé) restent lisibles et s'importent sans note.
 - Tests : `backend/tests/test_library_transfer.py` complété (aller-retour avec note, export sans note, ancien export).
 - Fichiers touchés : `backend/app/models.py`, `schemas.py`, `routers/libraries.py`, `library_transfer.py`, `components/library-info/` (html, ts, css), `services/library.service.ts`, `models/library.model.ts`.
+
+
+
+**v0.9.31** - Réorganisation de l'ordre des bibliothèques (glisser-déposer)
+
+- Bandeau de gauche (`library-selector.component`) : les bibliothèques peuvent être **réordonnées par glisser-déposer**. Un trait coloré indique la position de dépôt (avant / après la bibliothèque survolée) ; la bibliothèque déplacée est atténuée pendant le glissement. Un changement de bibliothèque active n'est pas déclenché par le glissement.
+- L'ordre est **enregistré en base** (nouvelle colonne `libraries.sort_order`) et retrouvé à chaque démarrage. Il est aussi utilisé dans les listes déroulantes des outils (comparaison, export).
+- **Suppression** d'une bibliothèque : l'ordre des autres bibliothèques est préservé (les rangs sont renumérotés sans modifier l'ordre relatif).
+- **Nouvelle bibliothèque** (création ou import) : placée en **dernière position** de la liste.
+- Migration automatique : la colonne est ajoutée au démarrage et initialisée avec l'ordre alphabétique précédemment affiché, de sorte que rien ne change tant que l'utilisateur ne réorganise pas la liste. Le rang n'est pas inclus dans les fichiers d'export (format inchangé, version 1).
+- API : `PUT /api/libraries/order` (corps `{ "ids": [3, 1, 2] }`, retourne la liste ordonnée). Les identifiants inconnus sont ignorés et les bibliothèques absentes de la liste sont placées à la fin.
+- Le tri alphabétique `ORDER BY name` de `GET /api/libraries` est remplacé par `ORDER BY sort_order, id`.
+- Tests : nouveau fichier `backend/tests/test_library_order.py` (nouvelle bibliothèque en dernier, réordonnancement persistant, suppression, identifiants inconnus, migration).
+- Fichiers touchés : `backend/app/models.py`, `database.py`, `schemas.py`, `library_order.py` (nouveau), `library_transfer.py`, `routers/libraries.py`, `components/library-selector/` (html, ts, css), `services/library.service.ts`, `models/library.model.ts`.

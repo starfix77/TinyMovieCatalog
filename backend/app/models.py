@@ -57,6 +57,10 @@ class Library(Base):
     # serie ; ses video_files sont les episodes.
     media_type = Column(String, nullable=False, default="movie", server_default="movie")
 
+    # Rang d'affichage dans le bandeau de gauche (tri personnalise par
+    # glisser-deposer). Une nouvelle bibliotheque recoit max + 1 (= derniere).
+    sort_order = Column(Integer, nullable=False, default=0, server_default="0")
+
     # Filesystem hebergeant le dossier racine, en octets (entiers 64 bits).
     # Rafraichi a la creation, a chaque scan et a l'ouverture de la page "Info".
     fs_total_size = Column(BigInteger, nullable=True)

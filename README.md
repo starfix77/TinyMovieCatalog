@@ -12,6 +12,7 @@ Systemes d'exploitation:
 
 ## Fonctionnalités principales:
 - **Bibliothèque de films** : centralisation de l’ensemble des films ou Séries TV de la collection.
+- **Ordre des bibliothèques personnalisable** : les bibliothèques du bandeau de gauche se réorganisent par glisser-déposer ; l’ordre est conservé (y compris après une suppression) et une nouvelle bibliothèque est ajoutée en dernier.
 - **Affichage par Vignettes** : présentation visuelle des films sous forme d’affiches.
 - **Affichage Technique** : consultation des informations techniques et détaillées des films.
 - **Affichage par Saga** : regroupement automatique des films appartenant à une même saga.

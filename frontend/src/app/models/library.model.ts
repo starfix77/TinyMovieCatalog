@@ -9,6 +9,8 @@ export interface Library {
   created_at: string;
   last_scanned_at: string | null;
   movie_count: number;
+  /** Rang d'affichage dans le bandeau de gauche (tri personnalise). */
+  sort_order?: number;
 }
 
 /** Fiche d'information d'une bibliotheque (page "Info"). */

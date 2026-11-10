@@ -28,6 +28,12 @@ class LibraryOut(BaseModel):
     last_scanned_at: Optional[datetime] = None
     movie_count: int = 0
     media_type: str = "movie"
+    sort_order: int = 0
+
+
+class LibraryOrderUpdate(BaseModel):
+    """Nouvel ordre d'affichage des bibliotheques (liste d'identifiants)."""
+    ids: List[int]
 
 
 class LibraryInfoOut(BaseModel):

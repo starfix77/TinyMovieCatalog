@@ -81,3 +81,13 @@ def _run_light_migrations():
             if column not in existing:
                 with engine.begin() as conn:
                     conn.execute(text(f"ALTER TABLE libraries ADD COLUMN {column} BIGINT"))
+
+        if "sort_order" not in existing:
+            # Rang d'affichage personnalisable : on part de l'ordre actuellement
+            # affiche (alphabetique) pour que rien ne change visuellement.
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE libraries ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0"))
+                rows = conn.execute(text("SELECT id FROM libraries ORDER BY name COLLATE NOCASE, id")).fetchall()
+                for rank, (library_id,) in enumerate(rows, start=1):
+                    conn.execute(text("UPDATE libraries SET sort_order = :rank WHERE id = :id"),
+                                 {"rank": rank, "id": library_id})

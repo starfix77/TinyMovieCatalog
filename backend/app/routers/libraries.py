@@ -12,9 +12,10 @@ from app.database import get_db
 from app.models import Library, LibraryNote, Movie, VideoFile
 from app.schemas import (
     CompareAudioTrack, CompareOut, CompareRow, CompareVideoDetail, LibraryCreate, LibraryImportOut,
-    LibraryImportRequest, LibraryInfoOut, LibraryNoteOut, LibraryOut, LibraryUpdate, NoteUpdate, ScanRequest, ScanResult, ThumbnailJobOut,
+    LibraryImportRequest, LibraryInfoOut, LibraryNoteOut, LibraryOrderUpdate, LibraryOut, LibraryUpdate, NoteUpdate, ScanRequest, ScanResult, ThumbnailJobOut,
 )
 from app import library_transfer, journal
+from app.library_order import apply_order, next_sort_order, normalize_sort_order, ordered_libraries
 from app.fs_utils import refresh_library_fs_stats
 from app.scan_manager import scan_manager
 from app.compare import IDENTICAL_DIFFERENT_FILE, build_library, compare_libraries, folder_key
@@ -22,9 +23,9 @@ from app.compare import IDENTICAL_DIFFERENT_FILE, build_library, compare_librari
 router = APIRouter(prefix="/api/libraries", tags=["libraries"])
 
 
-@router.get("", response_model=list[LibraryOut])
-def list_libraries(db: Session = Depends(get_db)):
-    libraries = db.query(Library).order_by(Library.name).all()
+def _libraries_out(db: Session) -> list[LibraryOut]:
+    """Bibliotheques dans l'ordre d'affichage personnalise, avec leur compteur."""
+    libraries = ordered_libraries(db)
     counts = dict(
         db.query(Movie.library_id, func.count(Movie.id)).group_by(Movie.library_id).all()
     )
@@ -36,6 +37,19 @@ def list_libraries(db: Session = Depends(get_db)):
     return out
 
 
+@router.get("", response_model=list[LibraryOut])
+def list_libraries(db: Session = Depends(get_db)):
+    return _libraries_out(db)
+
+
+@router.put("/order", response_model=list[LibraryOut])
+def reorder_libraries(payload: LibraryOrderUpdate, db: Session = Depends(get_db)):
+    """Enregistre l'ordre d'affichage des bibliotheques (glisser-deposer).
+    Declaree avant PUT /{library_id} pour ne pas etre capturee par cette route."""
+    apply_order(db, payload.ids)
+    return _libraries_out(db)
+
+
 @router.post("", response_model=LibraryOut, status_code=201)
 def create_library(payload: LibraryCreate, db: Session = Depends(get_db)):
     existing = db.query(Library).filter(Library.root_path == payload.root_path).first()
@@ -43,7 +57,8 @@ def create_library(payload: LibraryCreate, db: Session = Depends(get_db)):
         raise HTTPException(409, "Une bibliotheque pointe deja vers ce dossier racine.")
 
     library = Library(name=payload.name.strip(), root_path=payload.root_path.strip(),
-                      media_type=payload.media_type)
+                      media_type=payload.media_type,
+                      sort_order=next_sort_order(db))  # nouvelle bibliotheque = derniere
     refresh_library_fs_stats(library)
     db.add(library)
     db.commit()
@@ -330,6 +345,7 @@ def delete_library(library_id: int, db: Session = Depends(get_db)):
         raise HTTPException(404, "Bibliotheque introuvable.")
     db.delete(library)  # cascade -> movies / video_files / audio_tracks / subtitles
     db.commit()
+    normalize_sort_order(db)  # l'ordre des autres bibliotheques est preserve (trou comble)
     return None
 
 

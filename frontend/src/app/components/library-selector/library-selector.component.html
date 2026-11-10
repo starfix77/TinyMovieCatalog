@@ -15,9 +15,18 @@
     <span>Outils</span>
   </a>
 
-  <nav class="library-list">
+  <nav class="library-list" (dragleave)="onListDragLeave($event)">
     @for (lib of libraries(); track lib.id) {
-      <div class="library-item" [class.active]="lib.id === activeLibraryId()" (click)="select(lib)">
+      <div class="library-item" [class.active]="lib.id === activeLibraryId()" (click)="select(lib)"
+           draggable="true"
+           title="Glisser-déposer pour réorganiser l'ordre des bibliothèques"
+           [class.dragging]="draggedId() === lib.id"
+           [class.drop-before]="dropTarget()?.id === lib.id && dropTarget()?.position === 'before'"
+           [class.drop-after]="dropTarget()?.id === lib.id && dropTarget()?.position === 'after'"
+           (dragstart)="onDragStart(lib, $event)"
+           (dragover)="onDragOver(lib, $event)"
+           (drop)="onDrop(lib, $event)"
+           (dragend)="endDrag()">
         <div class="library-item-main">
           <span class="library-name">
             <app-media-type-icon class="library-type-icon" [type]="lib.media_type" [size]="15"></app-media-type-icon>
@@ -77,6 +86,10 @@
 
   @if (scanMessage()) {
     <div class="scan-toast">{{ scanMessage() }}</div>
+  }
+
+  @if (reorderError()) {
+    <div class="scan-toast">{{ reorderError() }}</div>
   }
 
   @if (!showAddForm()) {

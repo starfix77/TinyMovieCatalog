@@ -120,6 +120,36 @@
   background: var(--surface-hover);
 }
 
+/* Glisser-deposer : reorganisation de l'ordre des bibliotheques */
+.library-item[draggable="true"] {
+  cursor: grab;
+}
+
+.library-item.dragging {
+  opacity: 0.45;
+  cursor: grabbing;
+}
+
+.library-item.drop-before::before,
+.library-item.drop-after::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  pointer-events: none;
+}
+
+.library-item.drop-before::before {
+  top: -2px;
+}
+
+.library-item.drop-after::after {
+  bottom: -2px;
+}
+
 .library-item.active {
   background: var(--accent-soft);
   background: linear-gradient(180deg, var(--accent-soft) 0%, var(--accent-soft-grandien-50) 50%, var(--accent-soft-grandien-100) 100%);

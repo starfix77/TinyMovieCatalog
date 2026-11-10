@@ -1,6 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, catchError, tap, throwError } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 import {
@@ -93,6 +93,22 @@ export class LibraryService {
       tap(() => {
         this.loadLibraries().subscribe();
         this.notifyMoviesChanged(); // la page Info / les vues se rechargent
+      })
+    );
+  }
+
+  /** Enregistre un nouvel ordre d'affichage des bibliotheques (glisser-deposer).
+   *  Mise a jour optimiste de la liste ; retour a l'ordre precedent en cas d'erreur. */
+  reorderLibraries(ids: number[]): Observable<Library[]> {
+    const previous = this.libraries();
+    const byId = new Map(previous.map((lib) => [lib.id, lib]));
+    const reordered = ids.map((id) => byId.get(id)).filter((lib): lib is Library => !!lib);
+    this.libraries.set(reordered);
+    return this.http.put<Library[]>(`${this.baseUrl}/order`, { ids }).pipe(
+      tap((libs) => this.libraries.set(libs)),
+      catchError((err) => {
+        this.libraries.set(previous);
+        return throwError(() => err);
       })
     );
   }

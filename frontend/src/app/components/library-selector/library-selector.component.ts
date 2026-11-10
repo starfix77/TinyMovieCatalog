@@ -8,7 +8,7 @@ import { Library, MediaType, ScanCompareMode } from '../../models/library.model'
 import { MediaTypeIconComponent } from '../media-type-icon/media-type-icon.component';
 
 /** Version affichee dans la fenetre "A propos" (a garder alignee avec le <h1> du template). */
-export const APP_VERSION = '0.9.30';
+export const APP_VERSION = '0.9.31';
 
 @Component({
   selector: 'app-library-selector',
@@ -34,6 +34,13 @@ export class LibrarySelectorComponent implements OnInit {
   readonly scanProgress = this.libraryService.scanProgress;
   private scanSockets = new Map<number, WebSocket>();
   pendingDeleteId = signal<number | null>(null);
+
+  // ---------- Reorganisation des bibliotheques (glisser-deposer) ----------
+  /** Bibliotheque en cours de deplacement. */
+  draggedId = signal<number | null>(null);
+  /** Cible courante du survol : l'indicateur s'affiche avant ou apres cette bibliotheque. */
+  dropTarget = signal<{ id: number; position: 'before' | 'after' } | null>(null);
+  reorderError = signal<string | null>(null);
 
   // ---------- Boite de dialogue de confirmation de scan ----------
   scanDialogLibrary = signal<Library | null>(null);
@@ -156,6 +163,72 @@ export class LibrarySelectorComponent implements OnInit {
       this.pendingDeleteId.set(null);
       this.refresh();
     });
+  }
+
+  // ---------- Glisser-deposer : ordre d'affichage des bibliotheques ----------
+
+  onDragStart(lib: Library, event: DragEvent): void {
+    this.draggedId.set(lib.id);
+    this.reorderError.set(null);
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', String(lib.id)); // requis par Firefox
+    }
+  }
+
+  onDragOver(lib: Library, event: DragEvent): void {
+    const dragged = this.draggedId();
+    if (dragged === null) return; // glissement externe (fichier, texte...) : ignore
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+
+    if (dragged === lib.id) {
+      this.dropTarget.set(null);
+      return;
+    }
+    // Moitie haute de l'element = avant, moitie basse = apres.
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    const position = event.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+    const current = this.dropTarget();
+    if (current?.id !== lib.id || current.position !== position) {
+      this.dropTarget.set({ id: lib.id, position });
+    }
+  }
+
+  onDrop(lib: Library, event: DragEvent): void {
+    event.preventDefault();
+    const dragged = this.draggedId();
+    const target = this.dropTarget();
+    this.endDrag();
+    if (dragged === null || !target || target.id !== lib.id) return;
+
+    const current = this.libraries().map((item) => item.id);
+    const reordered = current.filter((id) => id !== dragged);
+    const index = reordered.indexOf(target.id);
+    if (index < 0) return;
+    reordered.splice(target.position === 'after' ? index + 1 : index, 0, dragged);
+    if (reordered.every((id, i) => id === current[i])) return; // ordre inchange
+
+    this.libraryService.reorderLibraries(reordered).subscribe({
+      error: () => {
+        this.reorderError.set("Impossible d'enregistrer le nouvel ordre des bibliotheques.");
+        setTimeout(() => this.reorderError.set(null), 6000);
+      },
+    });
+  }
+
+  /** Fin du glissement (depot ou annulation, ex. touche Echap) : retire les indicateurs. */
+  endDrag(): void {
+    this.draggedId.set(null);
+    this.dropTarget.set(null);
+  }
+
+  /** Quitte la liste sans deposer : retire l'indicateur de depot. */
+  onListDragLeave(event: DragEvent): void {
+    const list = event.currentTarget as HTMLElement;
+    if (!event.relatedTarget || !list.contains(event.relatedTarget as Node)) {
+      this.dropTarget.set(null);
+    }
   }
 
   /** Ouvre la fenetre "A propos" (double-clic sur le titre <h1>). */

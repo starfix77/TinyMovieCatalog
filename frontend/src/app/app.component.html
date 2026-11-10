@@ -56,8 +56,17 @@
           </svg>
           <span>Journal</span>
         </a>
-        <a routerLink="/info" routerLinkActive="active">Info</a>
-            </ng-template>
+        <a routerLink="/info" routerLinkActive="active" class="notes-tab">
+          <svg class="tab-icon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M12 11v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <circle cx="12" cy="8" r="1" fill="currentColor"/>
+          </svg>
+          <span>Info</span>
+        </a> 
+        
+        
+      </ng-template>
 
       <!-- Mesure invisible de la largeur necessaire pour afficher tous les liens a l'horizontale -->
       <nav class="view-tabs nav-measure" aria-hidden="true" inert data-nav-ignore #navMeasure>

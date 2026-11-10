@@ -29,6 +29,7 @@ from typing import Any, Optional
 from sqlalchemy.orm import Session, joinedload
 
 from app import tmdb
+from app.library_order import next_sort_order
 from app.config import settings
 from app.models import (
     AudioTrack, Library, LibraryNote, Movie, Note, Saga, SagaMovie, Subtitle, VideoFile,
@@ -233,6 +234,8 @@ def import_library(db: Session, data: dict, name: Optional[str] = None,
             **_values(src, LIBRARY_FIELDS),
             "name": new_name,
             "root_path": new_root,
+            # Une bibliotheque importee est ajoutee en derniere position.
+            "sort_order": next_sort_order(db),
         })
         db.add(library)
         db.flush()

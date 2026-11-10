@@ -28,6 +28,7 @@ TinyMovieCatalog est une application web **100 % locale** de gestion de biblioth
 - **Création** d'une bibliothèque via « + Nouvelle bibliothèque » : nom, dossier racine, et **type** (*Films* ou *Séries TV*).
 - **Modification** d'une bibliothèque via le bouton « éditer » (icône crayon, à gauche du bouton ⟳) : dialogue « Modifier la librairie » permettant de changer le nom, le type (*Films* / *Séries*) et le dossier racine (mise à jour de la table `libraries`, `PUT /api/libraries/{id}`, erreur 409 si le dossier racine est déjà utilisé par une autre bibliothèque).
 - **Plusieurs bibliothèques** simultanées, avec bascule en un clic depuis le panneau latéral gauche.
+- **Ordre personnalisable** : les bibliothèques du panneau latéral se réorganisent par **glisser-déposer** (un trait indique la position de dépôt). L'ordre est enregistré en base (colonne `libraries.sort_order`, `PUT /api/libraries/order`) ; il est conservé après la suppression d'une bibliothèque, et une **nouvelle bibliothèque** (création ou import) est ajoutée **en dernière position**. Pour les bases existantes, l'ordre initial est l'ordre alphabétique précédent.
 - **Unicité du dossier racine** : une seule bibliothèque par dossier (erreur 409 sinon).
 - **Icône de type** (pellicule / téléviseur) dans le panneau latéral et dans l'en-tête.
 - **Compteurs** adaptés au type : « film(s) » ou « série(s) ».
@@ -35,7 +36,7 @@ TinyMovieCatalog est une application web **100 % locale** de gestion de biblioth
 - **Panneau latéral repliable** (bouton ☰), état mémorisé dans le navigateur.
 - **Thème clair / sombre** commutable, choix mémorisé dans le navigateur.
 - **En-tête** affichant l'icône, le nom en gras et le nombre total de films/séries de la bibliothèque active.
-- **Migration automatique** des bases existantes (la colonne `media_type` est ajoutée ; les anciennes bibliothèques restent en « Films »).
+- **Migration automatique** des bases existantes (les colonnes `media_type` et `sort_order` sont ajoutées ; les anciennes bibliothèques restent en « Films » et gardent leur ordre alphabétique).
 
 ---
 
@@ -243,7 +244,7 @@ Documentation Swagger sur `http://localhost:8000/docs`.
 | Domaine | Endpoints principaux |
 |---|---|
 | Santé | `GET /api/health` |
-| Bibliothèques | `GET/POST /api/libraries`, `DELETE /api/libraries/{id}`, `GET /api/libraries/{id}/info`, `GET/PUT /api/libraries/{id}/note` |
+| Bibliothèques | `GET/POST /api/libraries`, `PUT /api/libraries/order`, `DELETE /api/libraries/{id}`, `GET /api/libraries/{id}/info`, `GET/PUT /api/libraries/{id}/note` |
 | Scan | `POST /api/libraries/{id}/scan`, `WS /api/libraries/{id}/scan/ws` |
 | Comparaison | `GET /api/libraries/compare` |
 | Export / import | `GET /api/libraries/{id}/export`, `POST /api/libraries/import`, `GET /api/libraries/import/thumbnails/{job_id}` |

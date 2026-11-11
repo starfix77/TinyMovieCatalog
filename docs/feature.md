@@ -1,6 +1,6 @@
 # TinyMovieCatalog — Liste des fonctionnalités
 
-> Document généré à partir de l'analyse du code source de **TinyMovieCatalog v0.9.19**, complété jusqu'à la **v0.9.32** (README, `docs/history.md`, backend FastAPI, frontend Angular).
+> Document généré à partir de l'analyse du code source de **TinyMovieCatalog v0.9.19**, complété jusqu'à la **v0.9.34** (README, `docs/history.md`, backend FastAPI, frontend Angular).
 > Les points où le code diffère de la documentation sont signalés dans la section [Écarts constatés](#13-écarts-constatés-entre-documentation-et-code).
 
 ---
@@ -63,6 +63,11 @@ TinyMovieCatalog est une application web **100 % locale** de gestion de biblioth
 
 ### 3.3 Détection et regroupement
 - Extraction du **titre et de l'année** à partir des noms de dossiers/fichiers (format `Titre (Année)` ou analyse du nom du fichier).
+- **Préfixe numérique de classement ignoré** en début de nom de fichier (films et séries TV) : un ou plusieurs chiffres suivis immédiatement d'un séparateur sont supprimés, avec leur séparateur, avant toute analyse. Le préfixe est retiré :
+  - si le séparateur est un **tiret** ou un **point** : `001 - Prometheus`, `01. Prometheus`, `12 - Prometheus`, `01-Prometheus` → `Prometheus` ;
+  - ou si le nombre **commence par un zéro** (`01`, `001`), quel que soit le séparateur (espace, point, tiret ou **souligné**) : `01 Prometheus`, `01_Prometheus` → `Prometheus`.
+  
+  Un nombre **sans zéro initial** suivi d'un simple espace ou d'un souligné est conservé car il fait partie du titre (`12 Years a Slave`, `21 Jump Street`, `28 Days Later`, `2 Alien`, `12_Years_a_Slave_2013`). Un seul préfixe est retiré (`01 - 12 Monkeys` → `12 Monkeys`). Le nom est conservé s'il ne resterait aucune lettre (`1917 (2019)`) ; un point suivi d'un chiffre n'est pas un séparateur (`1.5 Hours`, `10.000 BC`). Les dossiers au format `Titre (Année)` ne sont pas concernés.
 - Normalisation des séparateurs et **exclusion des suffixes techniques** (résolution, codecs, sources, HDR, langues, etc.).
 - Signalement des **années ambiguës**.
 - **Regroupement des doublons** : les copies d'un même titre/année sont rattachées à une seule fiche, chaque fichier vidéo conservant son chemin complet.

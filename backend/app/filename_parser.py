@@ -21,15 +21,65 @@ EPISODE_MARKER = re.compile(
     r"(?i)(?:^|[\s._-])(?:s\d{1,2}[\s._-]?e\d{1,3}|\d{1,2}x\d{2,3}|(?:season|saison)[\s._-]?\d{1,2})(?=$|[\s._-]|e\d)"
 )
 
+# Prefixe numerique de classement en debut de nom ("01 ", "001 - ", "01.", "01_", "123 -") :
+# un ou plusieurs chiffres suivis immediatement d'un separateur.
+#  - separateur FORT : tiret (avec ou sans espaces) ou point -> "- " / "." ;
+#    un point suivi d'un chiffre ("1.5 ...", "10.000 BC") n'est pas un separateur ;
+#  - separateur FAIBLE : espace ou souligne "_" (le "_" remplace souvent l'espace dans
+#    les noms de release : "12_Years_a_Slave_2013").
+ORDER_PREFIX = re.compile(
+    r"^(?P<num>\d+)(?:(?P<strong>\s*-\s*|\s*\.(?!\d)\s*)|(?P<weak>[\s_]+))"
+)
+
+
+def strip_order_prefix(stem: str) -> str:
+    """Supprime le prefixe numerique de classement (et son separateur) en debut de nom.
+
+    Retire le prefixe si :
+      - le separateur est un tiret ou un point : "001 - Prometheus", "01. Prometheus",
+        "12 - Prometheus", "01-Prometheus" ;
+      - ou le nombre commence par un zero (numerotation "01", "001") quel que soit le
+        separateur (espace, point, tiret ou souligne) : "01 Prometheus", "01_Prometheus".
+    Un nombre SANS zero initial suivi d'un simple espace ou d'un souligne reste intact : il
+    fait vraisemblablement partie du titre ("12 Years a Slave", "21 Jump Street",
+    "28 Days Later", "2 Alien", "12_Years_a_Slave").
+
+    Un seul prefixe est retire ("01 - 12 Monkeys" -> "12 Monkeys"). Les nombres situes
+    ailleurs dans le nom ("Alien 3 (1992)") sont conserves. Si le suffixe restant ne
+    contient aucune lettre ("1917 (2019)"), le nom est laisse tel quel : il n'y aurait
+    plus de titre a identifier.
+    """
+    match = ORDER_PREFIX.match(stem)
+    if not match:
+        return stem
+    if match.group("weak") and not match.group("num").startswith("0"):
+        return stem
+    rest = stem[match.end():]
+    if not any(ch.isalpha() for ch in rest):
+        return stem
+    return rest
+
+
 @dataclass(frozen=True)
 class ParsedName:
     title: str
     year: int | None
     ambiguous_year: bool = False
 
+def _stem_of(name: str) -> str:
+    return Path(name).stem if Path(name).suffix.lower() in VIDEO_EXTENSIONS else Path(name).name
+
+
 def parse_name(name: str) -> ParsedName:
-    """Extrait titre/annee. Aucun champ technique n'est produit."""
-    stem = Path(name).stem if Path(name).suffix.lower() in VIDEO_EXTENSIONS else Path(name).name
+    """Extrait titre/annee. Aucun champ technique n'est produit.
+
+    Le prefixe numerique de classement ("01 ", "001 - ", "01.") est ignore avant
+    toute analyse (voir strip_order_prefix)."""
+    return _parse_stem(strip_order_prefix(_stem_of(name).strip()))
+
+
+def _parse_stem(stem: str) -> ParsedName:
+    """Parsing d'un nom deja depouille de son extension et de son prefixe de classement."""
     stem = stem.strip()
     years = list(YEAR.finditer(stem))
     plausible = [m for m in years if 1870 <= int(m.group(1)) <= 2099]
@@ -49,8 +99,8 @@ def parse_tv_name(name: str) -> ParsedName:
     """Meme principe que parse_name, pour une serie : le titre s'arrete au
     marqueur d'episode (S01E02, 1x02, Saison 2...) et l'annee est celle du
     titre de la serie (annee de premiere diffusion)."""
-    stem = Path(name).stem if Path(name).suffix.lower() in VIDEO_EXTENSIONS else Path(name).name
+    stem = strip_order_prefix(_stem_of(name).strip())
     marker = EPISODE_MARKER.search(stem)
     if marker:
         stem = stem[:marker.start()]
-    return parse_name(stem)
+    return _parse_stem(stem)

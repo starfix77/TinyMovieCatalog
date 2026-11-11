@@ -8,6 +8,25 @@ Ce guide explique comment installer et lancer **TinyMovieCatalog** sur :
 - [Linux — service systemd et mise à jour automatisée (toutes distributions)](#linux--service-systemd-et-mise-à-jour-automatisée)
 - [macOS](#macos)
 
+
+Voir le dossier /scripts par système d'exploitation pour les scripts d'installation / démarrage
+
+```
+/scripts                              
+├──linux
+│   ├── install.sh
+│   └── start.sh
+|   └── ...
+├── macos
+│   ├── install.sh
+│   └── control.sh
+|   └── laucnher.applescript
+├── windows
+    └── install.ps1
+    └── start.ps1
+    └── ...
+```
+
 Chaque section est autonome : lisez uniquement celle de votre système.
 Sous Linux, une section supplémentaire (facultative) explique comment installer TinyMovieCatalog comme **service systemd** et le **mettre à jour avec un script**.
 Les parties communes à tous les systèmes (configuration, première utilisation, dépannage) sont en fin de document.
@@ -240,7 +259,6 @@ nano backend/.env
 ```
 
 - Frontend : http://localhost:4200
-- Backend : http://localhost:8000
 - Journaux : `frontend.log` et `backend.log` à la racine du projet
 - **Ctrl+C** arrête les deux services.
 
@@ -415,7 +433,6 @@ npm start
 ```
 
 - Frontend : http://localhost:4200
-- Backend : http://localhost:8000
 
 > **Accès depuis un autre poste du réseau** : le pare-feu (`firewalld`) bloque par défaut les ports. Pour un usage uniquement local (`localhost`), rien à faire. SELinux n'a pas d'impact pour un usage local.
 
@@ -609,7 +626,6 @@ open -e backend/.env
 ```
 
 - Frontend : http://localhost:4200
-- Backend : http://localhost:8000
 - Journaux : `frontend.log` et `backend.log` à la racine du projet
 - **Ctrl+C** arrête les deux services.
 

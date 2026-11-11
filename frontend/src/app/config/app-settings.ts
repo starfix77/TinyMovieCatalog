@@ -12,7 +12,7 @@
 export const APP_NAME = 'TinyMovieCatalog';
 
 /** Version de l'application (affichee dans la fenetre « A propos » et l'info-bulle du titre). */
-export const APP_VERSION = '0.9.32';
+export const APP_VERSION = '0.9.33';
 
 /** Depot du code source et de la documentation. */
 export const APP_REPOSITORY_URL = 'https://github.com/starfix77/TinyMovieCatalog/';

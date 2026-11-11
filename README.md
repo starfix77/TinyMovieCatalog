@@ -1,6 +1,6 @@
 # TinyMovieCatalog
 
-![TinyMovieCatalog](docs/favicon-128x128.png) 
+![TinyMovieCatalog](docs/img/favicon-128x128.png) 
 
 Application locale de gestion de bibliotheques de **Films** ou **Séries TV** (MKV/MP4/Dvix).
 TinyMovieCatalog est une application web de catalogue cinématographique organisée autour d'un Frontend JavaScript et d'un Backend Python. Elle propose plusieurs modes de consultation d'une bibliothèque de films, dont un affichage visuel par vignettes, une vue technique et un regroupement par sagas avec navigation horizontale.
@@ -37,7 +37,7 @@ Conulter le guide qui explique comment installer et lancer TinyMovieCatalog sur 
 [Installation et de démarrage](INSTALL.md)
 
 
-L'application est disponible sur le lien http://localhost:4200
+L'application est disponible sur le lien **http://localhost:4200**
 
 
 
@@ -88,7 +88,7 @@ l'API `/tv`. La profondeur de parcours des séries est d'au moins 2 niveaux
 
 
 Puis suivre les étapes ci-dessous:
-1. L'application est disponible sur http://localhost:4200 en mode developement ou `http://localhost:3000` en mode build (npm build au préalable)
+1. L'application est disponible sur **http://localhost:4200** en mode developement ou `http://localhost:3000` en mode build (npm build au préalable)
 
 2. Dans le panneau de gauche, cliquez sur **"+ Nouvelle bibliotheque"**, donnez-lui
    un nom et indiquez le chemin du dossier racine (ex. `C:\movies` ou
@@ -136,7 +136,7 @@ L'application repose sur une architecture séparant le Frontend, chargé de l'in
 - **Usage 100% local**, aucune authentification
 
 
-![TinyMovieCatalog](docs/schema.png) 
+![TinyMovieCatalog](docs/img/schema.png) 
 
 
 ### Organisation des dossiers code source:
@@ -149,7 +149,12 @@ project/
 │   ├── requirements.txt
 │   └── .env.example
 └── frontend/         Application Angular
-    └── src/
+|   └── src/
+└── scripts/          scripts par OS install+start
+   └── linux/
+   └── macos/
+   └── windows/
+
 ```
 **Frontend**
 

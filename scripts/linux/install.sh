@@ -4,7 +4,7 @@
 set -e
 
 # Répertoire racine du projet
-PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 echo ""
 echo "=========================================="
@@ -132,7 +132,7 @@ echo "Python   : $PROJECT_DIR/backend/.venv/bin/python"
 echo ""
 echo "Pour démarrer le projet :"
 echo ""
-echo "    ./start.sh"
+echo "    $PROJECT_DIR/scripts/linux/start.sh"
 echo ""
 
 

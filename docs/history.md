@@ -385,3 +385,20 @@ Cette section est *facultative* : elle permet de lancer TinyMovieCatalog automat
 - Tests : nouveau fichier `backend/tests/test_app_settings.py` (liste complète, masquage des secrets, clés inconnues, priorité des variables d'environnement, endpoint).
 - **Rappel : à chaque nouvelle version, modifier uniquement la constante `APP_VERSION` de `frontend/src/app/config/app-settings.ts`.**
 - Fichiers touchés : `config/app-settings.ts`, `components/about-dialog/`, `components/settings-dialog/`, `components/dialog-shared.css` (nouveaux), `services/app-dialog.service.ts`, `services/settings.service.ts`, `models/settings.model.ts` (nouveaux), `components/library-tools/`, `components/library-selector/`, `app.component.*`, `backend/app/schemas.py`, `main.py`.
+
+
+
+
+**v0.9.33** - Scripts améliorés pour MacOS
+
+- création dossier spécial par système d'exploitation `/scripts'
+```
+Projet
+└── scripts/          scripts par OS install+start
+   └── linux/
+   └── macos/
+   └── windows/
+
+```
+
+- création sous-dossier `/docs/img` 

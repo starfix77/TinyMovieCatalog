@@ -312,6 +312,3 @@ Points relevés lors de l'analyse et à vérifier :
 
 1. **Suppression des entrées disparues** : le README indique que relancer un scan « retire de la base » les films dont le dossier a été supprimé. Dans le code (`scanner.py`), le scan **ne supprime pas** ces entrées : il signale seulement « Fichier vidéo devenu indisponible » et renvoie `movies_removed = 0`. Le chapitre « Scan des bibliothèques » du README décrit ce second comportement, qui est le bon.
 2. **Édition manuelle des métadonnées** : le README la liste parmi les « pistes d'évolution », alors que la correction manuelle des informations TMDb (« Modifier les informations », « Recherche manuelle », « Change pochette ») existe bien depuis les versions 0.9.3 à 0.9.11. La note personnelle est également modifiable.
-3. **Version de l'API** : le backend annonce la version `1.0.0` dans FastAPI alors que l'application affiche `v0.9.19`.
-4. **Commandes d'installation du backend** : dans le README, les commandes d'activation de l'environnement virtuel des blocs « Linux / macOS » et « Windows » sont inversées, et le dossier est nommé `venv` à certains endroits et `.venv` à d'autres.
-5. **Images de documentation** : le README référence `docs/schema.png` et `docs/favicon-128x128.png`, absents de l'archive analysée (les scripts de compression excluent `docs/*.png`).

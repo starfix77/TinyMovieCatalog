@@ -18,7 +18,7 @@
 set -euo pipefail
 
 REPO_URL="https://github.com/starfix77/TinyMovieCatalog.git"
-PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BACKUP_DIR="${BACKUP_DIR:-$PROJECT_DIR/../TinyMovieCatalog_backups}"
 STAMP="$(date +%Y%m%d_%H%M%S)"
 ZIP_FILE=""

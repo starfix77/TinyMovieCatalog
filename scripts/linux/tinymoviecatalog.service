@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=__USER__
 WorkingDirectory=__DIR__
-ExecStart=/bin/bash __DIR__/start.sh
+ExecStart=/bin/bash __DIR__/scripts/linux/start.sh
 Restart=on-failure
 RestartSec=5
 # Arrête proprement backend + frontend (tous les processus du service)

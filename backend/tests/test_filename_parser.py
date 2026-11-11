@@ -54,31 +54,31 @@ class OrderPrefixTests(unittest.TestCase):
                      "01_Prometheus.mkv", "001_Prometheus.mkv", "12 - Prometheus.mkv",
                      "12. Prometheus.mkv", "12-Prometheus.mkv", "05_-_Prometheus.mkv"):
             with self.subTest(name=name):
-                self.assertEqual(parse_name(name).title, "Prometheus")
+                self.assertEqual(parse_name(name, strip_order=True).title, "Prometheus")
 
     def test_year_and_technical_info_still_parsed(self):
-        parsed = parse_name("01 - Prometheus (2012) 1080p BluRay x265.mkv")
+        parsed = parse_name("01 - Prometheus (2012) 1080p BluRay x265.mkv", strip_order=True)
         self.assertEqual(parsed.title, "Prometheus")
         self.assertEqual(parsed.year, 2012)
-        parsed = parse_name("02.Alien.1979.1080p.BluRay.mkv")
+        parsed = parse_name("02.Alien.1979.1080p.BluRay.mkv", strip_order=True)
         self.assertEqual((parsed.title, parsed.year), ("Alien", 1979))
 
     def test_numbers_elsewhere_are_kept(self):
-        parsed = parse_name("Alien 3 (1992).mkv")
+        parsed = parse_name("Alien 3 (1992).mkv", strip_order=True)
         self.assertEqual((parsed.title, parsed.year), ("Alien 3", 1992))
-        parsed = parse_name("03 Alien 3 (1992).mkv")
+        parsed = parse_name("03 Alien 3 (1992).mkv", strip_order=True)
         self.assertEqual((parsed.title, parsed.year), ("Alien 3", 1992))
-        self.assertEqual(parse_name("L'été 2 (2021).mkv").title, "L'été 2")
+        self.assertEqual(parse_name("L'été 2 (2021).mkv", strip_order=True).title, "L'été 2")
 
     def test_only_one_prefix_is_removed(self):
-        self.assertEqual(parse_name("01 - 12 Monkeys (1995).mkv").title, "12 Monkeys")
-        self.assertEqual(parse_tv_name("01 - 24 S01E01.mkv").title, "24")
+        self.assertEqual(parse_name("01 - 12 Monkeys (1995).mkv", strip_order=True).title, "12 Monkeys")
+        self.assertEqual(parse_tv_name("01 - 24 S01E01.mkv", strip_order=True).title, "24")
 
     def test_name_without_title_is_left_untouched(self):
         # Rien d'alphabetique apres le prefixe : on ne le retire pas.
         self.assertEqual(strip_order_prefix("1917 (2019)"), "1917 (2019)")
         self.assertEqual(strip_order_prefix("123 -"), "123 -")
-        self.assertEqual(parse_name("300.mkv").title, "300")
+        self.assertEqual(parse_name("300.mkv", strip_order=True).title, "300")
 
     def test_numbers_that_belong_to_the_title_are_kept(self):
         # Nombre sans zero initial + simple espace ou souligne : c'est le titre.
@@ -93,26 +93,32 @@ class OrderPrefixTests(unittest.TestCase):
         }
         for name, (title, year) in cases.items():
             with self.subTest(name=name):
-                parsed = parse_name(name)
+                parsed = parse_name(name, strip_order=True)
                 self.assertEqual((parsed.title, parsed.year), (title, year))
 
     def test_underscore_separator(self):
         self.assertEqual(strip_order_prefix("01_Prometheus"), "Prometheus")
         self.assertEqual(strip_order_prefix("12_Prometheus"), "12_Prometheus")
-        parsed = parse_name("01_Prometheus_2012_1080p.mkv")
+        parsed = parse_name("01_Prometheus_2012_1080p.mkv", strip_order=True)
         self.assertEqual((parsed.title, parsed.year), ("Prometheus", 2012))
 
     def test_decimal_number_is_not_a_prefix(self):
         self.assertEqual(strip_order_prefix("1.5 Hours"), "1.5 Hours")
+
+    def test_rule_is_opt_in(self):
+        # Sans strip_order (dossier ne contenant qu'un seul fichier), le nom est intact.
+        self.assertEqual(parse_name("01 Prometheus.mkv").title, "01 Prometheus")
+        self.assertEqual(parse_name("001 - Prometheus (2012).mkv").title, "001 Prometheus")
+        self.assertEqual(parse_tv_name("01 - Dark.S01E01.mkv").title, "01 Dark")
 
     def test_no_prefix_no_change(self):
         self.assertEqual(strip_order_prefix("Prometheus"), "Prometheus")
         self.assertEqual(strip_order_prefix("Prometheus 2012"), "Prometheus 2012")
 
     def test_tv_names(self):
-        self.assertEqual(parse_tv_name("01 - Breaking.Bad.S01E01.mkv").title, "Breaking Bad")
-        self.assertEqual(parse_tv_name("01. Dark (2017) Saison 2.mkv").title, "Dark")
-        self.assertEqual(parse_tv_name("Friends.1x05.mkv").title, "Friends")
+        self.assertEqual(parse_tv_name("01 - Breaking.Bad.S01E01.mkv", strip_order=True).title, "Breaking Bad")
+        self.assertEqual(parse_tv_name("01. Dark (2017) Saison 2.mkv", strip_order=True).title, "Dark")
+        self.assertEqual(parse_tv_name("Friends.1x05.mkv", strip_order=True).title, "Friends")
 
 
 if __name__ == "__main__":

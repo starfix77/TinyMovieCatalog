@@ -413,10 +413,19 @@ Projet
 - S'applique aux bibliothèques de films (`parse_name`) et de séries TV (`parse_tv_name`) ; le préfixe est retiré une seule fois même pour les séries. Les dossiers au format `Titre (Année)` (reconnus par `FOLDER_PATTERN`) ne sont pas modifiés.
 - Nouvelle fonction `strip_order_prefix()` ; `parse_name` s'appuie sur `_parse_stem()` pour éviter un double retrait.
 
-- Scan : séparateur « _ » et protection des titres commençant par un nombre
+
+**v0.9.35** - Scan : séparateur « _ » et protection des titres commençant par un nombre
 
 - **Séparateur souligné** : `01_Prometheus` est désormais reconnu comme préfixe de classement (`backend/app/filename_parser.py`).
 - **Règle plus prudente** (correction de la limite de la v0.9.34, qui retirait aussi les nombres faisant partie du titre) : le préfixe n'est retiré que si le séparateur est un **tiret** ou un **point** (`001 - `, `01. `, `12 - `, `01-`), **ou** si le nombre **commence par un zéro** (`01`, `001`) quel que soit le séparateur (espace, point, tiret, souligné).
 - Conséquence : `12 Years a Slave (2013)`, `21 Jump Street (2012)`, `28 Days Later (2002)`, `10 Cloverfield Lane`, `2 Alien` et `12_Years_a_Slave_2013` ne sont plus modifiés. Le souligné étant fréquemment utilisé à la place de l'espace dans les noms de release, il compte comme un séparateur « faible » (comme l'espace). Contrepartie : un fichier de saga numéroté sans zéro initial et séparé par un simple espace (`1 Prometheus`, `12 Prometheus`) n'est plus nettoyé ; utiliser `01 Prometheus`, `12 - Prometheus` ou `12. Prometheus`.
 - Inchangés : un seul préfixe retiré, nom conservé s'il ne resterait aucune lettre (`1917 (2019)`), point suivi d'un chiffre non considéré comme séparateur (`1.5 Hours`, `10.000 BC`).
 
+
+
+**v0.9.36** - Scan : préfixes de classement ignorés uniquement si le dossier contient plusieurs fichiers vidéo
+
+- **Condition de déclenchement** : la règle des préfixes numériques de classement (`01 `, `001 - `, `01.`, `01_`...) n'est appliquée que si le **dossier contient plusieurs fichiers vidéo** (extensions de `VIDEO_EXTENSIONS`). Un fichier seul dans son dossier garde son nom intact (`01 Prometheus.mkv` seul → `01 Prometheus`). Les sous-titres et autres fichiers ne comptent pas.
+- La condition est évaluée **dossier par dossier**, pour les bibliothèques de films et de séries TV (fichiers à la racine d'une bibliothèque de séries), y compris les fichiers posés directement à la racine d'une bibliothèque.
+- `parse_name()` et `parse_tv_name()` reçoivent un paramètre `strip_order` (désactivé par défaut) ; le scanner l'active via la nouvelle fonction `count_video_files()` (`backend/app/scanner.py`).
+- Les noms de **dossiers** ne sont jamais concernés par la règle (le « plusieurs fichiers » n'a pas de sens pour eux) : un dossier de série sans année tel que `01 Dark` conserve son préfixe, contrairement à la v0.9.34 / 

@@ -28,6 +28,19 @@ SUBTITLE_LANG_HINTS = {
 }
 
 
+def _is_video_file(path: Path) -> bool:
+    try:
+        return (not path.is_symlink() and path.is_file()
+                and path.suffix.lower() in settings.video_extensions)
+    except OSError:
+        return False
+
+
+def count_video_files(children) -> int:
+    """Nombre de fichiers video directement presents dans un dossier."""
+    return sum(1 for child in children if _is_video_file(child))
+
+
 def parse_folder_name(folder_name: str):
     match = FOLDER_PATTERN.match(folder_name)
     if match:
@@ -484,6 +497,9 @@ def scan_library(db: Session, library: Library, progress_callback=None,
             errors.append(f"Répertoire inaccessible '{directory}': {exc}")
             return
         folders_scanned += 1
+        # Les prefixes numeriques de classement ("01 ", "001 - "...) ne sont ignores que
+        # si le dossier contient plusieurs fichiers video (ordre de lecture d'une saga).
+        strip_order = count_video_files(children) > 1
         for child in children:
             try:
                 if child.is_symlink():
@@ -500,7 +516,7 @@ def scan_library(db: Session, library: Library, progress_callback=None,
                     folder_match = FOLDER_PATTERN.match(directory.name)
                     if not folder_match:
                         errors.append(f"Année/titre de dossier ambigu ou non conforme: {directory}")
-                        parsed = parse_name(child.name)
+                        parsed = parse_name(child.name, strip_order=strip_order)
                     else:
                         from app.filename_parser import ParsedName
                         parsed = ParsedName(folder_match.group("title").strip(), int(folder_match.group("year")))
@@ -511,7 +527,7 @@ def scan_library(db: Session, library: Library, progress_callback=None,
                 else:
                     if structure_mode == "simple":
                         continue
-                    parsed = parse_name(child.name)
+                    parsed = parse_name(child.name, strip_order=strip_order)
                 if parsed.ambiguous_year:
                     errors.append(f"Année ambiguë dans '{child.name}'")
                 candidates.append((child, directory, parsed.title, parsed.year))
@@ -536,6 +552,9 @@ def scan_library(db: Session, library: Library, progress_callback=None,
             errors.append(f"Répertoire inaccessible '{directory}': {exc}")
             return
         folders_scanned += 1
+        # Meme regle que pour les films : prefixe de classement ignore uniquement si le
+        # dossier contient plusieurs fichiers video.
+        strip_order = count_video_files(children) > 1
         for child in children:
             try:
                 if child.is_symlink():
@@ -547,7 +566,7 @@ def scan_library(db: Session, library: Library, progress_callback=None,
                 if not child.is_file() or child.suffix.lower() not in settings.video_extensions:
                     continue
                 if series_folder is None:
-                    parsed = parse_tv_name(child.name)
+                    parsed = parse_tv_name(child.name, strip_order=strip_order)
                     series = root
                 else:
                     folder_match = FOLDER_PATTERN.match(series_folder.name)

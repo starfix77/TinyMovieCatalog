@@ -235,7 +235,6 @@ Avant toute analyse du nom de fichier (titre, année, informations complémentai
         - Un espace ( )
         - Un point (.)
         - Un tiret (-)
-        - Un Souligné (_)
 3. Supprimer ce préfixe ainsi que son séparateur.
 4. Effectuer ensuite le parsing habituel sur le nom restant, en considérant le premier caractère alphabétique comme le début potentiel du titre.
 
@@ -245,7 +244,6 @@ Les préfixes numériques concernés comprennent notamment :
 01.
 02 
 123 -
-04_
 
 Cette règle s'applique uniquement aux séquences numériques situées en début de nom de fichier. Les nombres présents dans le titre ou dans les informations descriptives doivent être conservés.
 
@@ -253,7 +251,6 @@ Exemples :
 - 01 Prometheus => Prometheus
 - 001 - Prometheus => Prometheus
 - 01. Prometheus => Prometheus
-- 01_Prometheus => Prometheus
 - Alien 3 (1992) => Alien 3 (1992) (aucune suppression)
 
 

@@ -70,12 +70,15 @@ def _stem_of(name: str) -> str:
     return Path(name).stem if Path(name).suffix.lower() in VIDEO_EXTENSIONS else Path(name).name
 
 
-def parse_name(name: str) -> ParsedName:
+def parse_name(name: str, strip_order: bool = False) -> ParsedName:
     """Extrait titre/annee. Aucun champ technique n'est produit.
 
-    Le prefixe numerique de classement ("01 ", "001 - ", "01.") est ignore avant
-    toute analyse (voir strip_order_prefix)."""
-    return _parse_stem(strip_order_prefix(_stem_of(name).strip()))
+    strip_order=True : le prefixe numerique de classement ("01 ", "001 - ", "01.",
+    "01_") est ignore avant toute analyse (voir strip_order_prefix). Le scanner ne
+    l'active que si le dossier contient PLUSIEURS fichiers video : un fichier seul n'a
+    aucun ordre a respecter, son nom est donc laisse intact."""
+    stem = _stem_of(name).strip()
+    return _parse_stem(strip_order_prefix(stem) if strip_order else stem)
 
 
 def _parse_stem(stem: str) -> ParsedName:
@@ -95,11 +98,13 @@ def _parse_stem(stem: str) -> ParsedName:
     return ParsedName(candidate or stem, None if ambiguous else year, ambiguous)
 
 
-def parse_tv_name(name: str) -> ParsedName:
+def parse_tv_name(name: str, strip_order: bool = False) -> ParsedName:
     """Meme principe que parse_name, pour une serie : le titre s'arrete au
     marqueur d'episode (S01E02, 1x02, Saison 2...) et l'annee est celle du
     titre de la serie (annee de premiere diffusion)."""
-    stem = strip_order_prefix(_stem_of(name).strip())
+    stem = _stem_of(name).strip()
+    if strip_order:
+        stem = strip_order_prefix(stem)
     marker = EPISODE_MARKER.search(stem)
     if marker:
         stem = stem[:marker.start()]

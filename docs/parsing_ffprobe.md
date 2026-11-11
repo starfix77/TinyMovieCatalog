@@ -223,6 +223,35 @@ Déduire les caractéristiques réelles du fichier à partir de son nom.
 Ces informations relèvent exclusivement de l'analyse FFprobe.
 
 
+**EX-PAR-006 — Ignorer des séquences en début de nom de fichier**
+Le parseur doit ignorer les préfixes numériques de classement présents au début du nom d'un fichier multimédia, avant d'identifier le titre du film ou de la série.
+Ces préfixes sont généralement utilisés pour imposer un ordre de lecture ou de présentation des fichiers dans un dossier regroupant plusieurs œuvres d'une même saga.
+Ils ne doivent en aucun cas être interprétés comme faisant partie du titre de l'œuvre.
+
+Règle de parsing:
+Avant toute analyse du nom de fichier (titre, année, informations complémentaires), le parseur doit :
+1. Détecter un éventuel préfixe numérique situé au début du nom de fichier.
+2. Identifier les séquences numériques composées d'un ou plusieurs chiffres, suivies immédiatement d'un séparateur :
+        - Un espace ( )
+        - Un point (.)
+        - Un tiret (-)
+3. Supprimer ce préfixe ainsi que son séparateur.
+4. Effectuer ensuite le parsing habituel sur le nom restant, en considérant le premier caractère alphabétique comme le début potentiel du titre.
+
+Les préfixes numériques concernés comprennent notamment :
+01 
+001 -
+01.
+02 
+123 -
+
+Cette règle s'applique uniquement aux séquences numériques situées en début de nom de fichier. Les nombres présents dans le titre ou dans les informations descriptives doivent être conservés.
+
+Exemples :
+- 01 Prometheus => Prometheus
+- 001 - Prometheus => Prometheus
+- 01. Prometheus => Prometheus
+- Alien 3 (1992) => Alien 3 (1992) (aucune suppression)
 
 
 ## 3. Exigences analyseur FFprobe

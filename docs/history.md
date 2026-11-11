@@ -371,3 +371,17 @@ Cette section est *facultative* : elle permet de lancer TinyMovieCatalog automat
 - Le tri alphabétique `ORDER BY name` de `GET /api/libraries` est remplacé par `ORDER BY sort_order, id`.
 - Tests : nouveau fichier `backend/tests/test_library_order.py` (nouvelle bibliothèque en dernier, réordonnancement persistant, suppression, identifiants inconnus, migration).
 - Fichiers touchés : `backend/app/models.py`, `database.py`, `schemas.py`, `library_order.py` (nouveau), `library_transfer.py`, `routers/libraries.py`, `components/library-selector/` (html, ts, css), `services/library.service.ts`, `models/library.model.ts`.
+
+
+
+**v0.9.32** - Fichier de paramétrage de la version, section « Application » et boîte de dialogue « Configuration »
+
+- **Version centralisée (frontend)** : la constante `APP_VERSION` quitte `library-selector.component.ts` et est désormais définie dans le fichier de paramétrage `frontend/src/app/config/app-settings.ts` (avec `APP_NAME` et `APP_REPOSITORY_URL`), importable par tous les composants.
+- Vue « Outils des bibliothèques » : nouvelle section **« Application »** avec deux boutons : **« À propos »** (icône SVG « i ») qui affiche la fenêtre « À propos », et **« Paramètres »** (icône SVG engrenage) qui affiche la nouvelle boîte de dialogue **« Configuration »**.
+- Boîte de dialogue **« Configuration »** (lecture seule) : tableau de tous les paramètres du fichier `backend/.env` (nom, description, valeur effective, origine : fichier .env / variable d'environnement / valeur par défaut). Les clés inconnues du `.env` sont signalées. **La clé API TMDb (et tout paramètre secret) est masquée** par le backend : seuls les 4 derniers caractères sont affichés. En bas du dialogue : « (ces paramètres sont modifiables dans le fichier /backend/.env et pris en compte après un redémarrage) ».
+- Les fenêtres « À propos » et « Configuration » sont des composants indépendants (`about-dialog`, `settings-dialog`) déclarés une seule fois dans `AppComponent` et ouvertes via le service `AppDialogService` ; la fenêtre « À propos » (double-clic sur le titre du bandeau) est inchangée visuellement.
+- API : nouveau `GET /api/settings` (`routers/app_settings.py`, `settings_info.py`).
+- Script `update_tinymoviecatalog.sh` : la version affichée en fin de mise à jour est lue dans `app-settings.ts` (la lecture dans `library-selector.component.ts` ne fonctionnait plus).
+- Tests : nouveau fichier `backend/tests/test_app_settings.py` (liste complète, masquage des secrets, clés inconnues, priorité des variables d'environnement, endpoint).
+- **Rappel : à chaque nouvelle version, modifier uniquement la constante `APP_VERSION` de `frontend/src/app/config/app-settings.ts`.**
+- Fichiers touchés : `config/app-settings.ts`, `components/about-dialog/`, `components/settings-dialog/`, `components/dialog-shared.css` (nouveaux), `services/app-dialog.service.ts`, `services/settings.service.ts`, `models/settings.model.ts` (nouveaux), `components/library-tools/`, `components/library-selector/`, `app.component.*`, `backend/app/schemas.py`, `main.py`.

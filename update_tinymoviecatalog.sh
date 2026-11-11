@@ -181,8 +181,10 @@ else
   log "Étape 5/5 : redémarrage ignoré (--no-restart)."
 fi
 
-VERSION="$(grep -oE "TinyMovieCatalog v[0-9]+\.[0-9]+\.[0-9]+" \
-  "$(find frontend -name 'library-selector.component.ts' -not -path '*/node_modules/*' | head -n1)" 2>/dev/null | head -n1 || true)"
+VERSION="$(grep -hoE "APP_VERSION = '[0-9]+\.[0-9]+\.[0-9]+'" \
+  "$(find frontend/src -name 'app-settings.ts' | head -n1)" 2>/dev/null \
+  | grep -oE "[0-9]+\.[0-9]+\.[0-9]+" | head -n1 || true)"
+VERSION="${VERSION:+TinyMovieCatalog v$VERSION}"
 log "Mise à jour terminée ${VERSION:+($VERSION)}."
 log "Sauvegarde conservée dans : $BACKUP_DIR"
 log "Lancer l'application  http://localhost:4200/"

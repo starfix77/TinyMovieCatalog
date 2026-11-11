@@ -22,6 +22,7 @@ Systemes d'exploitation:
 - **Journal de la bibliothèque** : historique des créations, modifications et scans (fichiers ajoutés, modifiés, supprimés) avec le détail technique de chaque fichier (encodage, résolution, taille, pistes audio, sous-titres).
 - **Notes de bibliothèque** : bouton « Notes » dans la vue « Info » pour saisir un texte libre multi-lignes rattaché à la bibliothèque ; la note est incluse dans l’export / import de bibliothèque (les anciens exports restent lisibles).
 - **Fenêtre « À propos »** : un double-clic sur le titre « TinyMovieCatalog » du bandeau de gauche affiche la version, la description, les fonctionnalités, les technologies, les systèmes supportés et le lien vers le dépôt GitHub.
+- **Section « Application »** (vue « Outils ») : boutons « À propos » (fenêtre de version) et « Paramètres » (boîte de dialogue « Configuration » : affichage en lecture seule de tous les paramètres du fichier `backend/.env`, clé API masquée).
 - **Interface orientée médiathèque** : priorité donnée aux visuels, aux affiches et à une navigation simple et intuitive.
 
 

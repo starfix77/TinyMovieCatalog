@@ -19,6 +19,8 @@
   color: var(--text);
   text-align: center;
   text-decoration: none;
+  font: inherit;
+  cursor: pointer;
   transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease, transform 0.12s ease;
 }
 
@@ -38,4 +40,18 @@
 .tool-label {
   font-size: 16px;
   font-weight: 500;
+}
+
+/* Section « Application » */
+.tool-section {
+  margin-top: 36px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.tool-section-title {
+  margin: 0 0 18px;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
 }

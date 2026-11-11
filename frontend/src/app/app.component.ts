@@ -7,11 +7,13 @@ import { filter } from 'rxjs/operators';
 import { LibrarySelectorComponent } from './components/library-selector/library-selector.component';
 import { LibraryService } from './services/library.service';
 import { MediaTypeIconComponent } from './components/media-type-icon/media-type-icon.component';
+import { AboutDialogComponent } from './components/about-dialog/about-dialog.component';
+import { SettingsDialogComponent } from './components/settings-dialog/settings-dialog.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LibrarySelectorComponent, MediaTypeIconComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LibrarySelectorComponent, MediaTypeIconComponent, AboutDialogComponent, SettingsDialogComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })

@@ -397,3 +397,22 @@ class ActorFilmographyOut(BaseModel):
     movies_in_library: int
     total_movies: int
     movies: List[ActorFilmographyEntry] = []
+
+
+# ---------- Parametres de l'application (fichier backend/.env, lecture seule) ----------
+
+class SettingItem(BaseModel):
+    name: str                                   # nom dans le .env (ex. TMDB_LANGUAGE)
+    value: str                                  # valeur effective (masquee si secret)
+    description: str
+    # "env_file" = defini dans backend/.env ; "environment" = variable d'environnement
+    # systeme (prioritaire sur le .env) ; "default" = valeur par defaut de l'application.
+    source: Literal["env_file", "environment", "default"]
+    known: bool = True                          # False = cle du .env non reconnue (ignoree)
+    secret: bool = False                        # True = valeur masquee
+
+
+class SettingsOut(BaseModel):
+    env_file: str                               # chemin complet du fichier .env
+    env_file_exists: bool
+    items: List[SettingItem]

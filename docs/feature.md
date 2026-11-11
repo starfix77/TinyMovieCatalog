@@ -1,6 +1,6 @@
 # TinyMovieCatalog — Liste des fonctionnalités
 
-> Document généré à partir de l'analyse du code source de **TinyMovieCatalog v0.9.19** (README, `docs/history.md`, backend FastAPI, frontend Angular).
+> Document généré à partir de l'analyse du code source de **TinyMovieCatalog v0.9.19**, complété jusqu'à la **v0.9.32** (README, `docs/history.md`, backend FastAPI, frontend Angular).
 > Les points où le code diffère de la documentation sont signalés dans la section [Écarts constatés](#13-écarts-constatés-entre-documentation-et-code).
 
 ---
@@ -208,7 +208,7 @@ Fenêtre modale accessible depuis la plupart des vues.
 
 ## 8. Outils des bibliothèques — `/outils`
 
-Page avec trois gros boutons, accessible depuis le bouton **Outils** (icône de clé) du panneau latéral.
+Page accessible depuis le bouton **Outils** (icône de clé) du panneau latéral. Elle propose trois gros boutons pour les outils des bibliothèques, puis une section **« Application »** (voir [8.4](#84-section-application)). 
 
 ### 8.1 Comparer des bibliothèques — `/outils/comparaison`
 - Choix de la **bibliothèque #1**, du **mode** et de la **bibliothèque #2** ; le bouton « Exécuter » n'est actif que si deux bibliothèques différentes sont choisies.
@@ -235,6 +235,15 @@ Page avec trois gros boutons, accessible depuis le bouton **Outils** (icône de 
 - Protection contre les noms de fichiers de vignettes malveillants (rejet de tout ce qui ressemble à un chemin).
 - Le panneau latéral est actualisé et un bouton « Ouvrir la bibliothèque » est proposé.
 
+### 8.4 Section « Application »
+Deux gros boutons (icône SVG + texte) en bas de la vue `/outils`, qui ouvrent une boîte de dialogue modale (fermeture : bouton « OK », touche Échap ou clic en dehors) :
+- **À propos** (icône « i » dans un cercle) : fenêtre « À propos » (version, description, fonctionnalités, technologies, systèmes supportés, lien GitHub). Elle reste aussi accessible par un double-clic sur le titre du panneau latéral.
+- **Paramètres** (icône engrenage) : boîte de dialogue **« Configuration »**, en lecture seule. Elle affiche **tous les paramètres du fichier `backend/.env`** sous forme de tableau : nom et description, valeur effective, origine (*fichier .env*, *variable d'environnement* ou *valeur par défaut*). Les clés présentes dans le `.env` mais inconnues de l'application sont signalées en rouge. Les valeurs secrètes (nom contenant `KEY`, `TOKEN`, `SECRET`, `PASSWORD`, ex. `TMDB_API_KEY`) sont **masquées** (seuls les 4 derniers caractères sont visibles). Une mention en bas du dialogue rappelle que les paramètres se modifient dans `/backend/.env` et ne sont pris en compte qu'après un redémarrage.
+
+Les deux dialogues sont déclarés une seule fois dans `AppComponent` et ouverts via `AppDialogService`.
+
+**Version de l'application (frontend)** : la version est définie à un seul endroit, `frontend/src/app/config/app-settings.ts` (`APP_VERSION`, avec `APP_NAME` et `APP_REPOSITORY_URL`), importable par tous les composants.
+
 ---
 
 ## 9. API REST (backend)
@@ -252,6 +261,7 @@ Documentation Swagger sur `http://localhost:8000/docs`.
 | Sagas | `GET /api/sagas`, `GET /api/sagas/{id}`, `GET /api/sagas/{id}/poster` |
 | Acteurs | `GET /api/actors/search`, `GET /api/actors/filmography` |
 | TMDb | `GET /api/tmdb/languages` |
+| Configuration | `GET /api/settings` (paramètres du `.env`, lecture seule, secrets masqués) |
 | Statique | `/data/thumbnails/*` (vignettes) |
 
 ---
@@ -265,7 +275,9 @@ Documentation Swagger sur `http://localhost:8000/docs`.
 | `FFPROBE_PATH` | Chemin de `ffprobe` | `ffprobe` |
 | `FFPLAY_PATH` | Chemin de `ffplay` (si `FFPROBE_PATH` est un chemin complet, `ffplay` est cherché dans le même dossier) | `ffplay` |
 
-Paramètres internes (`config.py`) : 12 acteurs max par film, extensions vidéo et sous-titres reconnues, profondeur de scan par défaut.
+Paramètres internes (`config.py`), également surchargeables dans le `.env` : `DATA_DIR`, `MAX_CAST` (12 acteurs max par film), `VIDEO_EXTENSIONS`, `SUBTITLE_EXTENSIONS`, `SCAN_MAX_DEPTH`.
+
+Ces paramètres sont consultables (lecture seule) dans l'application : **Outils › Application › Paramètres**. Ils sont lus au démarrage du backend : toute modification du `.env` nécessite un redémarrage.
 
 ---
 

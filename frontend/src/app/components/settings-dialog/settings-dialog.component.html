@@ -1,0 +1,66 @@
+@if (dialogs.settingsOpen()) {
+  <div class="dialog-backdrop" (click)="dialogs.closeSettings()">
+    <div class="dialog settings-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-dialog-title"
+         (click)="$event.stopPropagation()">
+
+      <h2 id="settings-dialog-title" class="dialog-title">Configuration</h2>
+
+      @if (loading() && !settings()) {
+        <p class="settings-status">Chargement de la configuration…</p>
+      }
+
+      @if (error(); as message) {
+        <p class="settings-status settings-error" role="alert">{{ message }}</p>
+      }
+
+      @if (settings(); as data) {
+        <p class="settings-file">
+          Fichier : <code>{{ data.env_file }}</code>
+          @if (!data.env_file_exists) {
+            <span class="settings-warning">— fichier introuvable, valeurs par défaut utilisées</span>
+          }
+        </p>
+
+        <div class="settings-table-wrap">
+          <table class="settings-table">
+            <thead>
+              <tr>
+                <th scope="col">Paramètre</th>
+                <th scope="col">Valeur</th>
+                <th scope="col">Origine</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of data.items; track item.name) {
+                <tr [class.unknown]="!item.known">
+                  <td class="col-name">
+                    <code>{{ item.name }}</code>
+                    @if (item.description) {
+                      <small>{{ item.description }}</small>
+                    }
+                  </td>
+                  <td class="col-value">
+                    @if (item.value) {
+                      <code [class.secret]="item.secret">{{ item.value }}</code>
+                    } @else {
+                      <span class="empty" title="Aucune valeur définie">(vide)</span>
+                    }
+                  </td>
+                  <td class="col-source">{{ sourceLabel(item.source) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <p class="settings-footer-note">
+        (ces paramètres sont modifiables dans le fichier /backend/.env et pris en compte après un redémarrage)
+      </p>
+
+      <div class="dialog-actions">
+        <button #settingsOkBtn type="button" class="btn btn-primary" (click)="dialogs.closeSettings()">OK</button>
+      </div>
+    </div>
+  </div>
+}

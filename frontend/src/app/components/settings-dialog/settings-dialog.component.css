@@ -1,0 +1,116 @@
+/* Boite de dialogue « Configuration » (styles communs : ../dialog-shared.css). */
+
+.settings-dialog {
+  max-width: 760px;
+}
+
+.settings-status {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.settings-error {
+  color: var(--danger);
+}
+
+.settings-file {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  word-break: break-all;
+}
+
+.settings-warning {
+  color: var(--danger);
+}
+
+.settings-table-wrap {
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+}
+
+.settings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  color: var(--text);
+}
+
+.settings-table th {
+  position: sticky;
+  top: 0;
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.settings-table td {
+  padding: 9px 10px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.settings-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.col-name {
+  width: 38%;
+}
+
+.col-name code {
+  display: block;
+  font-weight: 600;
+}
+
+.col-name small {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+.col-value {
+  word-break: break-all;
+}
+
+.col-value .secret {
+  letter-spacing: 0.04em;
+}
+
+.empty {
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+.col-source {
+  width: 20%;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.unknown .col-name code {
+  color: var(--danger);
+}
+
+.settings-footer-note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}

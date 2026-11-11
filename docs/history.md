@@ -429,3 +429,13 @@ Projet
 - La condition est évaluée **dossier par dossier**, pour les bibliothèques de films et de séries TV (fichiers à la racine d'une bibliothèque de séries), y compris les fichiers posés directement à la racine d'une bibliothèque.
 - `parse_name()` et `parse_tv_name()` reçoivent un paramètre `strip_order` (désactivé par défaut) ; le scanner l'active via la nouvelle fonction `count_video_files()` (`backend/app/scanner.py`).
 - Les noms de **dossiers** ne sont jamais concernés par la règle (le « plusieurs fichiers » n'a pas de sens pour eux) : un dossier de série sans année tel que `01 Dark` conserve son préfixe, contrairement à la v0.9.34 / 
+
+
+**v0.9.37** - Fenêtre « À propos » : vérification des mises à jour
+
+- **Bouton « Vérifier les mises à jour »** dans la fenêtre « À propos » (à gauche du bouton « OK »). Il interroge l'API GitHub `https://api.github.com/repos/starfix77/TinyMovieCatalog/releases/latest` et compare la propriété JSON `tag_name` (préfixe « v » ignoré) à la version installée (`APP_VERSION` dans `frontend/src/app/config/app-settings.ts`).
+- **Mise à jour disponible** : si la version publiée est différente et plus récente, la fenêtre affiche « Nouvelle mise à jour disponible », la version installée, la date de publication, les **notes de version** (propriété JSON `body`) rendues avec leur mise en forme Markdown, et un lien vers la page de la release sur GitHub.
+- **À jour** : message de confirmation si la version installée est identique (ou plus récente, cas d'une version de développement) ; **erreurs** explicites (GitHub injoignable, aucune release publiée, limite de requêtes de l'API atteinte).
+- **Rendu Markdown** sans dépendance externe (`frontend/src/app/utils/markdown.ts`) : titres, gras, italique, barré, code, blocs de code, listes (imbriquées, cases à cocher), citations, tableaux, liens et URL nues. Le texte est échappé et seuls les liens `http(s)` sont conservés.
+- Nouveau service `frontend/src/app/services/update.service.ts` ; nouvelle constante `APP_LATEST_RELEASE_API_URL` dans `app-settings.ts`.
+- L'appel est effectué uniquement à la demande de l'utilisateur ; c'est la seule fonction de l'application qui requiert un accès Internet côté navigateur (vers `api.github.com`).

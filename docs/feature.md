@@ -1,6 +1,6 @@
 # TinyMovieCatalog — Liste des fonctionnalités
 
-> Document généré à partir de l'analyse du code source de **TinyMovieCatalog v0.9.19**, complété jusqu'à la **v0.9.36** (README, `docs/history.md`, backend FastAPI, frontend Angular).
+> Document généré à partir de l'analyse du code source de **TinyMovieCatalog v0.9.19**, complété jusqu'à la **v0.9.37** (README, `docs/history.md`, backend FastAPI, frontend Angular).
 > Les points où le code diffère de la documentation sont signalés dans la section [Écarts constatés](#13-écarts-constatés-entre-documentation-et-code).
 
 ---
@@ -243,6 +243,7 @@ Page accessible depuis le bouton **Outils** (icône de clé) du panneau latéral
 ### 8.4 Section « Application »
 Deux gros boutons (icône SVG + texte) en bas de la vue `/outils`, qui ouvrent une boîte de dialogue modale (fermeture : bouton « OK », touche Échap ou clic en dehors) :
 - **À propos** (icône « i » dans un cercle) : fenêtre « À propos » (version, description, fonctionnalités, technologies, systèmes supportés, lien GitHub). Elle reste aussi accessible par un double-clic sur le titre du panneau latéral.
+  - **Vérifier les mises à jour** (bouton de la fenêtre « À propos », v0.9.37) : appelle l'API GitHub `releases/latest` (`https://api.github.com/repos/starfix77/TinyMovieCatalog/releases/latest`) et compare `tag_name` à `APP_VERSION`. Si une version plus récente est publiée, la fenêtre affiche la nouvelle version, la date de publication, les notes de version (champ `body`, rendu Markdown : titres, listes, gras, code, tableaux, liens…) et un lien vers la release. Messages dédiés pour « à jour », GitHub injoignable, aucune release publiée et limite de requêtes API atteinte. Appel effectué uniquement sur clic (nécessite un accès Internet).
 - **Paramètres** (icône engrenage) : boîte de dialogue **« Configuration »**, en lecture seule. Elle affiche **tous les paramètres du fichier `backend/.env`** sous forme de tableau : nom et description, valeur effective, origine (*fichier .env*, *variable d'environnement* ou *valeur par défaut*). Les clés présentes dans le `.env` mais inconnues de l'application sont signalées en rouge. Les valeurs secrètes (nom contenant `KEY`, `TOKEN`, `SECRET`, `PASSWORD`, ex. `TMDB_API_KEY`) sont **masquées** (seuls les 4 derniers caractères sont visibles). Une mention en bas du dialogue rappelle que les paramètres se modifient dans `/backend/.env` et ne sont pris en compte qu'après un redémarrage.
 
 Les deux dialogues sont déclarés une seule fois dans `AppComponent` et ouverts via `AppDialogService`.

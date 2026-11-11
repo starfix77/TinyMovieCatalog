@@ -51,7 +51,42 @@
         </p>
       </main>
 
-      <div class="dialog-actions">
+      @switch (updateState()) {
+        @case ('checking') {
+          <div class="update-panel" role="status">Vérification des mises à jour en cours…</div>
+        }
+        @case ('upToDate') {
+          <div class="update-panel update-ok" role="status">
+            ✓ Vous utilisez la dernière version (v{{ updateResult()?.currentVersion }}).
+          </div>
+        }
+        @case ('error') {
+          <div class="update-panel update-error" role="alert">{{ updateError() }}</div>
+        }
+        @case ('available') {
+          <section class="update-panel update-available" role="status">
+            <div class="update-title">
+              Nouvelle mise à jour disponible : v{{ updateResult()?.latestVersion }}
+            </div>
+            <div class="update-meta">
+              Version installée : v{{ updateResult()?.currentVersion }}
+              @if (publishedDate()) { · publiée le {{ publishedDate() }} }
+            </div>
+            @if (releaseNotesHtml()) {
+              <h3 class="update-notes-title">Notes de version</h3>
+              <div class="release-notes" [innerHTML]="releaseNotesHtml()"></div>
+            }
+            <a class="update-link" [href]="updateResult()?.releaseUrl" target="_blank" rel="noopener noreferrer">
+              Télécharger sur le site du projet
+            </a>
+          </section>
+        }
+      }
+
+      <div class="dialog-actions about-actions">
+        <button type="button" class="btn" [disabled]="updateState() === 'checking'" (click)="checkForUpdates()">
+          Vérifier les mises à jour
+        </button>
         <button #aboutOkBtn type="button" class="btn btn-primary" (click)="dialogs.closeAbout()">OK</button>
       </div>
     </div>

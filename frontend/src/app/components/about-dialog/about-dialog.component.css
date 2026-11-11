@@ -79,3 +79,137 @@
 .about-link a {
   color: var(--accent-strong);
 }
+
+/* ---- Verification des mises a jour ---- */
+.about-actions {
+  justify-content: space-between;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.update-panel {
+  flex: 0 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.update-ok {
+  border-color: var(--accent);
+}
+
+.update-error {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.update-available {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.update-title {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.update-meta {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.update-notes-title {
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.update-link {
+  align-self: flex-start;
+  color: var(--accent-strong);
+  font-weight: 500;
+}
+
+/* Rendu Markdown des release notes (contenu injecte via [innerHTML] : ::ng-deep necessaire). */
+.release-notes {
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 8px 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  word-break: break-word;
+}
+
+.release-notes ::ng-deep > :first-child { margin-top: 0; }
+.release-notes ::ng-deep > :last-child { margin-bottom: 0; }
+
+.release-notes ::ng-deep h1,
+.release-notes ::ng-deep h2,
+.release-notes ::ng-deep h3,
+.release-notes ::ng-deep h4,
+.release-notes ::ng-deep h5,
+.release-notes ::ng-deep h6 {
+  margin: 12px 0 4px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: normal;
+}
+.release-notes ::ng-deep h1 { font-size: 16px; }
+.release-notes ::ng-deep h2 { font-size: 14.5px; }
+.release-notes ::ng-deep h3 { font-size: 13.5px; }
+.release-notes ::ng-deep h4,
+.release-notes ::ng-deep h5,
+.release-notes ::ng-deep h6 { font-size: 12.5px; }
+
+.release-notes ::ng-deep p { margin: 0 0 8px; }
+.release-notes ::ng-deep ul,
+.release-notes ::ng-deep ol { margin: 0 0 8px; padding-left: 20px; }
+.release-notes ::ng-deep li { margin: 2px 0; }
+.release-notes ::ng-deep a { color: var(--accent-strong); }
+.release-notes ::ng-deep hr { margin: 10px 0; border: 0; border-top: 1px solid var(--border); }
+
+.release-notes ::ng-deep code {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--surface-raised);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11.5px;
+}
+
+.release-notes ::ng-deep pre {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  overflow-x: auto;
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+}
+.release-notes ::ng-deep pre code { padding: 0; background: none; }
+
+.release-notes ::ng-deep blockquote {
+  margin: 0 0 8px;
+  padding-left: 10px;
+  border-left: 3px solid var(--border);
+  color: var(--text-muted);
+}
+
+.release-notes ::ng-deep table { margin: 0 0 8px; border-collapse: collapse; font-size: 12px; }
+.release-notes ::ng-deep th,
+.release-notes ::ng-deep td { padding: 3px 8px; border: 1px solid var(--border); text-align: left; }
+.release-notes ::ng-deep th { background: var(--surface-raised); }

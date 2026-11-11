@@ -412,8 +412,6 @@ Projet
 - Garde-fous : le nom est laissé intact si, après suppression, il ne resterait aucune lettre (`1917 (2019)`, `300`), et un point suivi d'un chiffre n'est pas un séparateur (`1.5 Hours`).
 - S'applique aux bibliothèques de films (`parse_name`) et de séries TV (`parse_tv_name`) ; le préfixe est retiré une seule fois même pour les séries. Les dossiers au format `Titre (Année)` (reconnus par `FOLDER_PATTERN`) ne sont pas modifiés.
 - Nouvelle fonction `strip_order_prefix()` ; `parse_name` s'appuie sur `_parse_stem()` pour éviter un double retrait.
-- Tests : `backend/tests/test_filename_parser.py` (nouvelle classe `OrderPrefixTests`).
-- `APP_VERSION` passe à `0.9.34` dans `frontend/src/app/config/app-settings.ts`.
 
 - Scan : séparateur « _ » et protection des titres commençant par un nombre
 
@@ -421,5 +419,4 @@ Projet
 - **Règle plus prudente** (correction de la limite de la v0.9.34, qui retirait aussi les nombres faisant partie du titre) : le préfixe n'est retiré que si le séparateur est un **tiret** ou un **point** (`001 - `, `01. `, `12 - `, `01-`), **ou** si le nombre **commence par un zéro** (`01`, `001`) quel que soit le séparateur (espace, point, tiret, souligné).
 - Conséquence : `12 Years a Slave (2013)`, `21 Jump Street (2012)`, `28 Days Later (2002)`, `10 Cloverfield Lane`, `2 Alien` et `12_Years_a_Slave_2013` ne sont plus modifiés. Le souligné étant fréquemment utilisé à la place de l'espace dans les noms de release, il compte comme un séparateur « faible » (comme l'espace). Contrepartie : un fichier de saga numéroté sans zéro initial et séparé par un simple espace (`1 Prometheus`, `12 Prometheus`) n'est plus nettoyé ; utiliser `01 Prometheus`, `12 - Prometheus` ou `12. Prometheus`.
 - Inchangés : un seul préfixe retiré, nom conservé s'il ne resterait aucune lettre (`1917 (2019)`), point suivi d'un chiffre non considéré comme séparateur (`1.5 Hours`, `10.000 BC`).
-- Tests : `backend/tests/test_filename_parser.py` complété (séparateur `_`, titres commençant par un nombre).
-- `APP_VERSION` passe à `0.9.35` dans `frontend/src/app/config/app-settings.ts`.
+

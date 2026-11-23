@@ -1,6 +1,6 @@
 # TinyMovieCatalog — Liste des fonctionnalités
 
-> Document généré à partir de l'analyse du code source de **TinyMovieCatalog v0.9.19**, complété jusqu'à la **v0.9.37** (README, `docs/history.md`, backend FastAPI, frontend Angular).
+> Document généré à partir de l'analyse du code source de **TinyMovieCatalog v0.9.19**, complété jusqu'à la **v0.9.38** (README, `docs/history.md`, backend FastAPI, frontend Angular).
 > Les points où le code diffère de la documentation sont signalés dans la section [Écarts constatés](#13-écarts-constatés-entre-documentation-et-code).
 
 ---
@@ -56,10 +56,11 @@ TinyMovieCatalog est une application web **100 % locale** de gestion de biblioth
 - Scan **en tâche de fond**, sans bloquer la requête HTTP.
 - **Progression en temps réel via WebSocket** : barre de progression, pourcentage, compteur « n / total », dossier en cours.
 - Gestion des **erreurs non bloquantes** : elles sont collectées et renvoyées dans le résultat du scan.
-- **Lecture seule du disque** : aucune opération de déplacement, de renommage ou de suppression.
+- **Lecture seule du disque** : aucune opération de déplacement, de renommage ou de suppression sur les fichiers (seule la base est mise à jour).
 - **Liens symboliques ignorés** et protection contre les boucles de répertoires.
 - Mise à jour de la date du dernier scan et de l'espace disque de la bibliothèque.
 - Récupération automatique des notes TMDb manquantes à la fin de chaque scan.
+- **Suppression des fichiers disparus** (v0.9.38) : en fin de scan, tout fichier vidéo enregistré en base mais absent du disque est supprimé (avec ses pistes audio) ; le film / la série est supprimé s'il ne lui reste aucun fichier vidéo (sous-titres et note associés en cascade), et `movies_removed` renvoie leur nombre. Chaque suppression est tracée dans le journal (statut « supprimé »). Garde-fou : si le dossier racine est vide ou inaccessible, aucune suppression n'est faite (disque réseau non monté) et un message d'erreur est ajouté au résultat.
 
 ### 3.3 Détection et regroupement
 - Extraction du **titre et de l'année** à partir des noms de dossiers/fichiers (format `Titre (Année)` ou analyse du nom du fichier).
@@ -316,5 +317,5 @@ Ces paramètres sont consultables (lecture seule) dans l'application : **Outils 
 
 Points relevés lors de l'analyse et à vérifier :
 
-1. **Suppression des entrées disparues** : le README indique que relancer un scan « retire de la base » les films dont le dossier a été supprimé. Dans le code (`scanner.py`), le scan **ne supprime pas** ces entrées : il signale seulement « Fichier vidéo devenu indisponible » et renvoie `movies_removed = 0`. Le chapitre « Scan des bibliothèques » du README décrit ce second comportement, qui est le bon.
+1. **Suppression des entrées disparues** : corrigé en v0.9.38. Auparavant le scan journalisait la suppression mais conservait les entrées en base (`movies_removed = 0`) ; elles sont désormais réellement supprimées.
 2. **Édition manuelle des métadonnées** : le README la liste parmi les « pistes d'évolution », alors que la correction manuelle des informations TMDb (« Modifier les informations », « Recherche manuelle », « Change pochette ») existe bien depuis les versions 0.9.3 à 0.9.11. La note personnelle est également modifiable.

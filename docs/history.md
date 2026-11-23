@@ -439,3 +439,12 @@ Projet
 - **Rendu Markdown** sans dépendance externe (`frontend/src/app/utils/markdown.ts`) : titres, gras, italique, barré, code, blocs de code, listes (imbriquées, cases à cocher), citations, tableaux, liens et URL nues. Le texte est échappé et seuls les liens `http(s)` sont conservés.
 - Nouveau service `frontend/src/app/services/update.service.ts` ; nouvelle constante `APP_LATEST_RELEASE_API_URL` dans `app-settings.ts`.
 - L'appel est effectué uniquement à la demande de l'utilisateur ; c'est la seule fonction de l'application qui requiert un accès Internet côté navigateur (vers `api.github.com`).
+
+
+**v0.9.38** - Scan : suppression en base des fichiers / dossiers supprimés du disque
+
+- **Correction** : lors d'un scan, un fichier ou un dossier supprimé était bien signalé « supprimé » dans le journal, mais le film restait en base et affiché dans les vues. Le scan ne faisait que journaliser la disparition (`backend/app/scanner.py`).
+- Désormais, en fin de scan, chaque fichier vidéo absent du disque est supprimé de la base (pistes audio comprises). Si un film / une série n'a plus aucun fichier vidéo, il est supprimé (sous-titres et note personnelle en cascade) et n'apparaît plus dans les vues. Un film conservant d'autres copies reste affiché ; ses sous-titres disparus sont retirés.
+- Le journal reste inchangé (une ligne « supprimé » par fichier, enregistrée avant l'effacement et une seule fois) ; le résultat du scan renvoie `movies_removed` (nombre de films / séries supprimés).
+- **Garde-fou** : si le dossier racine est vide ou illisible (disque réseau non monté), aucune suppression n'est effectuée et un message est ajouté aux erreurs du scan. Les fichiers du disque ne sont jamais modifiés.
+- Test d'intégration ajouté : `backend/tests/test_scanner_deleted_files.py`.

@@ -20,6 +20,7 @@ Systemes d'exploitation:
 - **Fiches détaillées** : sélection d’un film pour consulter ses informations et son contenu.
 - **Gestion des collections** : organisation de la bibliothèque autour des films et de leurs sagas.
 - **Scan tolérant aux préfixes de classement** : les préfixes numériques en début de nom de fichier (`01 `, `001 - `, `01.`) servant à ordonner les films d'une saga sont ignorés lors de l'identification du titre, uniquement si le dossier contient plusieurs fichiers vidéo (`01 Prometheus`, `001 - Prometheus`, `01. Prometheus`, `01_Prometheus` → `Prometheus`). Les titres commençant par un nombre sont préservés (`12 Years a Slave`, `21 Jump Street`).
+- **Scan : suppression des fichiers disparus** : un fichier ou dossier supprimé du disque est retiré de la base (le film ou la série disparaît de la vue lorsqu'il ne lui reste plus aucun fichier vidéo), en cohérence avec le journal.
 - **Journal de la bibliothèque** : historique des créations, modifications et scans (fichiers ajoutés, modifiés, supprimés) avec le détail technique de chaque fichier (encodage, résolution, taille, pistes audio, sous-titres).
 - **Notes de bibliothèque** : bouton « Notes » dans la vue « Info » pour saisir un texte libre multi-lignes rattaché à la bibliothèque ; la note est incluse dans l’export / import de bibliothèque (les anciens exports restent lisibles).
 - **Fenêtre « À propos »** : un double-clic sur le titre « TinyMovieCatalog » du bandeau de gauche affiche la version, la description, les fonctionnalités, les technologies, les systèmes supportés et le lien vers le dépôt GitHub.
@@ -229,9 +230,9 @@ Le dialogue de scan permet de choisir la structure :
 La profondeur de parcours est configurable (0 à 20). Le parseur de noms (`backend/app/filename_parser.py`)
 ne retourne que le titre candidat et l'année; les données techniques proviennent de FFprobe (`-print_format json`,
 flux et conteneur réels). Les copies du même titre/année sont regroupées dans une fiche de film et chaque
-emplacement vidéo est conservé séparément avec son chemin complet et son nom de fichier. Le scan n'efface
-pas automatiquement les entrées devenues indisponibles et n'effectue aucune opération de déplacement,
-renommage ou suppression sur les fichiers du disque.
+emplacement vidéo est conservé séparément avec son chemin complet et son nom de fichier. Le scan retire de la base
+les fichiers vidéo qui n'existent plus sur le disque (et le film / la série lorsqu'il ne reste aucun fichier),
+et n'effectue aucune opération de déplacement, renommage ou suppression sur les fichiers du disque.
 
 Le statut et l'erreur de FFprobe sont conservés pour chaque fichier vidéo. Une erreur d'analyse ne bloque pas
 la création de l'entrée de catalogue. Les champs techniques supplémentaires (fréquence d'images, profondeur

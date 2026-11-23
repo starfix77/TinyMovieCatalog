@@ -610,19 +610,56 @@ def scan_library(db: Session, library: Library, progress_callback=None,
             errors.append(f"Erreur de scan '{video_path}': {exc}")
         if progress_callback:
             progress_callback(index, len(candidates), str(video_path))
-    # Les entrées absentes ne sont pas supprimées : elles restent récupérables si un
-    # disque réseau est temporairement indisponible ou si le fichier est déplacé.
+    # Fichiers disparus du disque : on les supprime de la base (puis le film / la serie
+    # s'il ne lui reste plus aucun fichier video) pour qu'ils ne s'affichent plus.
+    # Garde-fou : si le dossier racine est completement vide (disque reseau demonte,
+    # partage vide...), rien n'est supprime afin d'eviter de vider la base par erreur.
+    removed = 0
     discovered_paths = {str(item[0]) for item in candidates}
-    for video in (db.query(VideoFile).join(Movie).filter(Movie.library_id == library.id).all()):
-        if video.filepath not in discovered_paths and not Path(video.filepath).exists():
-            errors.append(f"Fichier vidéo devenu indisponible: {video.filepath}")
-            # Journal : signale une seule fois la disparition (l'entree reste en base).
+    try:
+        root_is_empty = next(root.iterdir(), None) is None
+    except OSError:
+        root_is_empty = True
+    if root_is_empty:
+        if db.query(VideoFile).join(Movie).filter(Movie.library_id == library.id).count():
+            errors.append("Dossier racine vide ou inaccessible : aucune suppression en base effectuée.")
+    else:
+        missing_videos = [
+            video
+            for video in db.query(VideoFile).join(Movie).filter(Movie.library_id == library.id).all()
+            if video.filepath not in discovered_paths and not Path(video.filepath).exists()
+        ]
+        touched_movies: dict[int, Movie] = {}
+        for video in missing_videos:
+            errors.append(f"Fichier vidéo supprimé du disque: {video.filepath}")
+            movie = video.movie
+            # Journal : signale une seule fois la suppression (avant l'effacement en base).
             if not journal.was_deleted(video.filepath):
                 journal.add_deleted(video)
+            if movie is not None:
+                touched_movies[movie.id] = movie
+                movie.video_files.remove(video)  # delete-orphan : supprime aussi les pistes audio
+            else:
+                db.delete(video)
+        db.flush()
+        for movie in touched_movies.values():
+            if not movie.video_files:
+                # Plus aucun fichier : le film / la serie disparait de la base
+                # (sous-titres et note associes supprimes en cascade).
+                db.delete(movie)
+                removed += 1
+            else:
+                # Sous-titres dont le fichier n'existe plus.
+                for subtitle in list(movie.subtitles):
+                    if not Path(subtitle.filepath).exists():
+                        movie.subtitles.remove(subtitle)
+                if not Path(movie.folder_path).exists():
+                    movie.folder_path = str(Path(movie.video_files[0].filepath).parent)
+        db.flush()
     library.last_scanned_at = datetime.utcnow()
     refresh_library_fs_stats(library)
     journal.write(compare_mode, structure_mode, max_depth)
     db.commit()
     errors.extend(backfill_vote_averages(db, library.id))
     return ScanResult(library_id=library.id, folders_scanned=folders_scanned,
-                      movies_added=added, movies_updated=updated, movies_removed=0, errors=errors)
+                      movies_added=added, movies_updated=updated, movies_removed=removed, errors=errors)
